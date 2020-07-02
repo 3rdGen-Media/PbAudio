@@ -1,0 +1,480 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C7AEB46D24A96BED0081D08A /* [Pb]Audio.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB46C24A96BED0081D08A /* [Pb]Audio.h */; };
+		C7AEB47624A96C750081D08A /* PbAudioStream.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB46E24A96C750081D08A /* PbAudioStream.h */; };
+		C7AEB47724A96C750081D08A /* PbAudioBufferList.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB46F24A96C750081D08A /* PbAudioBufferList.h */; };
+		C7AEB47824A96C750081D08A /* PbAudioCallbacks.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47024A96C750081D08A /* PbAudioCallbacks.h */; };
+		C7AEB47924A96C750081D08A /* PbAudioAPI.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47124A96C750081D08A /* PbAudioAPI.h */; };
+		C7AEB47A24A96C750081D08A /* PbAudioError.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47224A96C750081D08A /* PbAudioError.h */; };
+		C7AEB47B24A96C750081D08A /* PbAudioFormat.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47324A96C750081D08A /* PbAudioFormat.h */; };
+		C7AEB47C24A96C750081D08A /* PbAudioBufferStack.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47424A96C750081D08A /* PbAudioBufferStack.h */; };
+		C7AEB47D24A96C750081D08A /* PbAudioTime.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47524A96C750081D08A /* PbAudioTime.h */; };
+		C7AEB48624A96F370081D08A /* PbAudioStream.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48524A96F370081D08A /* PbAudioStream.c */; };
+		C7AEB48A24AD70590081D08A /* PbAudioAPI.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48924AD70590081D08A /* PbAudioAPI.c */; };
+		C7AEB48C24AD73880081D08A /* PBAAudioBufferList.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48B24AD73880081D08A /* PBAAudioBufferList.c */; };
+		C7AEB48D24AD76E70081D08A /* PBAAudioBufferList.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48B24AD73880081D08A /* PBAAudioBufferList.c */; };
+		C7AEB48E24AD76E70081D08A /* PbAudioAPI.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48924AD70590081D08A /* PbAudioAPI.c */; };
+		C7AEB48F24AD76E80081D08A /* PbAudioStream.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48524A96F370081D08A /* PbAudioStream.c */; };
+		C7AEB49124AD7BC10081D08A /* PbAudioTime.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49024AD7BC10081D08A /* PbAudioTime.c */; };
+		C7AEB49324AD7C3B0081D08A /* PbAudioError.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49224AD7C3B0081D08A /* PbAudioError.c */; };
+		C7AEB49524AD7D950081D08A /* PbAudioFormat.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49424AD7D950081D08A /* PbAudioFormat.c */; };
+		C7AEB49624AD82570081D08A /* PbAudioTime.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49024AD7BC10081D08A /* PbAudioTime.c */; };
+		C7AEB49724AD82570081D08A /* PbAudioFormat.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49424AD7D950081D08A /* PbAudioFormat.c */; };
+		C7AEB49824AD82840081D08A /* PbAudioError.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49224AD7C3B0081D08A /* PbAudioError.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C7FE40E824A96A8000FFE3E8 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		C7AEB46C24A96BED0081D08A /* [Pb]Audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "[Pb]Audio.h"; sourceTree = "<group>"; };
+		C7AEB46E24A96C750081D08A /* PbAudioStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioStream.h; sourceTree = "<group>"; };
+		C7AEB46F24A96C750081D08A /* PbAudioBufferList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioBufferList.h; sourceTree = "<group>"; };
+		C7AEB47024A96C750081D08A /* PbAudioCallbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioCallbacks.h; sourceTree = "<group>"; };
+		C7AEB47124A96C750081D08A /* PbAudioAPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioAPI.h; sourceTree = "<group>"; };
+		C7AEB47224A96C750081D08A /* PbAudioError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioError.h; sourceTree = "<group>"; };
+		C7AEB47324A96C750081D08A /* PbAudioFormat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioFormat.h; sourceTree = "<group>"; };
+		C7AEB47424A96C750081D08A /* PbAudioBufferStack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioBufferStack.h; sourceTree = "<group>"; };
+		C7AEB47524A96C750081D08A /* PbAudioTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioTime.h; sourceTree = "<group>"; };
+		C7AEB48524A96F370081D08A /* PbAudioStream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioStream.c; sourceTree = "<group>"; };
+		C7AEB48924AD70590081D08A /* PbAudioAPI.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioAPI.c; sourceTree = "<group>"; };
+		C7AEB48B24AD73880081D08A /* PBAAudioBufferList.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PBAAudioBufferList.c; sourceTree = "<group>"; };
+		C7AEB49024AD7BC10081D08A /* PbAudioTime.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioTime.c; sourceTree = "<group>"; };
+		C7AEB49224AD7C3B0081D08A /* PbAudioError.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioError.c; sourceTree = "<group>"; };
+		C7AEB49424AD7D950081D08A /* PbAudioFormat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioFormat.c; sourceTree = "<group>"; };
+		C7FE40DF24A96A4100FFE3E8 /* lib[Pb]Audio.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "lib[Pb]Audio.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C7FE40EA24A96A8000FFE3E8 /* lib[Pb]AudioiOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "lib[Pb]AudioiOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C7FE40DD24A96A4100FFE3E8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C7FE40E724A96A8000FFE3E8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C7AEB46B24A96BED0081D08A /* [Pb]Audio */ = {
+			isa = PBXGroup;
+			children = (
+				C7AEB46F24A96C750081D08A /* PbAudioBufferList.h */,
+				C7AEB48B24AD73880081D08A /* PBAAudioBufferList.c */,
+				C7AEB47424A96C750081D08A /* PbAudioBufferStack.h */,
+				C7AEB47024A96C750081D08A /* PbAudioCallbacks.h */,
+				C7AEB47124A96C750081D08A /* PbAudioAPI.h */,
+				C7AEB48924AD70590081D08A /* PbAudioAPI.c */,
+				C7AEB47224A96C750081D08A /* PbAudioError.h */,
+				C7AEB49224AD7C3B0081D08A /* PbAudioError.c */,
+				C7AEB47324A96C750081D08A /* PbAudioFormat.h */,
+				C7AEB49424AD7D950081D08A /* PbAudioFormat.c */,
+				C7AEB47524A96C750081D08A /* PbAudioTime.h */,
+				C7AEB49024AD7BC10081D08A /* PbAudioTime.c */,
+				C7AEB46E24A96C750081D08A /* PbAudioStream.h */,
+				C7AEB48524A96F370081D08A /* PbAudioStream.c */,
+			);
+			path = "[Pb]Audio";
+			sourceTree = "<group>";
+		};
+		C7FE40D624A96A4100FFE3E8 = {
+			isa = PBXGroup;
+			children = (
+				C7AEB46C24A96BED0081D08A /* [Pb]Audio.h */,
+				C7AEB46B24A96BED0081D08A /* [Pb]Audio */,
+				C7FE40E024A96A4100FFE3E8 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C7FE40E024A96A4100FFE3E8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C7FE40DF24A96A4100FFE3E8 /* lib[Pb]Audio.a */,
+				C7FE40EA24A96A8000FFE3E8 /* lib[Pb]AudioiOS.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		C7FE40DB24A96A4100FFE3E8 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C7AEB47A24A96C750081D08A /* PbAudioError.h in Headers */,
+				C7AEB47D24A96C750081D08A /* PbAudioTime.h in Headers */,
+				C7AEB47824A96C750081D08A /* PbAudioCallbacks.h in Headers */,
+				C7AEB47924A96C750081D08A /* PbAudioAPI.h in Headers */,
+				C7AEB46D24A96BED0081D08A /* [Pb]Audio.h in Headers */,
+				C7AEB47B24A96C750081D08A /* PbAudioFormat.h in Headers */,
+				C7AEB47724A96C750081D08A /* PbAudioBufferList.h in Headers */,
+				C7AEB47C24A96C750081D08A /* PbAudioBufferStack.h in Headers */,
+				C7AEB47624A96C750081D08A /* PbAudioStream.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		C7FE40DE24A96A4100FFE3E8 /* [Pb]Audio */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C7FE40E324A96A4100FFE3E8 /* Build configuration list for PBXNativeTarget "[Pb]Audio" */;
+			buildPhases = (
+				C7FE40DB24A96A4100FFE3E8 /* Headers */,
+				C7FE40DC24A96A4100FFE3E8 /* Sources */,
+				C7FE40DD24A96A4100FFE3E8 /* Frameworks */,
+				C7AEB47F24A96E580081D08A /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "[Pb]Audio";
+			productName = "[Pb]Audio";
+			productReference = C7FE40DF24A96A4100FFE3E8 /* lib[Pb]Audio.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		C7FE40E924A96A8000FFE3E8 /* [Pb]AudioiOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C7FE40F024A96A8000FFE3E8 /* Build configuration list for PBXNativeTarget "[Pb]AudioiOS" */;
+			buildPhases = (
+				C7FE40E624A96A8000FFE3E8 /* Sources */,
+				C7FE40E724A96A8000FFE3E8 /* Frameworks */,
+				C7FE40E824A96A8000FFE3E8 /* CopyFiles */,
+				C7AEB47E24A96DF10081D08A /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "[Pb]AudioiOS";
+			productName = "[Pb]Audio iOS";
+			productReference = C7FE40EA24A96A8000FFE3E8 /* lib[Pb]AudioiOS.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C7FE40D724A96A4100FFE3E8 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1140;
+				ORGANIZATIONNAME = "3rdGen Multimedia";
+				TargetAttributes = {
+					C7FE40DE24A96A4100FFE3E8 = {
+						CreatedOnToolsVersion = 11.4.1;
+					};
+					C7FE40E924A96A8000FFE3E8 = {
+						CreatedOnToolsVersion = 11.4.1;
+					};
+				};
+			};
+			buildConfigurationList = C7FE40DA24A96A4100FFE3E8 /* Build configuration list for PBXProject "[Pb]Audio" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = C7FE40D624A96A4100FFE3E8;
+			productRefGroup = C7FE40E024A96A4100FFE3E8 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C7FE40DE24A96A4100FFE3E8 /* [Pb]Audio */,
+				C7FE40E924A96A8000FFE3E8 /* [Pb]AudioiOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C7AEB47E24A96DF10081D08A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\n\ncp -rvf ./[Pb]Audio/\\PbAudioTime.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFormat.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioError.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
+		};
+		C7AEB47F24A96E580081D08A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\n\ncp -rvf ./[Pb]Audio/\\PbAudioTime.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFormat.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioError.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C7FE40DC24A96A4100FFE3E8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C7AEB48624A96F370081D08A /* PbAudioStream.c in Sources */,
+				C7AEB49124AD7BC10081D08A /* PbAudioTime.c in Sources */,
+				C7AEB48A24AD70590081D08A /* PbAudioAPI.c in Sources */,
+				C7AEB49324AD7C3B0081D08A /* PbAudioError.c in Sources */,
+				C7AEB48C24AD73880081D08A /* PBAAudioBufferList.c in Sources */,
+				C7AEB49524AD7D950081D08A /* PbAudioFormat.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C7FE40E624A96A8000FFE3E8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C7AEB49824AD82840081D08A /* PbAudioError.c in Sources */,
+				C7AEB49624AD82570081D08A /* PbAudioTime.c in Sources */,
+				C7AEB49724AD82570081D08A /* PbAudioFormat.c in Sources */,
+				C7AEB48D24AD76E70081D08A /* PBAAudioBufferList.c in Sources */,
+				C7AEB48E24AD76E70081D08A /* PbAudioAPI.c in Sources */,
+				C7AEB48F24AD76E80081D08A /* PbAudioStream.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		C7FE40E124A96A4100FFE3E8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		C7FE40E224A96A4100FFE3E8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		C7FE40E424A96A4100FFE3E8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ECP6D49SS3;
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = gnu89;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		C7FE40E524A96A4100FFE3E8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ECP6D49SS3;
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = gnu89;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		C7FE40F124A96A8000FFE3E8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ECP6D49SS3;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C7FE40F224A96A8000FFE3E8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ECP6D49SS3;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C7FE40DA24A96A4100FFE3E8 /* Build configuration list for PBXProject "[Pb]Audio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C7FE40E124A96A4100FFE3E8 /* Debug */,
+				C7FE40E224A96A4100FFE3E8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C7FE40E324A96A4100FFE3E8 /* Build configuration list for PBXNativeTarget "[Pb]Audio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C7FE40E424A96A4100FFE3E8 /* Debug */,
+				C7FE40E524A96A4100FFE3E8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C7FE40F024A96A8000FFE3E8 /* Build configuration list for PBXNativeTarget "[Pb]AudioiOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C7FE40F124A96A8000FFE3E8 /* Debug */,
+				C7FE40F224A96A8000FFE3E8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C7FE40D724A96A4100FFE3E8 /* Project object */;
+}

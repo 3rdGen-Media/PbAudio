@@ -1,6 +1,6 @@
 # [Pb]Audio
 
-[Physics-based] Audio is a cross-platform pure C library for establishing and producing to real-time hardware audio streams in stereo and 3D environment contexts.  [Pb]Audio aims to implement the following non-standard features for all supported platforms:
+[Physics-based] Audio is a cross-platform pure C library for establishing and producing to lowest-possible-latency audio stream buffers intended for Pro Audio mixing/rendering contexts, 3D environment mixing/rendering contexts and pipeline combinations thereof to stereo and multiple output audio hardware devices.  [Pb]Audio aims to implement the following non-standard features for all supported platforms:
 
 * To Be Written
 

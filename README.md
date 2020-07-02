@@ -1,6 +1,6 @@
 # [Pb]Audio
 
-[Physics-based] Audio is a cross-platform pure C library for establishing and producing to real-time hardware  from persistent TCP socket client connections secured with SSL/TLS.  CoreTransport aims to implement the following non-standard features for all supported platforms:
+[Physics-based] Audio is a cross-platform pure C library for establishing and producing to real-time hardware audio streams in stereo and 3D environment contexts.  [Pb]Audio aims to implement the following non-standard features for all supported platforms:
 
 * To Be Written
 

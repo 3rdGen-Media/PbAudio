@@ -10,6 +10,7 @@
 
 PB_AUDIO_EXTERN const PBATimeStamp PBATimeStampNone = {0};
 
+#ifdef __APPLE__
 PB_AUDIO_API PB_AUDIO_INLINE void PBATimeInit(void) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -39,3 +40,4 @@ PB_AUDIO_API PB_AUDIO_INLINE uint64_t PBAHostTicksFromSeconds(double seconds) {
     assert(seconds >= 0);
     return round(seconds * __secondsToHostTicks);
 }
+#endif

@@ -9,7 +9,6 @@
 #ifndef pbaudio_format_h
 #define pbaudio_format_h
 
-#import <AudioToolbox/AudioToolbox.h>
 #include "PbAudioError.h"
 /*!
  * The audio description used throughout TAAE
@@ -19,8 +18,26 @@
 //AudioStreamBasicDescription
 //This structure encapsulates all the information for describing the basic
 //format properties of a stream of audio data.
-typedef AudioStreamBasicDescription PBAStreamFormat;
 
+#ifdef __APPLE__
+#import <AudioToolbox/AudioToolbox.h>
+typedef AudioStreamBasicDescription PBAStreamFormat;
+typedef AudioComponentDescription	PBAComponentDescription;
+#elif defined(_WIN32)
+#include <mfapi.h>
+#include <mmdeviceapi.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
+
+#pragma comment(lib, "mfreadwrite.lib")
+#pragma comment(lib, "mfplat.lib")
+#pragma comment(lib, "mfuuid.lib")
+//#pragma comment(lib, "mfapi.lib")
+
+#pragma comment(lib, "avrt.lib")
+
+typedef WAVEFORMATEX PBAStreamFormat;
+#endif
 //By default on Darwin platforms, we will request a 32-bit floating point non-interleaved linear PCM stereo Format
 //On WIN32 all formats are interleaved by default?
 PB_AUDIO_EXTERN PBAStreamFormat const _audioFormat;
@@ -28,10 +45,15 @@ PB_AUDIO_EXTERN PBAStreamFormat const _audioFormat;
 
 static PBAStreamFormat PBAStreamFormatWithChannelsAndRate(int channels, double rate)
 {
-    PBAStreamFormat description = _audioFormat;
+	PBAStreamFormat description = _audioFormat;
+#ifdef __APPLE__
     description.mChannelsPerFrame = channels;
     description.mSampleRate = rate;
-    return description;
+#elif defined(_WIN32)
+	description.nChannels = channels;
+	description.nSamplesPerSec = (DWORD)rate;
+#endif
+	return description;
 }
 
 
@@ -42,7 +64,7 @@ static PBAStreamFormat PBAStreamFormatWithChannelsAndRate(int channels, double r
 
 
 
-
+#ifdef __APPLE__
 //AudioComponentDescription
 //A structure used to describe the unique and identifying IDs of an audio component
 static AudioComponentDescription AEAudioComponentDescriptionMake(OSType manufacturer, OSType type, OSType subtype) {
@@ -53,5 +75,6 @@ static AudioComponentDescription AEAudioComponentDescriptionMake(OSType manufact
     description.componentSubType = subtype;
     return description;
 }
+#endif
 
 #endif /* pbaudio_format_h */

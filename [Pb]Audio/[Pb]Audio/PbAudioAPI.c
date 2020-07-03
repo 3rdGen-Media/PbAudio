@@ -8,8 +8,124 @@
 
 #include "../[Pb]Audio.h"
 
+static int PBAInitAudioStreamWithFormat(PBAStreamContext *clientStream, WAVEFORMATEX * streamFormat, AUDCLNT_SHAREMODE shareMode)
+{
+	HRESULT hr;
+	double devicePeriodInSeconds;
+	UINT32 FramesPerPeriod;
 
-OSStatus PBAInitAudioStream(PBAStreamContext * streamContext)
+	UINT32 bufferFrameCount;
+
+	 REFERENCE_TIME defaultDevicePeriod = 0;
+	 REFERENCE_TIME minDevicePeriod = 0;
+
+	REFERENCE_TIME hnsRequestedDuration = 0;
+	//REFERENCE_TIME hnsActualDuration = 0;
+
+
+
+	//if exclusive mode, we can explicitly request the format we want the audioi client ot use for processing
+	//hr = GetAudioClientStreamFormat(pAudioClient, shareMode, fileFormatEx, &pwfx);
+	//	if (FAILED(hr)) { printf("**** Error 0x%x returned by GetAudioClientStreamFormat\n", hr); return -1; }
+
+
+
+
+	//For shared mode you should pass in zero for the periodicity value (you can then retrieve the periodicity value used by the audio engine from IAudioClient::GetDevicePeriod). 
+    // For exclusive mode, Initialize the stream to play at the minimum latency (by requesting the device period it is already using?).
+	//So for both modes we will just get the device period before calling Initialize
+	//hr = clientStream->audioClient->GetDevicePeriod(&defaultDevicePeriod, &minDevicePeriod);
+    hr = CALL(GetDevicePeriod, clientStream->audioClient, &defaultDevicePeriod, &minDevicePeriod);
+	if (FAILED(hr)) { printf("**** Error 0x%x returned by GetDevicePeriod\n", hr); return -1; }
+
+	printf("Device Default Period size = %u\n", defaultDevicePeriod);
+	printf("Device Minimum Period size = %u\n", minDevicePeriod);
+	
+	//double desiredDuration = (128. / (double)pwfx->nSamplesPerSec);
+	//hnsRequestedDuration = (REFERENCE_TIME)(desiredDuration * (double)REFTIMES_PER_SEC);
+
+	//convert period to frames
+	devicePeriodInSeconds = defaultDevicePeriod / (10000.0*1000.0);
+    //printf("Device Period (s) = %g s\n", devicePeriodInSeconds );
+	
+	FramesPerPeriod  = (UINT32)( streamFormat->nSamplesPerSec * devicePeriodInSeconds + 0.5 );
+	printf("Frames per Period = %u\n", FramesPerPeriod);
+	
+	//IMPORTANT!
+	//For exclusive mode Streams we ask Initialize for a desired duration equal to the minimum period of the device for minimum latency	
+	if( shareMode == AUDCLNT_SHAREMODE_EXCLUSIVE)
+		hnsRequestedDuration = minDevicePeriod;//defaultDevicePeriod * 100;
+	else //For shared mode Streams we ask Initialize for a desired duration and a mininum period value of 0
+		hnsRequestedDuration =   0; //there are 10 million 100 ns increments in a 1 second
+
+	printf("Requested Duration = %u\n", hnsRequestedDuration);
+
+	//Initialize the audio client for streaming playback in the desired shared mode
+	//For simplicity, the buffer size and periodicity arguments to Initializeshould be the same. 
+	//This means that each audio engine pass processes one buffer length (which is required for event driven mode anyway).
+	//Passing null as the last parameter will create a default audio session and add this stream to it
+    //hr = clientStream->audioClient->Initialize( shareMode, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, hnsRequestedDuration, hnsRequestedDuration, streamFormat, NULL);
+    hr = CALL(Initialize, clientStream->audioClient, shareMode, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, hnsRequestedDuration, hnsRequestedDuration, streamFormat, NULL);
+	while (hr == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED) 
+	{ 
+		//UINT32 nFrames = 0;
+		REFERENCE_TIME alignedBufferSize;
+		//hr = clientStream->audioClient->GetBufferSize(&bufferFrameCount);
+		hr = CALL(GetBufferSize, clientStream->audioClient, &bufferFrameCount);
+		if (hr != S_OK) { printf("**** Error 0x%x returned by GetBufferSize\n", hr); return -1; }
+		//bufferFrameCount = bufferFrameCount / pwfx->nChannels;
+		printf("reinitialize bufferFrameCount = %u\n", bufferFrameCount);
+
+		// Calculate period that would equal to the duration of proposed buffer size 
+		alignedBufferSize = (REFERENCE_TIME) (1e7 * (double)bufferFrameCount / (double)(streamFormat->nSamplesPerSec) + 0.5);
+		hnsRequestedDuration = alignedBufferSize;
+		//hr = clientStream->audioClient->Initialize(shareMode, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, alignedBufferSize, alignedBufferSize, streamFormat, NULL); 
+		hr = CALL(Initialize, clientStream->audioClient, shareMode, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, alignedBufferSize, alignedBufferSize, streamFormat, NULL);
+	
+	} 
+	
+	if (hr != S_OK) { printf("**** Error 0x%x returned by Initialize\n", hr); return -1; }
+	assert (hr != AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED);
+
+
+	// Tell the audio source which format to use.
+    //hr = pMySource->SetFormat(pwfx);
+    //if (FAILED(hr)) { printf("**** Error 0x%x returned by Initialize\n", hr); return -1; }
+
+	 // Get the actual size of the two allocated buffers.
+	//In shared mode, we are slaved to the buffer size that is being used for the mix so we must use this value
+	//In Exclusive Mode...?
+    //hr = clientStream->audioClient->GetBufferSize(&bufferFrameCount);
+    hr = CALL(GetBufferSize, clientStream->audioClient, &(clientStream->bufferFrameCount));
+	clientStream->bufferFrameCount = clientStream->bufferFrameCount/2;
+	if (hr != S_OK) { printf("**** Error 0x%x returned by GetBufferSize\n", hr); return -1; }
+	
+	//create the render client for the stream
+	//hr = clientStream->audioClient->GetService(IID_IAudioRenderClient,(void**)&(clientStream->renderClient));
+    hr = CALL(GetService, clientStream->audioClient, __riid(IAudioRenderClient), (void**)&(clientStream->renderClient));
+	if (FAILED(hr)) { printf("**** Error 0x%x returned by GetService\n", hr); return -1; }
+
+	clientStream->currentSampleRate = clientStream->sampleRate = streamFormat->nSamplesPerSec;
+	clientStream->format = *streamFormat;
+	clientStream->devicePeriod = hnsRequestedDuration;
+
+	return (int)clientStream->bufferFrameCount;
+}
+
+
+static void print_waveformat_details(WAVEFORMATEX * waveformatEX)
+{
+	printf("wFormatTag = %hu\n", waveformatEX->wFormatTag);
+	printf("nChannels = %hu\n", waveformatEX->nChannels);
+	printf("nSamplesPerSec = %d\n", waveformatEX->nSamplesPerSec);
+	printf("nAvgBytesPerSec = %d\n", waveformatEX->nAvgBytesPerSec);
+	printf("nBlockAlign = %hu\n", waveformatEX->nBlockAlign);
+	printf("wBitsPerSample = %hu\n", waveformatEX->wBitsPerSample);
+	printf("cbSize = %hu\n", waveformatEX->cbSize);
+
+}
+
+OSStatus PBAInitAudioStream(PBAStreamContext * streamContext, PBAStreamFormat * format)
 {
 #ifdef __APPLE__
         // Get an instance of the output audio unit
@@ -208,6 +324,50 @@ OSStatus PBAInitAudioStream(PBAStreamContext * streamContext)
         //[[NSNotificationCenter defaultCenter] postNotificationName:AEIOAudioUnitDidSetupNotification object:self];
         
         return result;
+#elif defined(_WIN32)
+
+	HRESULT hr;
+	WAVEFORMATEX * pwfx = format;
+	//(because 32-bit buffers are not supported by the hw device itself)
+    //TO DO:  enumerate the modes to choose from
+
+	//If we passed a format as input, we wish to use an exclusive mode
+	if( pwfx ) //streamContext->shareMode == AUDCLNT_SHAREMODE_EXCLUSIVE )
+	{
+		streamContext->shareMode = AUDCLNT_SHAREMODE_EXCLUSIVE;
+	}
+	else
+	{
+		//Automatically get the format currently being used by the AudioClient for buffer processing if using shared mode
+		//The mix format is usually 32-bit floating point format, which may not be supported in an exclusive stream mode 
+	
+		//if shared mode, get the format that is already being used by the audio client
+		//hr = _PBAMasterStream.audioClient->GetMixFormat( &pwfx );
+		hr = CALL(GetMixFormat, streamContext->audioClient, &pwfx);
+		if (FAILED(hr)) { printf("**** Error 0x%x returned by GetMixFormat\n", hr); return -1; }
+		print_waveformat_details(pwfx);
+		streamContext->shareMode = AUDCLNT_SHAREMODE_SHARED;
+
+	}
+		
+	streamContext->bufferFrameCount = (UINT32)PBAInitAudioStreamWithFormat(streamContext, pwfx, streamContext->shareMode);
+	
+	//Observe buffer size in samples
+	//TO DO:  check return value for init error
+	//bufferFrameCount = bufferFrameCount / 2;//pwfx->nChannels;
+	printf("bufferSizeInSamples = %u\n", streamContext->bufferFrameCount );
+
+    // Create a platform event handle and register it for
+    // buffer-event notifications.
+    streamContext->hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    if (streamContext->hEvent == NULL) { printf("**** Create Event Failed\n", hr); return -1; }
+
+	// Associate the platform event handle with the stream callback to populate the buffer
+    //hr = _PBAMasterStream.audioClient->SetEventHandle(_PBAMasterStream.hEvent);
+    hr = CALL(SetEventHandle, streamContext->audioClient, streamContext->hEvent);
+	if (FAILED(hr)) { printf("**** Error 0x%x returned by SetEventHandle\n", hr); return -1; }
+
+
 #endif
     
 }
@@ -268,6 +428,129 @@ OSStatus PBAStartAudioStream(PBAStreamContext * streamContext)
     streamContext->running = true;
     
     return result;
+#elif defined(_WIN32)
+
+	HRESULT hr;
+	DWORD flags = 0;
+
+	//Task is used to elevate thread to ProAudio Latency
+	HANDLE hTask = NULL;
+	DWORD taskIndex = 0;	
+	//PBAStreamContext * clientStream = (PBAStreamContext*)stream;
+	
+	char * buffer = NULL;
+	
+	//for render callback
+	PBABuffer interleavedBuffer = { streamContext->format.nChannels, streamContext->format.wBitsPerSample/8, NULL};
+	PBABufferList bufferList = {1, &interleavedBuffer};
+
+	HANDLE threadID;
+	threadID = GetCurrentThread();
+	SetThreadPriority(threadID, THREAD_PRIORITY_TIME_CRITICAL);
+
+	 // Ask MMCSS to temporarily boost the thread priority
+    // to reduce glitches while the low-latency stream plays.
+    taskIndex = 0;
+    hTask = AvSetMmThreadCharacteristics(TEXT("Pro Audio"), &taskIndex);
+    if (hTask == NULL)
+    {
+        hr = E_FAIL;
+		printf("**** AvSetMmThreadCharacteristics (Pro Audio) failed!\n"); return -1;    
+	}
+
+   
+    //hr = clientStream->audioClient->Start();  // Start playing (ie start the device io callback).
+	hr = CALL(Start, streamContext->audioClient);
+    if (FAILED(hr)) { printf("**** Error 0x%x returned by Start (pAudioClient)\n", hr); return -1; }
+
+	//RENDER LOOP
+	hr = S_OK;
+	
+	//Start the render loop that waits for the event to trigger
+	// Each loop fills one of the two buffers.
+	//TO DO:  Can we eliminate the loop altogether and just have the callback trigger when the event does?
+    while ( flags != AUDCLNT_BUFFERFLAGS_SILENT)
+    {
+	    // Wait for next buffer event to be signaled.
+        DWORD retval = WaitForSingleObject(streamContext->hEvent, 2000);
+        if (retval != WAIT_OBJECT_0)
+        {
+            // Event handle timed out after a 2-second wait.
+            //hr = clientStream->audioClient->Stop();
+            hr = CALL(Stop, streamContext->audioClient);
+			hr = ERROR_TIMEOUT;
+			break;
+		}
+
+		//printf("Requesting %d buffer samples...\n", clientStream->bufferFrameCount);
+
+		// Grab the next empty buffer from the audio device.
+	    //hr = clientStream->renderClient->GetBuffer(clientStream->bufferFrameCount, &pData);
+		hr = CALL(GetBuffer, streamContext->renderClient, streamContext->bufferFrameCount, &((BYTE*)(interleavedBuffer.mData)) );
+	
+		//BUFFER_TOO_LARGE actually means we are asking the audio client for more buffer space than is currently available!
+		//Microsoft loves to leave this cryptic little holes in their sample code demonstrating their APIs
+		if( hr == AUDCLNT_E_BUFFER_TOO_LARGE ) { continue; } ;
+        if (FAILED(hr)) { printf("**** Error 0x%x returned by GetBuffer\n", hr); break; }
+
+		//Calculate the frames available (only if we choose to render to a portion of the buffer at a time in shared mode)
+		//FramesAvailable = 0;
+		//PaddingFrames = 0;
+		// Get padding in existing buffer
+		//hr = pAudioClient->GetCurrentPadding( &PaddingFrames );
+        //if (FAILED(hr)) { printf("**** Error 0x%x returned by GetCurrentPadding\n", hr); break; }
+		//printf("Current padding = %d\n", PaddingFrames);
+
+		// In HW mode, GetCurrentPadding returns the number of available frames in the 
+		// buffer, so we can just use that directly
+		//if (m_DeviceProps.IsHWOffload) FramesAvailable = PaddingFrames;
+		// In non-HW shared mode, GetCurrentPadding represents the number of queued frames
+		// so we can subtract that from the overall number of frames we have
+		//else
+		//	FramesAvailable = bufferFrameCount - PaddingFrames;
+
+		//Package the buffer as a PBABufferList
+		//interleavedBuffer.mData = clientStream->pData;
+		//PBABufferList bufferList;
+
+		//Execute the client render callback
+		streamContext->renderCallback(&bufferList, streamContext->bufferFrameCount, NULL);
+
+		//Release the buffer to send it down the audio pipeline for device playback
+		//hr = clientStream->renderClient->ReleaseBuffer(clientStream->bufferFrameCount, flags);
+	    hr = CALL(ReleaseBuffer, streamContext->renderClient, streamContext->bufferFrameCount, flags);
+		if (FAILED(hr)) { printf("**** Error 0x%x returned by ReleaseBuffer\n", hr); break; }
+		//pData = NULL;
+	}
+
+	
+	/*
+    // Wait for the last buffer to play before stopping.
+	Sleep(2000);
+	//if( hr = S_OK) 
+	//	Sleep(1000);
+
+    //hr = clientStream->audioClient->Stop();  // Stop playing.
+	hr = CALL(Stop, clientStream->audioClient);
+	if (FAILED(hr)) { printf("**** Error 0x%x returned by Stop (pAudioClient)\n", hr); }
+
+	//Cleanup Motherfucker!
+
+		if (clientStream->hEvent != NULL)
+		{
+			CloseHandle(clientStream->hEvent);
+		}
+		if (hTask != NULL)
+		{
+			AvRevertMmThreadCharacteristics(hTask);
+		}
+		//CoTaskMemFree(pwfx);
+		PBA_COM_RELEASE(_PBADeviceEnumerator)
+		PBA_COM_RELEASE(clientStream->audioDevice)
+		PBA_COM_RELEASE(clientStream->audioClient)
+		PBA_COM_RELEASE(clientStream->renderClient)
+	*/
+
 #endif
     
 }

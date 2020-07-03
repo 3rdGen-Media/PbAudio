@@ -10,6 +10,7 @@
 
 PB_AUDIO_API PB_AUDIO_INLINE void PBAError(OSStatus result, const char * _Nonnull operation, const char * _Nonnull file, int line)
 {
+#ifdef __APPLE__
     if ( PBARateLimit() ) {
         int fourCC = CFSwapInt32HostToBig(result);
         if ( isascii(((char*)&fourCC)[0]) && isascii(((char*)&fourCC)[1]) && isascii(((char*)&fourCC)[2]) ) {
@@ -18,4 +19,6 @@ PB_AUDIO_API PB_AUDIO_INLINE void PBAError(OSStatus result, const char * _Nonnul
             printf("%s:%d: %s: %d", file, line, operation, (int)result);
         }
     }
+#endif
+
 }

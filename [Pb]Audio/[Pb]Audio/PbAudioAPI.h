@@ -17,7 +17,10 @@
 //uint32_t g_sineBufferChannels;
 //uint64_t g_playbackSampleOffset = 0;
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAInitAudioStream(PBAStreamContext * streamContext);
+
+//On Win32, if format is NULL, it will create a shared mode device stream (which usually gives a 32-bit floating point format)
+//On Darwin, if format is NULL, it will create a device stream with a 32-bit floating point format
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAInitAudioStream(PBAStreamContext * streamContext, PBAStreamFormat * format);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAStartAudioStream(PBAStreamContext * streamContext);
 
 

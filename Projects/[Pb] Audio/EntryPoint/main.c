@@ -294,7 +294,7 @@ static void GenerateSineSamplesFloat(float **Buffer, size_t BufferLengthInSample
     
 }
 
-
+#ifdef _WIN32
 int PBAInitCOM()
 {
 	//CoIntialize(Ex) Initializes the COM library for use by the calling thread, sets the thread's concurrency model, and creates a new apartment for the thread if one is required.
@@ -332,8 +332,6 @@ int PBAActivateAudioDevice(IMMDevice * device, IAudioClient2 ** audioClient)
 	if (FAILED(hr)) { printf("**** Error 0x%x returned by Activate\n", hr); return -1; }
 	return 0;
 }
-
-
 
 typedef union fourByteInt
 {
@@ -560,9 +558,13 @@ static unsigned int __stdcall pbaudio_stream_render(void * stream)
 
 	return 0;
 }
+#endif
 
+#ifndef __APPLE__
 void PBAMasterRenderCallback(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp)
-//^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp) {
+#else
+PBAIOAudioUnitRenderClosure PBAMasterRenderCallback = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp)
+#endif
 {
 	//UINT64 playbackSampleOffset = 0;
 	uint32_t samplesToCopy = 0;
@@ -666,14 +668,12 @@ void PBAMasterRenderCallback(struct PBABufferList * ioData, uint32_t frames, con
 	//} else {
 		//PBABufferListSilence(ioData, 0, frames);
 	//}
- }//;
+ };
 
  
 int main(int argc, const char * argv[]) {
  
 	//HRESULT hr;
-	WAVEFORMATEX desiredStreamFormat;// = NULL;		//stream buffer format
-
 	//cr_sound_event audioEvent = {0};
 
 	//Source Buffer
@@ -681,6 +681,10 @@ int main(int argc, const char * argv[]) {
     uint64_t renderDataLenghtInSamples;
 
 	//Process and Thread Handles
+    //TO DO: make this more xplatform
+#ifdef _WIN32
+    WAVEFORMATEX desiredStreamFormat;// = NULL;        //stream buffer format
+
 	HANDLE pID = 0;
 	HANDLE threadID;
 
@@ -689,7 +693,7 @@ int main(int argc, const char * argv[]) {
 	threadID = GetCurrentThread();
 	SetPriorityClass(pID, REALTIME_PRIORITY_CLASS);
 	SetThreadPriority(threadID, THREAD_PRIORITY_TIME_CRITICAL);
-	
+#endif
     
    /***
     * 0     Do any necessary platform initializations
@@ -736,7 +740,7 @@ int main(int argc, const char * argv[]) {
 	Frequency = 440;
     renderDataLenghtInSamples = (uint64_t)_PBAMasterStream.currentSampleRate * 5;
 	g_sineBufferLengthInSamples = g_sourceBufferLengthInSamples = renderDataLenghtInSamples;
-	g_sineBufferChannels = g_sourceBufferChannels = 2;
+	g_sineBufferChannels = g_sourceBufferChannels = 1;
 	//Initialize a 32-bit floating point sine wave buffer
     GenerateSineSamplesFloat(&g_sineWaveBuffer, g_sineBufferLengthInSamples, Frequency, g_sineBufferChannels, _PBAMasterStream.currentSampleRate, 0.25f, NULL);
     

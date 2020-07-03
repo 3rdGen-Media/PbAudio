@@ -7,14 +7,18 @@
 //
 
 #include "../[Pb]Audio.h"
+#import <AudioToolbox/AudioToolbox.h>
 
 #ifndef MIN
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #endif
 
+#ifdef _WIN32
 IMMDeviceEnumerator *_PBADeviceEnumerator = NULL;
-PBAStreamContext g_renderContext;// = {0};
+#endif
+
+PBAStreamContext _PBAMasterStream;// = {0};
 
 #ifdef __APPLE__
 void PBAUpdateStreamFormat(PBAStreamContext * streamContext)
@@ -37,8 +41,7 @@ void PBAUpdateStreamFormat(PBAStreamContext * streamContext)
         if ( PBACheckOSStatus(AudioUnitGetProperty(streamContext->audioUnit, kAudioOutputUnitProperty_NodeComponentDescription, kAudioUnitScope_Global, 0, &componentDescription, &size), "AudioUnitGetProperty(kAudioOutputUnitProperty_NodeComponentDescription)") )
         {
             iaaOutput = YES;
-            iaaInput = componentDescription.componentType == kAudioUnitType_RemoteEffect
-                || componentDescription.componentType == kAudioUnitType_RemoteMusicEffect;
+            iaaInput = componentDescription.componentType == kAudioUnitType_RemoteEffect || componentDescription.componentType == kAudioUnitType_RemoteMusicEffect;
         }
     }
 #endif

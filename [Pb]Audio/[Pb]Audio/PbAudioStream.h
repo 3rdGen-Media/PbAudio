@@ -33,6 +33,26 @@ typedef AudioBufferList PBABufferList;
 #elif defined(_WIN32)
 //WSAPI
 #include <AudioClient.h>
+#define CALL(method, object, ... )  (object->lpVtbl->method(object, ##__VA_ARGS__))
+#define __riid(x) (REFIID)(&_IID_ ## x)
+#define __clsid(x) (REFIID)(&_CLSID_ ## x)
+
+
+//For CoCreateInstance to obtain Device Enumerator
+static const IID _IID_IMMDeviceEnumerator = { 0xa95664d2, 0x9614, 0x4f35, { 0xa7, 0x46, 0xde, 0x8d, 0xb6, 0x36, 0x17, 0xe6 } };
+//A95664D2-9614-4F35-A746-DE8DB63617E6
+static const IID _CLSID_MMDeviceEnumerator = { 0xbcde0395, 0xe52f, 0x467c, {0x8e, 0x3d, 0xc4, 0x57, 0x92, 0x91, 0x69, 0x2E }};
+
+//For AudioClient and RenderClient
+//1CB9AD4C-DBFA-4c32-B178-C2F568A703B2
+static const IID _IID_IAudioClient = { 0x1cb9ad4c, 0xdbfa, 0x4c32, { 0xb1,0x78,0xc2,0xf5,0x68,0xa7,0x03,0xb2 } };
+static const IID _IID_IAudioClient2 = { 0x726778cd, 0xf60a, 0x4eda,{ 0x82,0xde,0xe4,0x76,0x10,0xcd,0x78,0xaa } };
+//7ED4EE07-8E67-4CD4-8C1A-2B7A5987AD42
+static const IID _IID_IAudioClient3 = { 0x7ed4ee07, 0x8e67, 0x4cd4,{ 0x8c,0x1a,0x2b,0x7a,0x59,0x87,0xad,0x42 } };
+
+//F294ACFC-3146-4483-A7BF-ADDCA7C260E2
+static const IID _IID_IAudioRenderClient = { 0xF294ACFC, 0x3146, 0x4483,{ 0xa7,0xbf,0xad,0xdc,0xa7,0xc2,0x60,0xe2 } };
+
 #endif
 
 //We expose a global handle for each OS that can be used to create Stream
@@ -94,26 +114,6 @@ typedef struct {
 } AERenderContext;
 */
 
-#include <Audioclient.h>
-#define CALL(method, object, ... )  (object->lpVtbl->method(object, ##__VA_ARGS__))
-#define __riid(x) (REFIID)(&_IID_ ## x)
-#define __clsid(x) (REFIID)(&_CLSID_ ## x)
-
-//For CoCreateInstance to obtain Device Enumerator
-static const IID _IID_IMMDeviceEnumerator = { 0xa95664d2, 0x9614, 0x4f35, { 0xa7, 0x46, 0xde, 0x8d, 0xb6, 0x36, 0x17, 0xe6 } };
-//A95664D2-9614-4F35-A746-DE8DB63617E6
-static const IID _CLSID_MMDeviceEnumerator = { 0xbcde0395, 0xe52f, 0x467c, {0x8e, 0x3d, 0xc4, 0x57, 0x92, 0x91, 0x69, 0x2E }};
-
-//For AudioClient and RenderClient
-//1CB9AD4C-DBFA-4c32-B178-C2F568A703B2
-static const IID _IID_IAudioClient = { 0x1cb9ad4c, 0xdbfa, 0x4c32, { 0xb1,0x78,0xc2,0xf5,0x68,0xa7,0x03,0xb2 } };
-static const IID _IID_IAudioClient2 = { 0x726778cd, 0xf60a, 0x4eda,{ 0x82,0xde,0xe4,0x76,0x10,0xcd,0x78,0xaa } };
-//7ED4EE07-8E67-4CD4-8C1A-2B7A5987AD42
-static const IID _IID_IAudioClient3 = { 0x7ed4ee07, 0x8e67, 0x4cd4,{ 0x8c,0x1a,0x2b,0x7a,0x59,0x87,0xad,0x42 } };
-
-//F294ACFC-3146-4483-A7BF-ADDCA7C260E2
-static const IID _IID_IAudioRenderClient = { 0xF294ACFC, 0x3146, 0x4483,{ 0xa7,0xbf,0xad,0xdc,0xa7,0xc2,0x60,0xe2 } };
-
 
 
 typedef struct PBAStreamContext
@@ -152,8 +152,10 @@ typedef struct PBAStreamContext
 
 }PBAStreamContext;
 
+#ifdef _WIN32
 //We expose a WIN32 global audio device enumerator (that gets initialized with COM in a multithreaded or apartment threading model)
 PB_AUDIO_EXTERN IMMDeviceEnumerator *_PBADeviceEnumerator;
+#endif
 
 //We expose a global handle for each OS that can be used to create an audio render Stream to the default hardware device
 PB_AUDIO_EXTERN PBAStreamContext	_PBAMasterStream;

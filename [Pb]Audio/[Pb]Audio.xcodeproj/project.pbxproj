@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C784864124AFEC1D009522F0 /* PbAudioBufferList.c in Sources */ = {isa = PBXBuildFile; fileRef = C784864024AFEC1D009522F0 /* PbAudioBufferList.c */; };
+		C784864224AFEC3F009522F0 /* PbAudioBufferList.c in Sources */ = {isa = PBXBuildFile; fileRef = C784864024AFEC1D009522F0 /* PbAudioBufferList.c */; };
 		C7AEB46D24A96BED0081D08A /* [Pb]Audio.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB46C24A96BED0081D08A /* [Pb]Audio.h */; };
 		C7AEB47624A96C750081D08A /* PbAudioStream.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB46E24A96C750081D08A /* PbAudioStream.h */; };
 		C7AEB47724A96C750081D08A /* PbAudioBufferList.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB46F24A96C750081D08A /* PbAudioBufferList.h */; };
@@ -18,8 +20,6 @@
 		C7AEB47D24A96C750081D08A /* PbAudioTime.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47524A96C750081D08A /* PbAudioTime.h */; };
 		C7AEB48624A96F370081D08A /* PbAudioStream.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48524A96F370081D08A /* PbAudioStream.c */; };
 		C7AEB48A24AD70590081D08A /* PbAudioAPI.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48924AD70590081D08A /* PbAudioAPI.c */; };
-		C7AEB48C24AD73880081D08A /* PBAAudioBufferList.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48B24AD73880081D08A /* PBAAudioBufferList.c */; };
-		C7AEB48D24AD76E70081D08A /* PBAAudioBufferList.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48B24AD73880081D08A /* PBAAudioBufferList.c */; };
 		C7AEB48E24AD76E70081D08A /* PbAudioAPI.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48924AD70590081D08A /* PbAudioAPI.c */; };
 		C7AEB48F24AD76E80081D08A /* PbAudioStream.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48524A96F370081D08A /* PbAudioStream.c */; };
 		C7AEB49124AD7BC10081D08A /* PbAudioTime.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49024AD7BC10081D08A /* PbAudioTime.c */; };
@@ -43,6 +43,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C784864024AFEC1D009522F0 /* PbAudioBufferList.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PbAudioBufferList.c; sourceTree = "<group>"; };
 		C7AEB46C24A96BED0081D08A /* [Pb]Audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "[Pb]Audio.h"; sourceTree = "<group>"; };
 		C7AEB46E24A96C750081D08A /* PbAudioStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioStream.h; sourceTree = "<group>"; };
 		C7AEB46F24A96C750081D08A /* PbAudioBufferList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioBufferList.h; sourceTree = "<group>"; };
@@ -83,6 +84,7 @@
 		C7AEB46B24A96BED0081D08A /* [Pb]Audio */ = {
 			isa = PBXGroup;
 			children = (
+				C784864024AFEC1D009522F0 /* PbAudioBufferList.c */,
 				C7AEB46F24A96C750081D08A /* PbAudioBufferList.h */,
 				C7AEB48B24AD73880081D08A /* PBAAudioBufferList.c */,
 				C7AEB47424A96C750081D08A /* PbAudioBufferStack.h */,
@@ -259,8 +261,8 @@
 				C7AEB49124AD7BC10081D08A /* PbAudioTime.c in Sources */,
 				C7AEB48A24AD70590081D08A /* PbAudioAPI.c in Sources */,
 				C7AEB49324AD7C3B0081D08A /* PbAudioError.c in Sources */,
-				C7AEB48C24AD73880081D08A /* PBAAudioBufferList.c in Sources */,
 				C7AEB49524AD7D950081D08A /* PbAudioFormat.c in Sources */,
+				C784864124AFEC1D009522F0 /* PbAudioBufferList.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -268,10 +270,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C784864224AFEC3F009522F0 /* PbAudioBufferList.c in Sources */,
 				C7AEB49824AD82840081D08A /* PbAudioError.c in Sources */,
 				C7AEB49624AD82570081D08A /* PbAudioTime.c in Sources */,
 				C7AEB49724AD82570081D08A /* PbAudioFormat.c in Sources */,
-				C7AEB48D24AD76E70081D08A /* PBAAudioBufferList.c in Sources */,
 				C7AEB48E24AD76E70081D08A /* PbAudioAPI.c in Sources */,
 				C7AEB48F24AD76E80081D08A /* PbAudioStream.c in Sources */,
 			);

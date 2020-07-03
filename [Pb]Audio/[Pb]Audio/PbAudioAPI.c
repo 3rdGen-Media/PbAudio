@@ -8,6 +8,7 @@
 
 #include "../[Pb]Audio.h"
 
+#ifdef _WIN32
 static int PBAInitAudioStreamWithFormat(PBAStreamContext *clientStream, WAVEFORMATEX * streamFormat, AUDCLNT_SHAREMODE shareMode)
 {
 	HRESULT hr;
@@ -112,7 +113,6 @@ static int PBAInitAudioStreamWithFormat(PBAStreamContext *clientStream, WAVEFORM
 	return (int)clientStream->bufferFrameCount;
 }
 
-
 static void print_waveformat_details(WAVEFORMATEX * waveformatEX)
 {
 	printf("wFormatTag = %hu\n", waveformatEX->wFormatTag);
@@ -124,6 +124,7 @@ static void print_waveformat_details(WAVEFORMATEX * waveformatEX)
 	printf("cbSize = %hu\n", waveformatEX->cbSize);
 
 }
+#endif
 
 OSStatus PBAInitAudioStream(PBAStreamContext * streamContext, PBAStreamFormat * format)
 {

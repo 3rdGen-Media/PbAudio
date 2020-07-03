@@ -134,7 +134,9 @@ extern "C" {
 //#include "crUtils.h"
 
 //now include our C primitive data types and functionality
+#ifdef _WIN32
 #include "[Pb]Audio/PbAudioExt.h"
+#endif
 #include "[Pb]Audio/PbAudioTime.h"
 #include "[Pb]Audio/PbAudioFormat.h"
 #include "[Pb]Audio/PbAudioError.h"

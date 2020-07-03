@@ -12,6 +12,8 @@
 //#include "PbAudioStream.h"
 #include "PbAudioTime.h"
 
+
+#ifdef __APPLE__
 static bool PBARateLimit(void) {
     static double lastMessage = 0;
     static int messageCount=0;
@@ -28,7 +30,15 @@ static bool PBARateLimit(void) {
     }
     return true;
 }
+#else
 
+#ifndef OSStatus 
+typedef int OSStatus;
+#define noErr 0
+#define _Nonnull 
+#endif 
+
+#endif
 
 /*!
  * An error occurred within AECheckOSStatus
@@ -44,7 +54,7 @@ PB_AUDIO_API PB_AUDIO_INLINE void PBAError(OSStatus result, const char * _Nonnul
  * @param operation A description of the operation, for logging purposes
  */
 #define PBACheckOSStatus(result,operation) (_PBACheckOSStatus((result),(operation),strrchr(__FILE__, '/')+1,__LINE__))
-static inline bool _PBACheckOSStatus(OSStatus result, const char * _Nonnull operation, const char * _Nonnull file, int line) {
+static PB_AUDIO_INLINE bool _PBACheckOSStatus(OSStatus result, const char * _Nonnull operation, const char * _Nonnull file, int line) {
     if ( result != noErr ) {
         PBAError(result, operation, file, line);
         return false;

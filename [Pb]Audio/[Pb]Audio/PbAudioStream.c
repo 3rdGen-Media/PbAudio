@@ -13,8 +13,10 @@
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #endif
 
+IMMDeviceEnumerator *_PBADeviceEnumerator = NULL;
 PBAStreamContext g_renderContext;// = {0};
 
+#ifdef __APPLE__
 void PBAUpdateStreamFormat(PBAStreamContext * streamContext)
 {
     bool running = streamContext->running;
@@ -136,6 +138,7 @@ void PBAUpdateStreamFormat(PBAStreamContext * streamContext)
 
 
 
+
 //DEBUG
 
 PB_AUDIO_API PB_AUDIO_INLINE void PBAStreamReportRenderTime(PBAStreamContext * streamContext, PBAStreamLatencyReport * report, double renderTime, double bufferDuration) {
@@ -173,6 +176,7 @@ PB_AUDIO_API PB_AUDIO_INLINE void PBAStreamReportRenderTime(PBAStreamContext * s
     }
 }
 
+#endif __APPLE__
 
 
 

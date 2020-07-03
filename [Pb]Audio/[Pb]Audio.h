@@ -134,6 +134,7 @@ extern "C" {
 //#include "crUtils.h"
 
 //now include our C primitive data types and functionality
+#include "[Pb]Audio/PbAudioExt.h"
 #include "[Pb]Audio/PbAudioTime.h"
 #include "[Pb]Audio/PbAudioFormat.h"
 #include "[Pb]Audio/PbAudioError.h"

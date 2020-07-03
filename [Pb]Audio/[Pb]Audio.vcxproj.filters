@@ -47,9 +47,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="[Pb]Audio\PBAAudioBufferList.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="[Pb]Audio\PbAudioAPI.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -67,6 +64,9 @@
     </ClCompile>
     <ClCompile Include="[Pb]Audio\PbAudioExt.c">
       <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="[Pb]Audio\PbAudioBufferList.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

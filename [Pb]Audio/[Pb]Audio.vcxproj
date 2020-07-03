@@ -145,8 +145,8 @@ copy .\*.h ..\include\[Pb]Audio</Command>
     <ClInclude Include="[Pb]Audio\PbAudioTime.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="[Pb]Audio\PBAAudioBufferList.c" />
     <ClCompile Include="[Pb]Audio\PbAudioAPI.c" />
+    <ClCompile Include="[Pb]Audio\PbAudioBufferList.c" />
     <ClCompile Include="[Pb]Audio\PbAudioError.c" />
     <ClCompile Include="[Pb]Audio\PbAudioExt.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>

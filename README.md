@@ -27,6 +27,6 @@
 
 While the [Pb]Audio library exists primarily to supplement applications built within accelerated graphics environments and, as such, feature development will be driven primarily to support audio in the context of 3D rendering and animation the [Pb] Audio project of the same name attempts to demonstrate the feature-set(s) and API usage of the [Pb]Audio library in the context of a cross-platform DAW application, where UI and rendering .
 
-## Status
+### Status
 
 * 07/03/20 -- The sample project minimally demonstrates establishing an Audio Stream for rendering to the system's 'Default' audio device for asynchronously rendering to a [32-bit floating point format] buffer received in synchronization with a platform event via a wait loop on a desired thread.  Loop Elimination/Abstraction, Channel Summing and Structured-Concurrency BufferStack support to come.   

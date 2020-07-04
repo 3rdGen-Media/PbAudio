@@ -25,7 +25,7 @@
 
 ### [Physics-based] DAW
 
-While the [Pb]Audio library exists primarily to supplement applications built within accelerated graphics environments and, as such, feature development will be driven primarily by supporting audio in the context of 3D rendering and animation the [Pb] Audio project of the same name attempts to demonstrate the feature-set(s) and API usage of the [Pb]Audio library in the context of a cross-platform DAW application, where UI and rendering .
+While the [Pb]Audio library exists primarily to supplement applications built within accelerated graphics environments and, as such, feature development will be driven primarily to support audio in the context of 3D rendering and animation the [Pb] Audio project of the same name attempts to demonstrate the feature-set(s) and API usage of the [Pb]Audio library in the context of a cross-platform DAW application, where UI and rendering .
 
 ## Status
 

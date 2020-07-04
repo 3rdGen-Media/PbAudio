@@ -4,11 +4,29 @@
 
 ### Low-Latency Render Pipeline
 
-* To Be Written
+* Provide a abstract C API for establishing lowest-latency buffered audio ouput streams on all platforms current and future supported by CoreRender.
+  a.  "Lowest-Latency" should be intended to mean "closest-to-kernel" option while still conforming to platform publishing guidelines.
+* Develop and extend a cross-platform Lock-Free, Thread-Safe Message Agnostic Buffer Stack implementation that utilizes structured-concurrency via stack switching.
+* Suggestions?
 
 ### Physics-Modeling
 
-* To Be Written
+* 3D environment modeling:
+  **  GPGPU assisted Convolution Reverb
+  **  Occlusion Networks
+* Inherently provide a mechanism for introducing analog circuit non-linearities into the audio summing network
+* Consider circuit-modeling feature to aid in deriving and optimizing non-linearity solutions (much more to consider here)
+* Electron noise modeling?  Q:  Is PRNG the best a standard computer can do? If so, not really interested in revisting.
+* Suggestions?
 
 *[Pb]Audio is the modular audio counterpart to the CoreRender framework.  Together, [Pb]Audio, CoreTransport and CoreRender's modular C libraries embody the foundational layer of 3rdGen's proprietary render engine and cross-platform application framework, Cobalt Rhenium.* 
 
+# Projects
+
+## [Physics-based] DAW
+
+While the [Pb]Audio library exists primarily to supplement applications built within accelerated graphics environments and, as such, feature development will be driven primarily by supporting audio in the context of 3D rendering and animation the [Pb] Audio project of the same name attempts to demonstrate the feature-set(s) and API usage of the [Pb]Audio library in the context of a cross-platform DAW application, where UI and rendering .
+
+# Status
+
+* 07/03/20 -- The sample project minimally demonstrates establishing an Audio Stream for rendering to the system's 'Default' audio device for asynchronously rendering to a [32-bit floating point format] buffer received in synchronization with a platform event via a wait loop on a desired thread.  Loop Elimination/Abstraction, Channel Summing and Structured-Concurrency BufferStack support to come.   

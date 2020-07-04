@@ -740,7 +740,12 @@ int main(int argc, const char * argv[]) {
 	Frequency = 440;
     renderDataLenghtInSamples = (uint64_t)_PBAMasterStream.currentSampleRate * 5;
 	g_sineBufferLengthInSamples = g_sourceBufferLengthInSamples = renderDataLenghtInSamples;
+
+#ifdef _WIN32 //WIN32 uses interleaved buffers
+	g_sineBufferChannels = g_sourceBufferChannels = 2;
+#else
 	g_sineBufferChannels = g_sourceBufferChannels = 1;
+#endif
 	//Initialize a 32-bit floating point sine wave buffer
     GenerateSineSamplesFloat(&g_sineWaveBuffer, g_sineBufferLengthInSamples, Frequency, g_sineBufferChannels, _PBAMasterStream.currentSampleRate, 0.25f, NULL);
     

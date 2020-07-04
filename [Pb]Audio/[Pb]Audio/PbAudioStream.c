@@ -7,7 +7,10 @@
 //
 
 #include "../[Pb]Audio.h"
+
+#ifdef __APPLE__
 #import <AudioToolbox/AudioToolbox.h>
+#endif
 
 #ifndef MIN
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))

@@ -6,6 +6,7 @@
 
 * Provide a cross-platform C API for establishing lowest-latency buffered audio ouput streams on all platforms current and future supported by CoreRender where "Lowest-Latency" should be intended to mean "closest-to-kernel" option while still conforming to platform publishing guidelines.
 * Develop and extend a cross-platform Lock-Free, Thread-Safe Message Agnostic Buffer Stack implementation that utilizes structured-concurrency via stack switching.
+* Graphics pipeline synchronization
 * Suggestions?
 
 ### Physics-Modeling

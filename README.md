@@ -26,4 +26,4 @@ While the [Pb]Audio library exists primarily to supplement applications built wi
 
 ### Status
 
-* 07/03/20 -- The sample project minimally demonstrates establishing an Audio Stream for rendering a 32-bit floating point sine wave buffer to the system's 'Default' audio device via a [32-bit floating point format] buffer received in synchronization with a platform event via a blocking loop on a desired thread.  Loop Elimination/Abstraction, Channel Summing and Structured-Concurrency BufferStack support to come.   
+* 07/03/20 -- The sample project minimally demonstrates establishing an Audio Stream for rendering a 32-bit floating point sine wave buffer to the system's 'Default' audio device via a [32-bit floating point format] buffer received asynchronously via a platform event queried by a blocking while loop  (WIN32) or a 'scheduled' query via a runloop (Darwin) running on a desired [priority-elevated for real-time audio] thread.  [Run]Loop Unification/Elimination/Abstraction, Channel Summing and Structured-Concurrency BufferStack filtering support to come.   

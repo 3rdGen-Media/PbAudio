@@ -4,17 +4,19 @@
 
 ### Low-Latency Render Pipeline
 
-* Provide a cross-platform C API for establishing lowest-latency buffered audio ouput streams on all platforms current and future supported by CoreRender where "Lowest-Latency" should be intended to mean "closest-to-kernel" option while still conforming to platform publishing guidelines.
-* Develop and extend a cross-platform Lock-Free, Thread-Safe Message Agnostic Buffer Stack implementation that utilizes structured-concurrency via stack switching.
-* Graphics pipeline synchronization
+* Provide a cross-platform C API for establishing lowest-latency buffered audio ouput streams on all platforms current and future supported by CoreRender where "Lowest-Latency" should be intended to mean "closest-to-kernel" option while still conforming to platform publishing guidelines
+* Develop and extend a cross-platform Lock-Free, Thread-Safe Message Agnostic Buffer Stack implementation that utilizes structured-concurrency via stack switching
+* Graphics pipeline/Vertical Retrace synchronization
+* AudioUnit and VST plug-in support
 * Suggestions?
 
 ### Physics-Modeling
 
-* 3D environment modeling: GPGPU assisted Convolution Reverb, Transmission Loss and Occlusion Networks
+* 3D environment modeling: GPGPU assisted Convolution Reverb, Transmission Loss and Occlusion Networks, Ambisonic format Support
 * Inherently provide a mechanism for introducing analog circuit non-linearities into the audio summing network
+* Automatic gain-stage adjustment for filter impedance matching and to leave sufficient headroom
 * Consider circuit-modeling feature to aid in deriving and optimizing non-linearity solutions (much more to consider here)
-* Electron noise modeling?  Q:  Is PRNG the best a personal computer can do? If so, not really interested in revisting.
+* Electron noise modeling?
 * Suggestions?
 
 *[Pb]Audio is the modular audio counterpart to the CoreRender framework.  Together, [Pb]Audio, CoreTransport and CoreRender's modular C libraries embody the foundational layer of 3rdGen's proprietary render engine and cross-platform application framework, Cobalt Rhenium.* 

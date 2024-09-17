@@ -34,6 +34,7 @@ typedef struct PBABufferList
 //Create AudioBufferList
 #ifdef __APPLE__
 PB_AUDIO_API PB_AUDIO_INLINE PBABufferList *PBABufferListCreateWithFormat(PBAStreamFormat audioFormat, int frameCount);
+PB_AUDIO_API PB_AUDIO_INLINE PBABufferList *PBABufferListCreate(int frameCount);
 
 /*
 AudioBufferList *AEAudioBufferListCreateWithContentsOfFile(NSString * filePath, AudioStreamBasicDescription audioFormat) {
@@ -79,7 +80,6 @@ AudioBufferList *AEAudioBufferListCreateWithContentsOfFile(NSString * filePath, 
 }
 */
 
-PB_AUDIO_API PB_AUDIO_INLINE PBABufferList *PBABufferListCreate(int frameCount);
 
 #endif
 

@@ -7,27 +7,54 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C74FE65025566A700027F864 /* PbAudioFileStream.h in Headers */ = {isa = PBXBuildFile; fileRef = C74FE64E25566A700027F864 /* PbAudioFileStream.h */; };
+		C74FE65125566A700027F864 /* PbAudioFileStream.c in Sources */ = {isa = PBXBuildFile; fileRef = C74FE64F25566A700027F864 /* PbAudioFileStream.c */; };
+		C74FE65B25567E3C0027F864 /* PbAudioFileStream.c in Sources */ = {isa = PBXBuildFile; fileRef = C74FE64F25566A700027F864 /* PbAudioFileStream.c */; };
 		C784864124AFEC1D009522F0 /* PbAudioBufferList.c in Sources */ = {isa = PBXBuildFile; fileRef = C784864024AFEC1D009522F0 /* PbAudioBufferList.c */; };
 		C784864224AFEC3F009522F0 /* PbAudioBufferList.c in Sources */ = {isa = PBXBuildFile; fileRef = C784864024AFEC1D009522F0 /* PbAudioBufferList.c */; };
+		C7A536492C8F241E002460E7 /* CMEndian.h in Headers */ = {isa = PBXBuildFile; fileRef = C7A5363C2C8F241E002460E7 /* CMEndian.h */; };
+		C7A5364A2C8F241E002460E7 /* CMidi.c in Sources */ = {isa = PBXBuildFile; fileRef = C7A5363D2C8F241E002460E7 /* CMidi.c */; };
+		C7A5364B2C8F241E002460E7 /* CMidi.h in Headers */ = {isa = PBXBuildFile; fileRef = C7A5363E2C8F241E002460E7 /* CMidi.h */; };
+		C7A5364C2C8F241E002460E7 /* CMidiControl.c in Sources */ = {isa = PBXBuildFile; fileRef = C7A5363F2C8F241E002460E7 /* CMidiControl.c */; };
+		C7A5364D2C8F241E002460E7 /* CMidiControl.h in Headers */ = {isa = PBXBuildFile; fileRef = C7A536402C8F241E002460E7 /* CMidiControl.h */; };
+		C7A5364E2C8F241E002460E7 /* CMidiDevice.c in Sources */ = {isa = PBXBuildFile; fileRef = C7A536412C8F241E002460E7 /* CMidiDevice.c */; };
+		C7A5364F2C8F241E002460E7 /* CMidiDevice.h in Headers */ = {isa = PBXBuildFile; fileRef = C7A536422C8F241E002460E7 /* CMidiDevice.h */; };
+		C7A536502C8F241E002460E7 /* CMidiDriverID.c in Sources */ = {isa = PBXBuildFile; fileRef = C7A536432C8F241E002460E7 /* CMidiDriverID.c */; };
+		C7A536512C8F241E002460E7 /* CMidiDriverID.h in Headers */ = {isa = PBXBuildFile; fileRef = C7A536442C8F241E002460E7 /* CMidiDriverID.h */; };
+		C7A536522C8F241E002460E7 /* CMidiEndpoint.c in Sources */ = {isa = PBXBuildFile; fileRef = C7A536452C8F241E002460E7 /* CMidiEndpoint.c */; };
+		C7A536532C8F241E002460E7 /* CMidiEndpoint.h in Headers */ = {isa = PBXBuildFile; fileRef = C7A536462C8F241E002460E7 /* CMidiEndpoint.h */; };
+		C7A536542C8F241E002460E7 /* CMidiMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = C7A536472C8F241E002460E7 /* CMidiMessage.h */; };
 		C7AEB46D24A96BED0081D08A /* [Pb]Audio.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB46C24A96BED0081D08A /* [Pb]Audio.h */; };
 		C7AEB47624A96C750081D08A /* PbAudioStream.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB46E24A96C750081D08A /* PbAudioStream.h */; };
 		C7AEB47724A96C750081D08A /* PbAudioBufferList.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB46F24A96C750081D08A /* PbAudioBufferList.h */; };
 		C7AEB47824A96C750081D08A /* PbAudioCallbacks.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47024A96C750081D08A /* PbAudioCallbacks.h */; };
 		C7AEB47924A96C750081D08A /* PbAudioAPI.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47124A96C750081D08A /* PbAudioAPI.h */; };
-		C7AEB47A24A96C750081D08A /* PbAudioError.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47224A96C750081D08A /* PbAudioError.h */; };
-		C7AEB47B24A96C750081D08A /* PbAudioFormat.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47324A96C750081D08A /* PbAudioFormat.h */; };
+		C7AEB47A24A96C750081D08A /* pba_error.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47224A96C750081D08A /* pba_error.h */; };
+		C7AEB47B24A96C750081D08A /* pba_format.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47324A96C750081D08A /* pba_format.h */; };
 		C7AEB47C24A96C750081D08A /* PbAudioBufferStack.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47424A96C750081D08A /* PbAudioBufferStack.h */; };
-		C7AEB47D24A96C750081D08A /* PbAudioTime.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47524A96C750081D08A /* PbAudioTime.h */; };
+		C7AEB47D24A96C750081D08A /* pba_time.h in Headers */ = {isa = PBXBuildFile; fileRef = C7AEB47524A96C750081D08A /* pba_time.h */; };
 		C7AEB48624A96F370081D08A /* PbAudioStream.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48524A96F370081D08A /* PbAudioStream.c */; };
 		C7AEB48A24AD70590081D08A /* PbAudioAPI.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48924AD70590081D08A /* PbAudioAPI.c */; };
 		C7AEB48E24AD76E70081D08A /* PbAudioAPI.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48924AD70590081D08A /* PbAudioAPI.c */; };
 		C7AEB48F24AD76E80081D08A /* PbAudioStream.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB48524A96F370081D08A /* PbAudioStream.c */; };
-		C7AEB49124AD7BC10081D08A /* PbAudioTime.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49024AD7BC10081D08A /* PbAudioTime.c */; };
-		C7AEB49324AD7C3B0081D08A /* PbAudioError.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49224AD7C3B0081D08A /* PbAudioError.c */; };
-		C7AEB49524AD7D950081D08A /* PbAudioFormat.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49424AD7D950081D08A /* PbAudioFormat.c */; };
-		C7AEB49624AD82570081D08A /* PbAudioTime.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49024AD7BC10081D08A /* PbAudioTime.c */; };
-		C7AEB49724AD82570081D08A /* PbAudioFormat.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49424AD7D950081D08A /* PbAudioFormat.c */; };
-		C7AEB49824AD82840081D08A /* PbAudioError.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49224AD7C3B0081D08A /* PbAudioError.c */; };
+		C7AEB49124AD7BC10081D08A /* pba_time.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49024AD7BC10081D08A /* pba_time.c */; };
+		C7AEB49324AD7C3B0081D08A /* pba_error.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49224AD7C3B0081D08A /* pba_error.c */; };
+		C7AEB49524AD7D950081D08A /* pba_format.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49424AD7D950081D08A /* pba_format.c */; };
+		C7AEB49624AD82570081D08A /* pba_time.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49024AD7BC10081D08A /* pba_time.c */; };
+		C7AEB49724AD82570081D08A /* pba_format.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49424AD7D950081D08A /* pba_format.c */; };
+		C7AEB49824AD82840081D08A /* pba_error.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AEB49224AD7C3B0081D08A /* pba_error.c */; };
+		C7B909652C96423A0031B02E /* PbAudioRenderPass.c in Sources */ = {isa = PBXBuildFile; fileRef = C7B909642C96423A0031B02E /* PbAudioRenderPass.c */; };
+		C7B909662C96423A0031B02E /* PbAudioRenderPass.h in Headers */ = {isa = PBXBuildFile; fileRef = C7B909632C96423A0031B02E /* PbAudioRenderPass.h */; };
+		C7B909782C99AEA10031B02E /* CMEventQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = C7B909772C99AEA10031B02E /* CMEventQueue.c */; };
+		C7E04F082C942A8800FC9EC2 /* pba_dsp_waveforms.h in Headers */ = {isa = PBXBuildFile; fileRef = C7E04F062C942A8800FC9EC2 /* pba_dsp_waveforms.h */; };
+		C7E04F092C942A8800FC9EC2 /* pba_dsp_waveforms.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E04F072C942A8800FC9EC2 /* pba_dsp_waveforms.c */; };
+		C7E04F0A2C942A8800FC9EC2 /* pba_dsp_waveforms.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E04F072C942A8800FC9EC2 /* pba_dsp_waveforms.c */; };
+		C7E41DB82C90259D0047DC69 /* pba_event_queue.h in Headers */ = {isa = PBXBuildFile; fileRef = C7E41DB62C90259D0047DC69 /* pba_event_queue.h */; };
+		C7E41DB92C90259D0047DC69 /* pba_event_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E41DB72C90259D0047DC69 /* pba_event_queue.c */; };
+		C7E41DBC2C90279E0047DC69 /* pba_target_os.h in Headers */ = {isa = PBXBuildFile; fileRef = C7E41DBA2C90279E0047DC69 /* pba_target_os.h */; };
+		C7E41DBD2C90279E0047DC69 /* pba_target_os.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E41DBB2C90279E0047DC69 /* pba_target_os.c */; };
+		C7E41DC42C9058530047DC69 /* PbAudioDevice.h in Headers */ = {isa = PBXBuildFile; fileRef = C7E41DC22C9058530047DC69 /* PbAudioDevice.h */; };
+		C7E41DC52C9058530047DC69 /* PbAudioDevice.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E41DC32C9058530047DC69 /* PbAudioDevice.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -43,22 +70,48 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C74FE64E25566A700027F864 /* PbAudioFileStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PbAudioFileStream.h; sourceTree = "<group>"; };
+		C74FE64F25566A700027F864 /* PbAudioFileStream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioFileStream.c; sourceTree = "<group>"; };
+		C74FE66325574AAF0027F864 /* PbAudioByteUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PbAudioByteUtils.h; sourceTree = "<group>"; };
 		C784864024AFEC1D009522F0 /* PbAudioBufferList.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PbAudioBufferList.c; sourceTree = "<group>"; };
+		C7A5363C2C8F241E002460E7 /* CMEndian.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CMEndian.h; sourceTree = "<group>"; };
+		C7A5363D2C8F241E002460E7 /* CMidi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CMidi.c; sourceTree = "<group>"; };
+		C7A5363E2C8F241E002460E7 /* CMidi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CMidi.h; sourceTree = "<group>"; };
+		C7A5363F2C8F241E002460E7 /* CMidiControl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CMidiControl.c; sourceTree = "<group>"; };
+		C7A536402C8F241E002460E7 /* CMidiControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CMidiControl.h; sourceTree = "<group>"; };
+		C7A536412C8F241E002460E7 /* CMidiDevice.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CMidiDevice.c; sourceTree = "<group>"; };
+		C7A536422C8F241E002460E7 /* CMidiDevice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CMidiDevice.h; sourceTree = "<group>"; };
+		C7A536432C8F241E002460E7 /* CMidiDriverID.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CMidiDriverID.c; sourceTree = "<group>"; };
+		C7A536442C8F241E002460E7 /* CMidiDriverID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CMidiDriverID.h; sourceTree = "<group>"; };
+		C7A536452C8F241E002460E7 /* CMidiEndpoint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CMidiEndpoint.c; sourceTree = "<group>"; };
+		C7A536462C8F241E002460E7 /* CMidiEndpoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CMidiEndpoint.h; sourceTree = "<group>"; };
+		C7A536472C8F241E002460E7 /* CMidiMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CMidiMessage.h; sourceTree = "<group>"; };
 		C7AEB46C24A96BED0081D08A /* [Pb]Audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "[Pb]Audio.h"; sourceTree = "<group>"; };
 		C7AEB46E24A96C750081D08A /* PbAudioStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioStream.h; sourceTree = "<group>"; };
 		C7AEB46F24A96C750081D08A /* PbAudioBufferList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioBufferList.h; sourceTree = "<group>"; };
 		C7AEB47024A96C750081D08A /* PbAudioCallbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioCallbacks.h; sourceTree = "<group>"; };
 		C7AEB47124A96C750081D08A /* PbAudioAPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioAPI.h; sourceTree = "<group>"; };
-		C7AEB47224A96C750081D08A /* PbAudioError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioError.h; sourceTree = "<group>"; };
-		C7AEB47324A96C750081D08A /* PbAudioFormat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioFormat.h; sourceTree = "<group>"; };
+		C7AEB47224A96C750081D08A /* pba_error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pba_error.h; sourceTree = "<group>"; };
+		C7AEB47324A96C750081D08A /* pba_format.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pba_format.h; sourceTree = "<group>"; };
 		C7AEB47424A96C750081D08A /* PbAudioBufferStack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioBufferStack.h; sourceTree = "<group>"; };
-		C7AEB47524A96C750081D08A /* PbAudioTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PbAudioTime.h; sourceTree = "<group>"; };
+		C7AEB47524A96C750081D08A /* pba_time.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pba_time.h; sourceTree = "<group>"; };
 		C7AEB48524A96F370081D08A /* PbAudioStream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioStream.c; sourceTree = "<group>"; };
 		C7AEB48924AD70590081D08A /* PbAudioAPI.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioAPI.c; sourceTree = "<group>"; };
-		C7AEB48B24AD73880081D08A /* PBAAudioBufferList.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PBAAudioBufferList.c; sourceTree = "<group>"; };
-		C7AEB49024AD7BC10081D08A /* PbAudioTime.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioTime.c; sourceTree = "<group>"; };
-		C7AEB49224AD7C3B0081D08A /* PbAudioError.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioError.c; sourceTree = "<group>"; };
-		C7AEB49424AD7D950081D08A /* PbAudioFormat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioFormat.c; sourceTree = "<group>"; };
+		C7AEB49024AD7BC10081D08A /* pba_time.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pba_time.c; sourceTree = "<group>"; };
+		C7AEB49224AD7C3B0081D08A /* pba_error.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pba_error.c; sourceTree = "<group>"; };
+		C7AEB49424AD7D950081D08A /* pba_format.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pba_format.c; sourceTree = "<group>"; };
+		C7B909632C96423A0031B02E /* PbAudioRenderPass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PbAudioRenderPass.h; sourceTree = "<group>"; };
+		C7B909642C96423A0031B02E /* PbAudioRenderPass.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioRenderPass.c; sourceTree = "<group>"; };
+		C7B9096E2C9877C20031B02E /* CMEventQueue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CMEventQueue.h; sourceTree = "<group>"; };
+		C7B909772C99AEA10031B02E /* CMEventQueue.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CMEventQueue.c; sourceTree = "<group>"; };
+		C7E04F062C942A8800FC9EC2 /* pba_dsp_waveforms.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pba_dsp_waveforms.h; sourceTree = "<group>"; };
+		C7E04F072C942A8800FC9EC2 /* pba_dsp_waveforms.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pba_dsp_waveforms.c; sourceTree = "<group>"; };
+		C7E41DB62C90259D0047DC69 /* pba_event_queue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pba_event_queue.h; sourceTree = "<group>"; };
+		C7E41DB72C90259D0047DC69 /* pba_event_queue.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pba_event_queue.c; sourceTree = "<group>"; };
+		C7E41DBA2C90279E0047DC69 /* pba_target_os.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pba_target_os.h; sourceTree = "<group>"; };
+		C7E41DBB2C90279E0047DC69 /* pba_target_os.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pba_target_os.c; sourceTree = "<group>"; };
+		C7E41DC22C9058530047DC69 /* PbAudioDevice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PbAudioDevice.h; sourceTree = "<group>"; };
+		C7E41DC32C9058530047DC69 /* PbAudioDevice.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioDevice.c; sourceTree = "<group>"; };
 		C7FE40DF24A96A4100FFE3E8 /* lib[Pb]Audio.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "lib[Pb]Audio.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7FE40EA24A96A8000FFE3E8 /* lib[Pb]AudioiOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "lib[Pb]AudioiOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -81,24 +134,57 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C7A536482C8F241E002460E7 /* CMidi */ = {
+			isa = PBXGroup;
+			children = (
+				C7A5363C2C8F241E002460E7 /* CMEndian.h */,
+				C7A536472C8F241E002460E7 /* CMidiMessage.h */,
+				C7A5363E2C8F241E002460E7 /* CMidi.h */,
+				C7A5363D2C8F241E002460E7 /* CMidi.c */,
+				C7A536402C8F241E002460E7 /* CMidiControl.h */,
+				C7A5363F2C8F241E002460E7 /* CMidiControl.c */,
+				C7A536422C8F241E002460E7 /* CMidiDevice.h */,
+				C7A536412C8F241E002460E7 /* CMidiDevice.c */,
+				C7A536442C8F241E002460E7 /* CMidiDriverID.h */,
+				C7A536432C8F241E002460E7 /* CMidiDriverID.c */,
+				C7A536462C8F241E002460E7 /* CMidiEndpoint.h */,
+				C7A536452C8F241E002460E7 /* CMidiEndpoint.c */,
+				C7B9096E2C9877C20031B02E /* CMEventQueue.h */,
+				C7B909772C99AEA10031B02E /* CMEventQueue.c */,
+			);
+			path = CMidi;
+			sourceTree = "<group>";
+		};
 		C7AEB46B24A96BED0081D08A /* [Pb]Audio */ = {
 			isa = PBXGroup;
 			children = (
+				C7E41DBA2C90279E0047DC69 /* pba_target_os.h */,
+				C7E41DBB2C90279E0047DC69 /* pba_target_os.c */,
+				C7E41DB62C90259D0047DC69 /* pba_event_queue.h */,
+				C7E41DB72C90259D0047DC69 /* pba_event_queue.c */,
+				C7AEB47324A96C750081D08A /* pba_format.h */,
+				C7AEB49424AD7D950081D08A /* pba_format.c */,
+				C7AEB47224A96C750081D08A /* pba_error.h */,
+				C7AEB49224AD7C3B0081D08A /* pba_error.c */,
+				C7AEB47524A96C750081D08A /* pba_time.h */,
+				C7AEB49024AD7BC10081D08A /* pba_time.c */,
+				C7E04F062C942A8800FC9EC2 /* pba_dsp_waveforms.h */,
+				C7E04F072C942A8800FC9EC2 /* pba_dsp_waveforms.c */,
 				C784864024AFEC1D009522F0 /* PbAudioBufferList.c */,
 				C7AEB46F24A96C750081D08A /* PbAudioBufferList.h */,
-				C7AEB48B24AD73880081D08A /* PBAAudioBufferList.c */,
 				C7AEB47424A96C750081D08A /* PbAudioBufferStack.h */,
 				C7AEB47024A96C750081D08A /* PbAudioCallbacks.h */,
 				C7AEB47124A96C750081D08A /* PbAudioAPI.h */,
 				C7AEB48924AD70590081D08A /* PbAudioAPI.c */,
-				C7AEB47224A96C750081D08A /* PbAudioError.h */,
-				C7AEB49224AD7C3B0081D08A /* PbAudioError.c */,
-				C7AEB47324A96C750081D08A /* PbAudioFormat.h */,
-				C7AEB49424AD7D950081D08A /* PbAudioFormat.c */,
-				C7AEB47524A96C750081D08A /* PbAudioTime.h */,
-				C7AEB49024AD7BC10081D08A /* PbAudioTime.c */,
+				C7E41DC22C9058530047DC69 /* PbAudioDevice.h */,
+				C7E41DC32C9058530047DC69 /* PbAudioDevice.c */,
 				C7AEB46E24A96C750081D08A /* PbAudioStream.h */,
 				C7AEB48524A96F370081D08A /* PbAudioStream.c */,
+				C74FE64E25566A700027F864 /* PbAudioFileStream.h */,
+				C74FE64F25566A700027F864 /* PbAudioFileStream.c */,
+				C74FE66325574AAF0027F864 /* PbAudioByteUtils.h */,
+				C7B909632C96423A0031B02E /* PbAudioRenderPass.h */,
+				C7B909642C96423A0031B02E /* PbAudioRenderPass.c */,
 			);
 			path = "[Pb]Audio";
 			sourceTree = "<group>";
@@ -107,6 +193,7 @@
 			isa = PBXGroup;
 			children = (
 				C7AEB46C24A96BED0081D08A /* [Pb]Audio.h */,
+				C7A536482C8F241E002460E7 /* CMidi */,
 				C7AEB46B24A96BED0081D08A /* [Pb]Audio */,
 				C7FE40E024A96A4100FFE3E8 /* Products */,
 			);
@@ -128,14 +215,27 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C7AEB47A24A96C750081D08A /* PbAudioError.h in Headers */,
-				C7AEB47D24A96C750081D08A /* PbAudioTime.h in Headers */,
+				C7AEB47A24A96C750081D08A /* pba_error.h in Headers */,
+				C7AEB47D24A96C750081D08A /* pba_time.h in Headers */,
 				C7AEB47824A96C750081D08A /* PbAudioCallbacks.h in Headers */,
+				C7A5364B2C8F241E002460E7 /* CMidi.h in Headers */,
 				C7AEB47924A96C750081D08A /* PbAudioAPI.h in Headers */,
+				C7A5364F2C8F241E002460E7 /* CMidiDevice.h in Headers */,
+				C7A536512C8F241E002460E7 /* CMidiDriverID.h in Headers */,
+				C7A536542C8F241E002460E7 /* CMidiMessage.h in Headers */,
+				C7A536492C8F241E002460E7 /* CMEndian.h in Headers */,
 				C7AEB46D24A96BED0081D08A /* [Pb]Audio.h in Headers */,
-				C7AEB47B24A96C750081D08A /* PbAudioFormat.h in Headers */,
+				C7A5364D2C8F241E002460E7 /* CMidiControl.h in Headers */,
+				C7E41DB82C90259D0047DC69 /* pba_event_queue.h in Headers */,
+				C7E41DBC2C90279E0047DC69 /* pba_target_os.h in Headers */,
+				C7E41DC42C9058530047DC69 /* PbAudioDevice.h in Headers */,
+				C74FE65025566A700027F864 /* PbAudioFileStream.h in Headers */,
+				C7AEB47B24A96C750081D08A /* pba_format.h in Headers */,
+				C7E04F082C942A8800FC9EC2 /* pba_dsp_waveforms.h in Headers */,
+				C7A536532C8F241E002460E7 /* CMidiEndpoint.h in Headers */,
 				C7AEB47724A96C750081D08A /* PbAudioBufferList.h in Headers */,
 				C7AEB47C24A96C750081D08A /* PbAudioBufferStack.h in Headers */,
+				C7B909662C96423A0031B02E /* PbAudioRenderPass.h in Headers */,
 				C7AEB47624A96C750081D08A /* PbAudioStream.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -231,7 +331,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\n\ncp -rvf ./[Pb]Audio/\\PbAudioTime.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFormat.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioError.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
+			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\n\nmkdir -p ../include/CMidi/;\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\ncp -rvf ./CMidi/\\CMEndian.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiControl.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDevice.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDriverID.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiEndpoint.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiMessage.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMEventQueue.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidi.h ../include/CMidi/\n\ncp -rvf ./[Pb]Audio/\\pba_target_os.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_event_queue.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_time.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_dsp_waveforms.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_format.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_error.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\n\ncp -rvf ./[Pb]Audio/\\PbAudioByteUtils.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFileStream.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioRenderPass.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
 		};
 		C7AEB47F24A96E580081D08A /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -248,7 +348,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\n\ncp -rvf ./[Pb]Audio/\\PbAudioTime.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFormat.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioError.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
+			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\nmkdir -p ../include/CMidi/;\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\ncp -rvf ./CMidi/\\CMEndian.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiControl.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDevice.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDriverID.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiEndpoint.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiMessage.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMEventQueue.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidi.h ../include/CMidi/\n\ncp -rvf ./[Pb]Audio/\\pba_target_os.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_event_queue.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_time.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_dsp_waveforms.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_format.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_error.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioDevice.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioByteUtils.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFileStream.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioRenderPass.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -258,10 +358,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				C7AEB48624A96F370081D08A /* PbAudioStream.c in Sources */,
-				C7AEB49124AD7BC10081D08A /* PbAudioTime.c in Sources */,
+				C74FE65125566A700027F864 /* PbAudioFileStream.c in Sources */,
+				C7A5364C2C8F241E002460E7 /* CMidiControl.c in Sources */,
+				C7AEB49124AD7BC10081D08A /* pba_time.c in Sources */,
+				C7B909782C99AEA10031B02E /* CMEventQueue.c in Sources */,
+				C7A5364E2C8F241E002460E7 /* CMidiDevice.c in Sources */,
 				C7AEB48A24AD70590081D08A /* PbAudioAPI.c in Sources */,
-				C7AEB49324AD7C3B0081D08A /* PbAudioError.c in Sources */,
-				C7AEB49524AD7D950081D08A /* PbAudioFormat.c in Sources */,
+				C7E04F092C942A8800FC9EC2 /* pba_dsp_waveforms.c in Sources */,
+				C7E41DBD2C90279E0047DC69 /* pba_target_os.c in Sources */,
+				C7B909652C96423A0031B02E /* PbAudioRenderPass.c in Sources */,
+				C7A536502C8F241E002460E7 /* CMidiDriverID.c in Sources */,
+				C7E41DC52C9058530047DC69 /* PbAudioDevice.c in Sources */,
+				C7E41DB92C90259D0047DC69 /* pba_event_queue.c in Sources */,
+				C7A536522C8F241E002460E7 /* CMidiEndpoint.c in Sources */,
+				C7AEB49324AD7C3B0081D08A /* pba_error.c in Sources */,
+				C7AEB49524AD7D950081D08A /* pba_format.c in Sources */,
+				C7A5364A2C8F241E002460E7 /* CMidi.c in Sources */,
 				C784864124AFEC1D009522F0 /* PbAudioBufferList.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -270,11 +382,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C74FE65B25567E3C0027F864 /* PbAudioFileStream.c in Sources */,
 				C784864224AFEC3F009522F0 /* PbAudioBufferList.c in Sources */,
-				C7AEB49824AD82840081D08A /* PbAudioError.c in Sources */,
-				C7AEB49624AD82570081D08A /* PbAudioTime.c in Sources */,
-				C7AEB49724AD82570081D08A /* PbAudioFormat.c in Sources */,
+				C7AEB49824AD82840081D08A /* pba_error.c in Sources */,
+				C7AEB49624AD82570081D08A /* pba_time.c in Sources */,
+				C7AEB49724AD82570081D08A /* pba_format.c in Sources */,
 				C7AEB48E24AD76E70081D08A /* PbAudioAPI.c in Sources */,
+				C7E04F0A2C942A8800FC9EC2 /* pba_dsp_waveforms.c in Sources */,
 				C7AEB48F24AD76E80081D08A /* PbAudioStream.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -332,6 +446,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -385,6 +500,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;

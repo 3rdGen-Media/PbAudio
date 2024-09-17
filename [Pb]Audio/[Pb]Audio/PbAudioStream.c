@@ -21,18 +21,22 @@
 IMMDeviceEnumerator *_PBADeviceEnumerator = NULL;
 #endif
 
-PBAStreamContext _PBAMasterStream;// = {0};
+const CFStringRef kPBAudioDidUpdateStreamFormatNotification  = CFSTR("PBAudioDidUpdateStreamFormatNotification");
+//const CFStringRef kPBAStreamFormatChangedNotification      = CFSTR("kPBAStreamFormatChangedNotification");
+const CFStringRef kPBAStreamSampleRateChangedNotification    = CFSTR("PBAudioStreamSampleRateChangedNotification");
+
 
 #ifdef __APPLE__
-void PBAUpdateStreamFormat(PBAStreamContext * streamContext)
+void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRate)
 {
     bool running = streamContext->running;
     bool stoppedUnit = false;
     bool hasChanges = false;
     bool iaaInput = false;
     bool iaaOutput = false;
-    
-    printf("PBAUpdateStreamFormat\n");
+    //double priorSampleRate = streamContext->currentSampleRate;
+
+    fprintf(stdout, "PBAUpdateStreamFormat...\n");
     
 #if TARGET_OS_IPHONE || TARGET_OS_TVOS
     UInt32 iaaConnected = NO;
@@ -48,33 +52,39 @@ void PBAUpdateStreamFormat(PBAStreamContext * streamContext)
         }
     }
 #endif
-    
+    bool hasSampleRateChanges = false;
+
     if ( streamContext->outputEnabled ) {
         // Get the current output sample rate and number of output channels
         AudioStreamBasicDescription asbd;
         UInt32 size = sizeof(asbd);
         PBACheckOSStatus(AudioUnitGetProperty(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, &size), "AudioUnitGetProperty(kAudioUnitProperty_StreamFormat)");
-        if ( iaaOutput ) {
+        if ( iaaOutput ) 
+        {
             asbd.mChannelsPerFrame = 2;
         }
         
-        bool hasOutputChanges = false;
-        
-        double newSampleRate = streamContext->sampleRate == 0 ? asbd.mSampleRate : streamContext->sampleRate;
-        if ( fabs(streamContext->currentSampleRate - newSampleRate) > DBL_EPSILON ) {
-            hasChanges = hasOutputChanges = true;
+        bool hasOutputChanges     = false;
+
+        double newSampleRate = sampleRate == 0 ? asbd.mSampleRate : sampleRate;
+        if ( fabs(streamContext->currentSampleRate - newSampleRate) > DBL_EPSILON )
+        {
+            hasChanges = hasOutputChanges = hasSampleRateChanges = true;
             streamContext->currentSampleRate = newSampleRate;
         }
         
-        if ( streamContext->nOutputChannels != (int)asbd.mChannelsPerFrame ) {
+        if ( streamContext->nOutputChannels != (int)asbd.mChannelsPerFrame ) 
+        {
             hasChanges = hasOutputChanges = true;
             streamContext->nOutputChannels = asbd.mChannelsPerFrame;
         }
         
-        if ( hasOutputChanges || !streamContext->hasSetInitialStreamFormat ) {
-            if ( running ) {
-                PBACheckOSStatus(AudioOutputUnitStop(streamContext->audioUnit), "AudioOutputUnitStop");
-                stoppedUnit = true;
+        if ( hasOutputChanges || !streamContext->hasSetInitialStreamFormat ) 
+        {
+            if ( running ) 
+            {
+                //PBACheckOSStatus(AudioOutputUnitStop(streamContext->audioUnit), "AudioOutputUnitStop");
+                //stoppedUnit = true;
             }
 
             // Update the stream format
@@ -83,38 +93,43 @@ void PBAUpdateStreamFormat(PBAStreamContext * streamContext)
             asbd.mSampleRate = streamContext->currentSampleRate;
             PBACheckOSStatus(AudioUnitSetProperty(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof(asbd)), "AudioUnitSetProperty(kAudioUnitProperty_StreamFormat)");
         }
+        
+        //set the output format onm our stream context
+        memcpy(&(streamContext->format), &asbd, sizeof(PBAStreamFormat));
     }
     
-    if ( streamContext->inputEnabled ) {
+    if ( streamContext->inputEnabled ) 
+    {
         // Get the current input number of input channels
         AudioStreamBasicDescription asbd;
         UInt32 size = sizeof(asbd);
-        PBACheckOSStatus(AudioUnitGetProperty(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input,
-                                             1, &asbd, &size),
+        PBACheckOSStatus(AudioUnitGetProperty(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 1, &asbd, &size),
                         "AudioUnitGetProperty(kAudioUnitProperty_StreamFormat)");
         
-        if ( iaaInput ) {
-            asbd.mChannelsPerFrame = 2;
-        }
+        if ( iaaInput ) asbd.mChannelsPerFrame = 2;
         
         bool hasInputChanges = false;
         
-        int channels = streamContext->maxInputChannels ? MIN(asbd.mChannelsPerFrame, streamContext->maxInputChannels) : asbd.mChannelsPerFrame;
-        if ( streamContext->nInputChannels != (int)channels ) {
+        int channels = asbd.mChannelsPerFrame;//streamContext->maxInputChannels ? MIN(asbd.mChannelsPerFrame, streamContext->maxInputChannels) : asbd.mChannelsPerFrame;
+        if ( streamContext->nInputChannels != (int)channels ) 
+        {
             hasChanges = hasInputChanges = true;
             streamContext->nInputChannels = channels;
         }
         
         if ( !streamContext->outputEnabled ) {
-            double newSampleRate = streamContext->sampleRate == 0 ? asbd.mSampleRate : streamContext->sampleRate;
-            if ( fabs(streamContext->currentSampleRate - newSampleRate) > DBL_EPSILON ) {
+            double newSampleRate = sampleRate == 0 ? asbd.mSampleRate : sampleRate;
+            if ( fabs(streamContext->currentSampleRate - newSampleRate) > DBL_EPSILON )
+            {
                 hasChanges = hasInputChanges = true;
                 streamContext->currentSampleRate = newSampleRate;
             }
         }
         
-        if ( streamContext->nInputChannels > 0 && (hasInputChanges || streamContext->hasSetInitialStreamFormat) ) {
-            if ( running && !stoppedUnit ) {
+        if ( streamContext->nInputChannels > 0 && (hasInputChanges || streamContext->hasSetInitialStreamFormat) ) 
+        {
+            if ( running && !stoppedUnit )
+            {
                 PBACheckOSStatus(AudioOutputUnitStop(streamContext->audioUnit), "AudioOutputUnitStop");
                 stoppedUnit = true;
             }
@@ -124,26 +139,62 @@ void PBAUpdateStreamFormat(PBAStreamContext * streamContext)
             asbd.mChannelsPerFrame = streamContext->nInputChannels;
             asbd.mSampleRate = streamContext->currentSampleRate;
             PBACheckOSStatus(AudioUnitSetProperty(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &asbd, sizeof(asbd)), "AudioUnitSetProperty(kAudioUnitProperty_StreamFormat)");
-        } else {
+        } 
+        else
+        {
             memset(&(streamContext->inputTimeStamp), 0, sizeof(streamContext->inputTimeStamp));
         }
     }
-    
-    
-    printf("PBAUpdateStreamFormat currentSampleRate = %g\n", streamContext->currentSampleRate);
-    //if ( hasChanges ) {
-    //    [[NSNotificationCenter defaultCenter] postNotificationName:AEIOAudioUnitDidUpdateStreamFormatNotification object:self];
-    //}
+        
+    PBAStreamFormatPrint(&(streamContext->format));
+
+    if ( hasChanges ) 
+    {
+        //assert(1==0);
+        //[[NSNotificationCenter defaultCenter] postNotificationName:AEIOAudioUnitDidUpdateStreamFormatNotification object:self];
+        
+        if(hasSampleRateChanges) 
+        {
+            PBAIOAudioUnitSampleRateChanged(streamContext, streamContext->audioUnit, kAudioUnitProperty_SampleRate, kAudioUnitScope_Output, 0);
+            //if( streamContext->running ) PBACheckOSStatus(AudioOutputUnitStart(streamContext->audioUnit), "AudioOutputUnitStart");
+        }
+    }
     
     streamContext->hasSetInitialStreamFormat = true;
     
-    if ( stoppedUnit ) {
-        PBACheckOSStatus(AudioOutputUnitStart(streamContext->audioUnit), "AudioOutputUnitStart");
-    }
+    if ( stoppedUnit ) PBACheckOSStatus(AudioOutputUnitStart(streamContext->audioUnit), "AudioOutputUnitStart");
 }
 
+#ifdef __APPLE__
 
+PB_AUDIO_API PB_AUDIO_INLINE double PBABufferDuration(PBAStreamContext* streamContext)
+{
+#if TARGET_OS_IPHONE || TARGET_OS_TVOS
+    //return [[AVAudioSession sharedInstance] IOBufferDuration];
+    
+    void* (*objc_msgSendSharedInstance)(Class, SEL) = (void*)objc_msgSend;
+    id avSessionSharedInstance = objc_msgSendSharedInstance(objc_getClass("AVAudioSession"), sel_registerName("sharedInstance"));
+    double (*objc_msgSendGetProperty)(void*, SEL) = (void*)objc_msgSend;
+    return objc_msgSendGetProperty(avSessionSharedInstance, sel_getUid("IOBufferDuration"));//[AVAudioSession sharedInstance].outputLatency;
+       
+#else
+    // Get the default device
+    AudioDeviceID deviceId = PBAudioDefaultDevice(streamContext->outputEnabled ? kAudioHardwarePropertyDefaultOutputDevice : kAudioHardwarePropertyDefaultInputDevice);
+    if ( deviceId == kAudioDeviceUnknown ) return 0.0;
+    
+    // Get the buffer duration
+    UInt32 duration;
+    UInt32 size = sizeof(duration);
+    AudioObjectPropertyAddress addr =
+    {
+        kAudioDevicePropertyBufferFrameSize,
+        streamContext->outputEnabled ? kAudioDevicePropertyScopeOutput : kAudioDevicePropertyScopeInput, 0 };
+    if ( !PBACheckOSStatus(AudioObjectGetPropertyData(deviceId, &addr, 0, NULL, &size, &duration), "AudioObjectSetPropertyData") ) return 0.0;
+    return (double)duration / streamContext->currentSampleRate;
+#endif
+}
 
+#endif //__APPLE__
 
 //DEBUG
 
@@ -154,7 +205,8 @@ PB_AUDIO_API PB_AUDIO_INLINE void PBAStreamReportRenderTime(PBAStreamContext * s
     if ( now - report->firstReportTime > kRenderBudgetWarningInitialDelay && renderTime > bufferDuration * kRenderBudgetWarningThreshold )
     {
         dispatch_async(dispatch_get_main_queue(), ^{
-            printf("Warning: render took %lfs, %0.4lf%% of buffer duration.", renderTime, (renderTime / bufferDuration) * 100.0);
+            fprintf(stdout, "Warning: render took %lfs, %0.4lf%% of buffer duration.", renderTime, (renderTime / bufferDuration) * 100.0);
+            assert(1==0);
         });
     }
     
@@ -171,7 +223,7 @@ PB_AUDIO_API PB_AUDIO_INLINE void PBAStreamReportRenderTime(PBAStreamContext * s
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 double bufferDuration = PBABufferDuration(streamContext);
-                printf("Render time report: %lfs/%0.4lf%% average,\t%lfs/%0.4lf%% maximum\n", average, (average/bufferDuration)*100.0, maximum, (maximum/bufferDuration)*100.0);
+                fprintf(stdout, "\nRender time report: %lfs/%0.4lf%% average,\t%lfs/%0.4lf%% maximum\n", average, (average/bufferDuration)*100.0, maximum, (maximum/bufferDuration)*100.0);
             });
             
             report->lastReportTime = now;
@@ -182,7 +234,7 @@ PB_AUDIO_API PB_AUDIO_INLINE void PBAStreamReportRenderTime(PBAStreamContext * s
     }
 }
 
-#endif __APPLE__
+#endif //__APPLE__
 
 
 

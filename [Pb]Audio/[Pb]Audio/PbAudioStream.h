@@ -17,6 +17,7 @@
 #import <AudioToolbox/AudioToolbox.h>
 #include <TargetConditionals.h>
 
+
 #if    TARGET_OS_IOS || TARGET_OS_TVOS
 //#include <CoreFoundation/CoreFoundation.h>           //Core Foundation
 #include <objc/runtime.h>                            //objective-c runtime
@@ -77,9 +78,19 @@ static const IID _IID_IAudioRenderClient = { 0xF294ACFC, 0x3146, 0x4483,{ 0xa7,0
  */
 
 #ifdef __APPLE__
-typedef void (^PBAIOAudioUnitRenderClosure)(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp);
+PB_AUDIO_EXTERN const CFStringRef kPBAStreamFormatChangedNotification;     //Format was changed as a Result of UpdateStream
+PB_AUDIO_EXTERN const CFStringRef kPBAStreamSampleRateChangedNotification; //Sample Rate Was Changed As a Result of UpdateStream
+PB_AUDIO_EXTERN const CFStringRef kPBASampleRateChangedNotification;       //Sample Rate Was Changed As a Result of DeviceSetlRate
+
+typedef void (^PBAStreamOutputPass)(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp);
 #else
-typedef void (*PBAIOAudioUnitRenderClosure)(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp);
+typedef void (*PBAStreamOutputPass)(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp);
+#endif
+
+#ifdef __APPLE__
+typedef void (^PBARenderPass)(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, void* _Nullable source, void* _Nullable events, UInt32 nEvents);
+#else
+typedef void (*PBARenderPass)(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp, void* source, void* events, uint32_t nEvents);
 #endif
 
 //Render Context
@@ -119,7 +130,8 @@ typedef struct {
 typedef struct PBAStreamContext
 {
 #ifdef _WIN32	
-	IMMDevice			*audioDevice;// = NULL;
+
+    IMMDevice			*audioDevice;
 	IAudioClient2		*audioClient;
 	IAudioRenderClient	*renderClient;
 	//For now we will only allow output to a single recognized hw device
@@ -130,25 +142,29 @@ typedef struct PBAStreamContext
 	unsigned int renderThreadID;   
 	unsigned int controlThreadID;
 	AUDCLNT_SHAREMODE			shareMode;
+
 #elif defined(__APPLE__)
-    AudioUnit _Nullable        audioUnit;    
+    AudioUnit _Nullable        audioUnit;
+    AudioDeviceID              audioDevice;
 #endif
-	PBAStreamFormat format;
-    PBAIOAudioUnitRenderClosure renderCallback;
+	
+    PBAStreamFormat             format;
+    PBAStreamOutputPass         outputpass;
     PBATimeStamp                inputTimeStamp;
+    
     double                      sampleRate;
     double                      currentSampleRate;	//what is difference between currentSampleRate and sampleRate?
-    double                      inputLatency;       //iOS only
-    double                      outputLatency;      //iOS only
-    float                       inputGain;
-    int                         nInputChannels;
-    int                         maxInputChannels;
-    int                         nOutputChannels;
-	bool                        inputEnabled;
-    bool                        outputEnabled;
-    bool                        running;
+    double                      inputLatency, outputLatency; //iOS only
+    int                         nInputChannels, nOutputChannels;
+    //int                         maxInputChannels;
+    
+    //TO DO:  make these bitflags
+	bool                        inputEnabled, outputEnabled;
+    bool                        running, bypass;
     bool                        hasSetInitialStreamFormat;
     bool                        latencyCompensation;// iOS only
+    
+    bool                        respectDefault;
 
 }PBAStreamContext;
 
@@ -157,86 +173,21 @@ typedef struct PBAStreamContext
 PB_AUDIO_EXTERN IMMDeviceEnumerator *_PBADeviceEnumerator;
 #endif
 
-//We expose a global handle for each OS that can be used to create an audio render Stream to the default hardware device
-PB_AUDIO_EXTERN PBAStreamContext	_PBAMasterStream;
 
 
-
-
-PB_AUDIO_API PB_AUDIO_INLINE void PBAUpdateStreamFormat(PBAStreamContext * streamContext);
+PB_AUDIO_API PB_AUDIO_INLINE void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRate);
 
 
 #ifdef __APPLE__
 
-#if !TARGET_OS_IPHONE
-static AudioDeviceID defaultDeviceForScope( AudioObjectPropertyScope scope)
-{
-    AudioDeviceID deviceId;
-    UInt32 size = sizeof(deviceId);
-    AudioObjectPropertyAddress addr =
-    {
-        scope == kAudioDevicePropertyScopeInput ? kAudioHardwarePropertyDefaultInputDevice : kAudioHardwarePropertyDefaultOutputDevice,
-        .mScope = kAudioObjectPropertyScopeGlobal,
-        .mElement = 0
-    };
-    if ( !PBACheckOSStatus(AudioObjectGetPropertyData(kAudioObjectSystemObject, &addr, 0, NULL, &size, &deviceId), "AudioObjectGetPropertyData") )
-    {
-        return kAudioDeviceUnknown;
-    }
-    
-    return deviceId;
-}
+PB_AUDIO_EXTERN const CFStringRef kPBAudioDidUpdateStreamFormatNotification;
 
-static AudioStreamBasicDescription streamFormatForDefaultDeviceScope( AudioObjectPropertyScope scope)
-{
-    // Get the default device
-    AudioDeviceID deviceId = defaultDeviceForScope(scope);
-    if ( deviceId == kAudioDeviceUnknown ) return (AudioStreamBasicDescription){};
-    
-    // Get stream format
-    AudioStreamBasicDescription asbd;
-    UInt32 size = sizeof(asbd);
-    AudioObjectPropertyAddress addr = { kAudioDevicePropertyStreamFormat, scope, 0 };
-    if ( !PBACheckOSStatus(AudioObjectGetPropertyData(deviceId, &addr, 0, NULL, &size, &asbd), "AudioObjectGetPropertyData") )
-    {
-        return (AudioStreamBasicDescription){};
-    }
-    
-    return asbd;
-}
-#endif
 
-static double PBABufferDuration(PBAStreamContext* streamContext)
-{
-#if TARGET_OS_IPHONE || TARGET_OS_TVOS
-    //return [[AVAudioSession sharedInstance] IOBufferDuration];
-    
-    void* (*objc_msgSendSharedInstance)(Class, SEL) = (void*)objc_msgSend;
-    id avSessionSharedInstance = objc_msgSendSharedInstance(objc_getClass("AVAudioSession"), sel_registerName("sharedInstance"));
-    double (*objc_msgSendGetProperty)(void*, SEL) = (void*)objc_msgSend;
-    return objc_msgSendGetProperty(avSessionSharedInstance, sel_getUid("IOBufferDuration"));//[AVAudioSession sharedInstance].outputLatency;
-       
-#else
-    // Get the default device
-    AudioDeviceID deviceId = defaultDeviceForScope(streamContext->outputEnabled ? kAudioDevicePropertyScopeOutput : kAudioDevicePropertyScopeInput);
-    if ( deviceId == kAudioDeviceUnknown ) return 0.0;
-    
-    // Get the buffer duration
-    UInt32 duration;
-    UInt32 size = sizeof(duration);
-    AudioObjectPropertyAddress addr =
-    {
-        kAudioDevicePropertyBufferFrameSize,
-        streamContext->outputEnabled ? kAudioDevicePropertyScopeOutput : kAudioDevicePropertyScopeInput, 0 };
-    if ( !PBACheckOSStatus(AudioObjectGetPropertyData(deviceId, &addr, 0, NULL, &size, &duration), "AudioObjectSetPropertyData") ) return 0.0;
-    return (double)duration / streamContext->currentSampleRate;
-#endif
-}
+PB_AUDIO_API PB_AUDIO_INLINE double PBABufferDuration(PBAStreamContext* streamContext);
 
 #endif //__APPLE__
 
-//DEBUG
-
+//PBA_DEBUG
 PB_AUDIO_API PB_AUDIO_INLINE void PBAStreamReportRenderTime(PBAStreamContext * streamContext, PBAStreamLatencyReport * report, double renderTime, double bufferDuration); 
 
 

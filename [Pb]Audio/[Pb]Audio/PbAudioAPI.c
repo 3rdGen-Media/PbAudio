@@ -8,6 +8,9 @@
 
 #include "../[Pb]Audio.h"
 
+PB_AUDIO_EXTERN PBAudioStreamFactory PBAudio = {PBAudioStreamInit, PBAudioStreamStart, PBAudioStreamStop, PBAudioStreamSetOutputDevice};
+//PB_AUDIO_EXTERN const PBAudioClientDriver PBAudio;
+
 #ifdef _WIN32
 static int PBAInitAudioStreamWithFormat(PBAStreamContext *clientStream, WAVEFORMATEX * streamFormat, AUDCLNT_SHAREMODE shareMode)
 {
@@ -126,8 +129,12 @@ static void print_waveformat_details(WAVEFORMATEX * waveformatEX)
 }
 #endif
 
-OSStatus PBAInitAudioStream(PBAStreamContext * streamContext, PBAStreamFormat * format)
+OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * format, PBAudioDevice deviceID, PBAStreamOutputPass outputpass)
 {
+    streamContext->audioDevice    = deviceID;   //Pass 0 to select the default audio device during stream initialization
+    streamContext->outputpass     = outputpass; //set the master render callback for the device stream
+    streamContext->respectDefault = false;      //Enable for apps that want to use the system selected default audio device at all times
+    
 #ifdef __APPLE__
         // Get an instance of the output audio unit
     
@@ -208,39 +215,43 @@ OSStatus PBAInitAudioStream(PBAStreamContext * streamContext, PBAStreamFormat * 
             //}
         };
          */
+    
         //! The audio unit. Will be NULL until setup: is called.
         streamContext->inputEnabled  = false;
         streamContext->outputEnabled = true;
+        //streamContext->isDefault     = true; //assume we are using the default device to start the audio session stream
 
-        bool inputEnabled = streamContext->inputEnabled;
+        bool inputEnabled  = streamContext->inputEnabled;
         bool outputEnabled = streamContext->outputEnabled;
     
         AudioComponentDescription acd = {};
 #if TARGET_OS_IPHONE || TARGET_OS_TVOS
         acd = AEAudioComponentDescriptionMake(kAudioUnitManufacturer_Apple, kAudioUnitType_Output, kAudioUnitSubType_RemoteIO);
 #else
-        acd = AEAudioComponentDescriptionMake(kAudioUnitManufacturer_Apple, kAudioUnitType_Output, kAudioUnitSubType_HALOutput);
+        acd = PBAudioComponentDescriptionMake(kAudioUnitManufacturer_Apple, kAudioUnitType_Output, kAudioUnitSubType_HALOutput);
 #endif
         
         AudioComponent inputComponent = AudioComponentFindNext(NULL, &acd);
         OSStatus result = AudioComponentInstanceNew(inputComponent, &(streamContext->audioUnit));
-        if ( !PBACheckOSStatus(result, "AudioComponentInstanceNew") ) {
+        if ( !PBACheckOSStatus(result, "AudioComponentInstanceNew") ) 
+        {
             //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:result userInfo:@{ NSLocalizedDescriptionKey: @"Unable to instantiate IO unit" }];
-            printf("Unable to instantiate IO unit\n");
+            fprintf(stderr, "Unable to instantiate IO unit\n");
             return result;
         }
         
         // Set the maximum frames per slice to render
         result = AudioUnitSetProperty(streamContext->audioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &PBABufferStackMaxFramesPerSlice, sizeof(PBABufferStackMaxFramesPerSlice));
-        PBACheckOSStatus(result, "AudioUnitSetProperty(kAudioUnitProperty_MaximumFramesPerSlice)");
+        if( !PBACheckOSStatus(result, "AudioUnitSetProperty(kAudioUnitProperty_MaximumFramesPerSlice)") ) assert(1==0);
         
+    
         // Enable/disable input
         UInt32 flag = inputEnabled ? 1 : 0;
         result = AudioUnitSetProperty(streamContext->audioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &flag, sizeof(flag));
         if ( !PBACheckOSStatus(result, "AudioUnitSetProperty(kAudioOutputUnitProperty_EnableIO)") )
         {
             //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:userInfo:@{ NSLocalizedDescriptionKey: @"Unable to enable/disable input" }];
-            printf("Unalbe to enable/disable input\n");
+            fprintf(stderr, "Unable to enable/disable input\n");
             return result;
         }
         
@@ -249,16 +260,16 @@ OSStatus PBAInitAudioStream(PBAStreamContext * streamContext, PBAStreamFormat * 
         result = AudioUnitSetProperty(streamContext->audioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, 0, &flag, sizeof(flag));
         if ( !PBACheckOSStatus(result, "AudioUnitSetProperty(kAudioOutputUnitProperty_EnableIO)") ) {
             //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:result userInfo:@{ NSLocalizedDescriptionKey: @"Unable to enable/disable output" }];
-            printf("Unable to enable/disable output\n");
+            fprintf(stderr, "Unable to enable/disable output\n");
             return result;
         }
         
         // Set the render callback
-        AURenderCallbackStruct rcbs = { .inputProc = PBAIOAudioUnitRenderCallback, .inputProcRefCon = (void*)streamContext };//(__bridge void *)(self) };
+        AURenderCallbackStruct rcbs = { .inputProc = PBAudioStreamSubmitBuffers, .inputProcRefCon = (void*)streamContext };//(__bridge void *)(self) };
         result = AudioUnitSetProperty(streamContext->audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Global, 0, &rcbs, sizeof(rcbs));
         if ( !PBACheckOSStatus(result, "AudioUnitSetProperty(kAudioUnitProperty_SetRenderCallback)") ) {
             //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:result userInfo:@{ NSLocalizedDescriptionKey: @"Unable to configure output render" }];
-            printf("Unable to configure output render\n");
+            fprintf(stderr, "Unable to configure output render\n");
             return result;
         }
 
@@ -269,7 +280,7 @@ OSStatus PBAInitAudioStream(PBAStreamContext * streamContext, PBAStreamFormat * 
         result = AudioUnitSetProperty(streamContext->audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 0, &inRenderProc, sizeof(inRenderProc));
         if ( !PBACheckOSStatus(result, "AudioUnitSetProperty(kAudioOutputUnitProperty_SetInputCallback)") ) {
             //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:result userInfo:@{ NSLocalizedDescriptionKey: @"Unable to configure input process" }];
-            printf("Unable to configure input process\n");
+            fprintf(stderr, "Unable to configure input process\n");
             return result;
         }
         
@@ -277,23 +288,34 @@ OSStatus PBAInitAudioStream(PBAStreamContext * streamContext, PBAStreamFormat * 
         result = AudioUnitInitialize(streamContext->audioUnit);
         if ( !PBACheckOSStatus(result, "AudioUnitInitialize")) {
             //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:result userInfo:@{ NSLocalizedDescriptionKey: @"Unable to initialize IO unit" }];
-            printf("Unable to initialize IO unit\n");
+            fprintf(stderr, "Unable to initialize IO unit\n");
             return result;
         }
         
         //TO DO: Update stream formats
-        PBAUpdateStreamFormat(streamContext);
-        
+        PBAudioStreamUpdateFormat(streamContext, streamContext->sampleRate);
+    
+        if( streamContext->audioDevice == kAudioObjectUnknown )
+        {
+            //TO DO:  Handle Input Devices Also
+            streamContext->audioDevice = PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice);
+            //streamContext->audioDevice = PBAudioStreamOutputDevice(&streamContext);//PBAudio.GetOuputDevice( );
+        }
+        else assert(1==0); //TO DO:
+    
         // Register a callback to watch for stream format changes
-        PBACheckOSStatus(AudioUnitAddPropertyListener(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, PBAIOAudioUnitStreamFormatChanged, (void*)streamContext), "AudioUnitAddPropertyListener(kAudioUnitProperty_StreamFormat)");
+        // TO DO:  Pass notification through to client like device notifications
+        //PBACheckOSStatus(AudioUnitAddPropertyListener(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, PBAIOAudioUnitStreamFormatChanged, (void*)streamContext), "AudioUnitAddPropertyListener(kAudioUnitProperty_StreamFormat)");
         
+        //PBACheckOSStatus(AudioUnitAddPropertyListener(streamContext->audioUnit, kAudioUnitProperty_SampleRate,   PBAIOAudioUnitSampleRateChanged,   (void*)streamContext), "AudioUnitAddPropertyListener(kAudioUnitProperty_SampleRate)");
+
+
 #if TARGET_OS_IPHONE || TARGET_OS_TVOS
-       // __weak typeof(self) weakSelf = self;
+        // __weak typeof(self) weakSelf = self;
         
         // Watch for session interruptions
         __block BOOL wasRunning;
-        
-    
+            
         CFNotificationCenterRef center = CFNotificationCenterGetLocalCenter();
         assert(center);
         
@@ -318,13 +340,21 @@ OSStatus PBAInitAudioStream(PBAStreamContext * streamContext, PBAStreamFormat * 
  
         // Register callback to watch for Inter-App Audio connections
         //PBACheckOSStatus(AudioUnitAddPropertyListener(_audioUnit, kAudioUnitProperty_IsInterAppConnected, AEIOAudioUnitIAAConnectionChanged, (__bridge void*)self), "AudioUnitAddPropertyListener(kAudioUnitProperty_IsInterAppConnected)");
+
+#elif TARGET_OS_OSX
+    
+    //Register PBAudio Private CoreAudio [Device] Object Observers
+    //Notifications will be redistributed to clients via PbAudio so that
+    //'Client Application' Processes can remain in sync with Master PbAudio 'Mix Engine' State
+    //TO DO: Send out a CoreRender style notification for IPC
+    PBAudioRegisterDeviceListeners(streamContext);
+    
 #endif
         
-        //TO DO: Send out a CoreRender style notification
-        // Send out a notification that the
-        //[[NSNotificationCenter defaultCenter] postNotificationName:AEIOAudioUnitDidSetupNotification object:self];
-        
-        return result;
+    // Send out a notification that the ...
+    //[[NSNotificationCenter defaultCenter] postNotificationName:AEIOAudioUnitDidSetupNotification object:self];
+    
+    return result;
 #elif defined(_WIN32)
 
 	HRESULT hr;
@@ -373,8 +403,12 @@ OSStatus PBAInitAudioStream(PBAStreamContext * streamContext, PBAStreamFormat * 
     
 }
 
+void PBAudioStreamSetBypass(PBAStreamContext * streamContext, bool bypass)
+{
+    streamContext->bypass = bypass;
+}
 
-OSStatus PBAStartAudioStream(PBAStreamContext * streamContext)
+OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
 {
 
 #ifdef __APPLE__
@@ -412,8 +446,8 @@ OSStatus PBAStartAudioStream(PBAStreamContext * streamContext)
     streamContext->inputGain = 1.0;//_renderContext.inputGain;
 #endif
     
-    //TO DO:
-    PBAUpdateStreamFormat(streamContext);
+    //TO DO: Check to see if the audio format changed after starting the audio session
+    //PBAudioStreamUpdateFormat(streamContext, streamContext->currentSampleRate);
     
     // Start unit
     result = AudioOutputUnitStart(streamContext->audioUnit);
@@ -555,3 +589,76 @@ OSStatus PBAStartAudioStream(PBAStreamContext * streamContext)
 #endif
     
 }
+
+OSStatus PBAudioStreamStop(PBAStreamContext * streamContext)
+{
+    
+    
+
+#ifdef __APPLE__
+    OSStatus result = -1;
+    bool active;
+
+#if (CR_TARGET_IOS) || defined(CR_TARGET_TVOS)
+
+#endif
+    
+    assert(streamContext->audioUnit);// @"You must call setup: on this instance before starting or stopping it");
+    assert(streamContext->running);
+        
+    // Stop unit
+    result = AudioOutputUnitStop(streamContext->audioUnit);
+    
+    if ( !PBACheckOSStatus(result, "AudioOutputUnitStop") )
+    {
+        //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:result userInfo:@{ NSLocalizedDescriptionKey: @"Unable to start IO unit" }];
+        printf("Unable to stop IO unit\n");
+        return result;
+    }
+    
+    streamContext->running = false;
+    
+    return result;
+    
+#elif defined(_WIN32)
+
+   //TO DO: ...
+
+#endif
+    
+}
+
+OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, AudioDeviceID deviceID)
+{
+    OSStatus status = 0;
+    
+    fprintf(stdout, "PBAudioStreamSetOutputDevice (AudioDeviceID: %u)\n", deviceID);
+
+    if( streamContext->audioUnit )
+    {
+        volatile bool wasRunning = streamContext->running;
+        if(wasRunning) PBAudioStreamStop(streamContext);
+
+        OSStatus result = AudioUnitSetProperty(streamContext->audioUnit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceID, sizeof(deviceID));
+        
+        if ( !PBACheckOSStatus(result, "AudioUnitSetProperty(kAudioOutputUnitProperty_CurrentDevice)\n") )
+        {
+            //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:result userInfo:@{ NSLocalizedDescriptionKey: @"Unable to start IO unit" }];
+            fprintf(stderr, ", Unable to set audio unit output device\n");
+            return result;
+        }
+
+        //Changing the device will result in an update to the audio unit stream format
+        //self.hasSetInitialStreamFormat = NO;
+        PBAudioStreamUpdateFormat(streamContext, 0);
+        //streamContext->isDefault = false;
+        
+        if ( wasRunning ) PBAudioStreamStart(streamContext);
+    }
+    
+    streamContext->audioDevice = deviceID;
+
+    return status;
+}
+
+

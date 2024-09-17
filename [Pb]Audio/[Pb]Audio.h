@@ -126,23 +126,25 @@ extern "C" {
 #include <vld.h>
 #endif
 
+//#define PBA_DEBUG
 
 //SIMD datatypes are processor/platform specific includes
 
+#include "[Pb]Audio/pba_target_os.h"
+#include "[Pb]Audio/pba_time.h"
+#include "[Pb]Audio/pba_dsp_waveforms.h"
 
-//include global cr_utility headers
-//#include "crUtils.h"
 
 //now include our C primitive data types and functionality
 #ifdef _WIN32
 #include "[Pb]Audio/PbAudioExt.h"
 #endif
-#include "[Pb]Audio/PbAudioTime.h"
-#include "[Pb]Audio/PbAudioFormat.h"
-#include "[Pb]Audio/PbAudioError.h"
+#include "[Pb]Audio/pba_format.h"
+#include "[Pb]Audio/pba_error.h"
 #include "[Pb]Audio/PbAudioBufferList.h"
 #include "[Pb]Audio/PbAudioBufferStack.h"
 #include "[Pb]Audio/PbAudioCallbacks.h"
+#include "[Pb]Audio/PbAudioDevice.h"
 
 //Stream
 #include "[Pb]Audio/PbAudioStream.h"
@@ -151,8 +153,21 @@ extern "C" {
 #include "[Pb]Audio/PbAudioAPI.h"
 
 
+//Utils
+#include "[Pb]Audio/PbAudioByteUtils.h"
+
+//File/URL Playback
+#include "[Pb]Audio/PbAudioFileStream.h"
+
+//Event Queue(s)
+#include "[Pb]Audio/pba_event_queue.h"
+
+//Render Pass
+#include "[Pb]Audio/PbAudioRenderPass.h"
 
 
+//Midi
+#include "CMidi/CMidi.h"
 
 #ifdef __cplusplus
 }

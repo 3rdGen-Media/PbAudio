@@ -11,9 +11,9 @@
 
 #include "PbAudioBufferList.h"
 
-static const uint32_t     PBABufferStackMaxFramesPerSlice = 4096;
-static const int kMaxChannelsPerBuffer = 32;
-static const int kDefaultPoolSize = 16;
+static const uint32_t PBABufferStackMaxFramesPerSlice = 512;
+static const int      kMaxChannelsPerBuffer = 32;
+static const int      kDefaultPoolSize = 16;
 
 
 #endif /* pbaudio_bufferstack_h */

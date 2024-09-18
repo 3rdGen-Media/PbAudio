@@ -10,8 +10,10 @@
 #define PbAudioDevice_h
 
 //#include <stdio.h>
-#include <CoreAudio/AudioHardwareBase.h>
 
+#ifdef __APPLE__
+#include <CoreAudio/AudioHardwareBase.h>
+#endif
 
 //typedef uint8_t PBAudioDeviceType;
 
@@ -32,9 +34,17 @@ typedef struct CMDeviceDescription
 
 #ifdef __APPLE__
 typedef AudioDeviceID PBAudioDevice;
-
 #else
 
+#define kAudioObjectUnknown 0
+#define kAudioHardwarePropertyDefaultOutputDevice 0
+
+typedef uint32_t AudioObjectPropertySelector;
+typedef uint32_t AudioObjectPropertyScope;
+
+typedef IMMDevice*    PBAudioDevice;
+
+typedef int           ItemCount;
 #endif
 
 typedef struct PBAudioDeviceList
@@ -52,24 +62,31 @@ typedef struct PBAudioDeviceList
 //extern NSString * const AEAudioDeviceDefaultOutputDeviceChangedNotification;
 //extern NSString * const AEAudioDeviceAvailableDevicesChangedNotification;
 
+#ifdef __APPLE__
 PB_AUDIO_EXTERN const CFStringRef kPBADeviceDefaultInputChangedNotification;
 PB_AUDIO_EXTERN const CFStringRef kPBADeviceDefaultOutputChangedNotification;
 PB_AUDIO_EXTERN const CFStringRef kPBADevicesAvailableChangedNotification;
+#else
+
+#endif
 
 //Private Notifications
 //PB_AUDIO_API PB_AUDIO_INLINE OSStatus     PBAudioDeviceDefaultInputChanged(AudioObjectID inObjectID, UInt32 inNumberAddresses, const AudioObjectPropertyAddress *inAddresses, void *inClientData);
 //PB_AUDIO_API PB_AUDIO_INLINE OSStatus    PBAudioDeviceDefaultOutputChanged(AudioObjectID inObjectID, UInt32 inNumberAddresses, const AudioObjectPropertyAddress *inAddresses, void *inClientData);
 //PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceAvailableDevicesChanged(AudioObjectID inObjectID, UInt32 inNumberAddresses, const AudioObjectPropertyAddress *inAddresses, void *inClientData);
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioRegisterDeviceListeners(PBAStreamContext* streamContext);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus         PBAudioRegisterDeviceListeners(PBAStreamContext* streamContext);
 
 #pragma mark -- Get Devices
 
 
 //Query Devices Top Level Data
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDeviceName(PBAudioDevice deviceID, char * deviceName, UInt32 * nameLen);
-PB_AUDIO_API PB_AUDIO_INLINE AudioDeviceID     PBAudioDefaultDevice(AudioObjectPropertySelector selector);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDeviceID(PBAudioDevice deviceID, char* id, uint32_t* idLen);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDeviceName(PBAudioDevice deviceID, char * deviceName, uint32_t * nameLen);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDefaultDevice(AudioObjectPropertySelector selector, PBAudioDevice* pDevice);
 PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void);
+
+PB_AUDIO_API PB_AUDIO_INLINE int               PBAudioActivateDevice(IMMDevice* device, IAudioClient2** audioClient);
 
 //Query Stream Device
 //PB_AUDIO_API PB_AUDIO_INLINE AudioDeviceID PBAudioStreamOutputDevice(PBAStreamContext* streamContext);
@@ -78,12 +95,12 @@ PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void);
 PB_AUDIO_API PB_AUDIO_INLINE int                PBAudioDeviceChannelCount(PBAudioDevice deviceID, AudioObjectPropertyScope scope);
 
 //Query Device Sample Rate(s)
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus      PBAudioDeviceNominalSampleRate(PBAudioDevice deviceID, AudioObjectPropertyScope scope, Float64* sampleRate);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus      PBAudioDeviceNominalSampleRate(PBAudioDevice deviceID, AudioObjectPropertyScope scope, double* sampleRate);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRateCount(PBAudioDevice deviceID, AudioObjectPropertyScope scope, int * nSampleRates);
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDeviceSetSampleRate(PBAudioDevice deviceID, AudioObjectPropertyScope scope, Float64 sampleRate);
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus        PBAudioDeviceBufferSizeRange(PBAudioDevice deviceID, UInt32* outMinimum, UInt32* outMaximum);
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus             PBAudioDeviceBufferSize(PBAudioDevice deviceID, UInt32* bufferSize);
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDeviceSetBufferSize(PBAudioDevice deviceID, UInt32  bufferSize);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDeviceSetSampleRate(PBAudioDevice deviceID, AudioObjectPropertyScope scope, double sampleRate);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus        PBAudioDeviceBufferSizeRange(PBAudioDevice deviceID, uint32_t* outMinimum, uint32_t* outMaximum);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus             PBAudioDeviceBufferSize(PBAudioDevice deviceID, uint32_t* bufferSize);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDeviceSetBufferSize(PBAudioDevice deviceID, uint32_t  bufferSize);
 
 //+ (AEAudioDevice *)defaultInputAudioDevice;
 //+ (AEAudioDevice *)audioDeviceWithUID:(NSString *)UID;

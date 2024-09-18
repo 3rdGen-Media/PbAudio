@@ -8,11 +8,22 @@
 
 #include "../[Pb]Audio.h"
 
+#ifdef _WIN32
+#include <assert.h>
+#include "Functiondiscoverykeys_devpkey.h"
+#endif
+
 //Private
 volatile PBAudioDevice _AudioDevices[PBA_MAX_DEVICES]     = {0};
 volatile char          _DeviceNames[PBA_MAX_DEVICES][128] = {0};
-volatile UInt32        _DeviceCount                       =  0;
+volatile uint32_t      _DeviceCount                       =  0;
 
+#ifdef _WIN32
+IMMDeviceEnumerator*   _PBADeviceEnumerator = NULL;
+#endif
+
+
+#ifdef __APPLE__
 const CFStringRef kPBADeviceDefaultInputChangedNotification  = CFSTR("PBADeviceDefaultInputDeviceChangedNotification");
 const CFStringRef kPBADeviceDefaultOutputChangedNotification = CFSTR("PBADeviceDefaultOutputDeviceChangedNotification");
 const CFStringRef kPBADevicesAvailableChangedNotification    = CFSTR("PBADeviceAvailableDevicesChangedNotification");
@@ -100,12 +111,46 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioRegisterDeviceListeners(PBAStreamCo
     return status;
 }
 
+#else
+
+
+int PBAudioDeviceInitCOM()
+{
+    //CoIntialize(Ex) Initializes the COM library for use by the calling thread, sets the thread's concurrency model, and creates a new apartment for the thread if one is required.
+    //You should call Windows::Foundation::Initialize to initialize the thread instead of CoInitializeEx if you want to use the Windows Runtime APIs or if you want to use both COM and Windows Runtime components. 
+    //Windows::Foundation::Initialize is sufficient to use for COM components.
+    HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    if (FAILED(hr)) { fprintf(stderr, "**** Error 0x%x returned by CoInitializeEx\n", hr); return -1; }
+
+    //Create MMDeviceEnumerator so we can get an audio endpoint
+    //CoCreateInstance Creates a single uninitialized object of the class associated with a specified CLSID.
+    //Call CoCreateInstance when you want to create only one object on the local system. 
+    //To create a single object on a remote system, call the CoCreateInstanceEx function. To create multiple objects based on a single CLSID, call the CoGetClassObject function.
+    hr = CoCreateInstance(__clsid(MMDeviceEnumerator), NULL, CLSCTX_ALL, __riid(IMMDeviceEnumerator), (void**)&_PBADeviceEnumerator);
+    if (FAILED(hr)) { fprintf(stderr, "**** Error 0x%x returned by CoCreateInstance\n", hr); return -1; }
+    return 0;
+}
+
+
+//typedef union fourByteInt
+//{
+//	uint32_t i;
+//	char bytes[4];
+//}fourByteInt;
+
+#define PBA_COM_RELEASE(punk) if ((punk) != NULL) { CALL(Release, punk); (punk) = NULL; }
+
+
+#endif
+
+
 #pragma mark -- Get Devices
 
-PB_AUDIO_API PB_AUDIO_INLINE AudioDeviceID PBAudioStreamOutputDevice(PBAStreamContext* streamContext)
+PB_AUDIO_API PB_AUDIO_INLINE PBAudioDevice PBAudioStreamOutputDevice(PBAStreamContext* streamContext)
 {
     OSStatus result;
-    
+
+#ifdef __APPLE__
     // Set the render callback
     AURenderCallbackStruct rcbs = { .inputProc = PBAudioStreamSubmitBuffers, .inputProcRefCon = (void*)streamContext };//(__bridge void *)(self) };
     result = AudioUnitGetProperty(streamContext->audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Global, 0, &rcbs, sizeof(rcbs));
@@ -114,14 +159,20 @@ PB_AUDIO_API PB_AUDIO_INLINE AudioDeviceID PBAudioStreamOutputDevice(PBAStreamCo
         fprintf(stderr, "Unable to configure output render\n");
         return result;
     }
-    
+#else
+
+#endif
+
     return 0;
 }
 
-PB_AUDIO_API PB_AUDIO_INLINE AudioDeviceID PBAudioDefaultDevice(AudioObjectPropertySelector selector)
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDefaultDevice(AudioObjectPropertySelector selector, PBAudioDevice* pDevice)
 {
-    AudioDeviceID deviceID;
-    UInt32 size = sizeof(deviceID);
+    OSStatus result;
+    PBAudioDevice deviceID;
+    uint32_t size = sizeof(deviceID);
+
+#ifdef __APPLE__
     AudioObjectPropertyAddress addr = {selector, kAudioObjectPropertyScopeGlobal, 0};
     
     OSStatus result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &addr, 0, NULL, &size, &deviceID);
@@ -131,19 +182,42 @@ PB_AUDIO_API PB_AUDIO_INLINE AudioDeviceID PBAudioDefaultDevice(AudioObjectPrope
         fprintf(stderr, ", Unable to get default audio unit output device\n");
         //return nil;
     }
-    
-    //AEAudioDevice * device = [[AEAudioDevice alloc] initWithObjectID:deviceId];
-    //device.isDefault = YES;
-    return deviceID;
+#else
+    //HRESULT hr = gEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, pDevice);
+    result = CALL(GetDefaultAudioEndpoint, _PBADeviceEnumerator, eRender, eConsole, pDevice);
+    if (FAILED(result)) { printf("**** Error 0x%x returned by GetDefaultAudioEndpoint\n", result); return -1; }
+#endif
+
+    return result;
 }
+
+
+PB_AUDIO_API PB_AUDIO_INLINE int PBAudioActivateDevice(IMMDevice* device, IAudioClient2** audioClient)
+{
+    //Active a version 1 Aucio Client
+    //HRESULT hr = clientStream->gDevice->Activate( IID_IAudioClient, CLSCTX_ALL, NULL, (void**)&(clientStream->audioClient));
+    //HRESULT hr = PBADeviceActivate( clientStream->gDevice, IID_IAudioClient, CLSCTX_ALL, NULL, (void**)&(clientStream->audioClient));
+    HRESULT hr = CALL(Activate, device, __riid(IAudioClient), CLSCTX_ALL, NULL, (void**)audioClient);
+
+    if (FAILED(hr)) { printf("**** Error 0x%x returned by Activate\n", hr); return -1; }
+    return 0;
+}
+
+static void LPWSTR_2_CHAR(LPWSTR in_char, LPSTR out_char, size_t str_len)
+{
+    WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, in_char, -1, out_char, str_len, NULL, NULL);
+}
+
 
 PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void)
 {
-    UInt32 deviceListSize = 0;
-    
+    OSStatus result;
+    uint32_t deviceListSize = 0;
+    uint32_t deviceCount    = 0;
+#ifdef __APPLE__
     //Get the Size of the device list
     AudioObjectPropertyAddress deviceListAddr = {kAudioHardwarePropertyDevices, kAudioObjectPropertyScopeGlobal};
-    OSStatus result = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &deviceListAddr, 0, NULL, &deviceListSize);
+    result = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &deviceListAddr, 0, NULL, &deviceListSize);
     if ( !PBACheckOSStatus(result, "kAudioHardwarePropertyDevices") )
     {
         fprintf(stderr, ", Unable to get PropertyDataSize(kAudioHardwarePropertyDevices)\n");
@@ -152,7 +226,7 @@ PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void)
 
     }
     
-    UInt32 deviceCount = deviceListSize / sizeof(AudioDeviceID); assert( deviceCount <= PBA_MAX_DEVICES);
+    deviceCount = deviceListSize / sizeof(AudioDeviceID); assert( deviceCount <= PBA_MAX_DEVICES);
     //AudioObjectID * deviceIDs = (AudioObjectID*)malloc(deviceListSize);
     
     result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &deviceListAddr, 0, NULL, &deviceListSize, (void*)_AudioDevices);
@@ -163,6 +237,41 @@ PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void)
         //return nil;
         assert(1==0);
     }
+#else
+
+    IMMDeviceCollection* deviceCollection = NULL;
+
+    //Obtain Device Collection
+    result = CALL(EnumAudioEndpoints, _PBADeviceEnumerator, eRender, DEVICE_STATE_ACTIVE | DEVICE_STATE_DISABLED, &deviceCollection);
+    if (FAILED(result)) { fprintf(stderr, "**** Error 0x%x returned by IMMDeviceEnumerator::EnumAudioEndpoints\n", result); assert(1 == 0);  }
+
+    //Query Device Collection Count
+    result = CALL(GetCount, deviceCollection, &deviceCount);
+    if (FAILED(result)) { fprintf(stderr, "**** Error 0x%x returned by IMMDeviceCollectin::GetCount\n", result); assert(1 == 0); }
+
+    UINT deviceIndex = 0;
+
+    //clear any existing memory
+    for (deviceIndex; deviceIndex < PBA_MAX_DEVICES; deviceIndex++)
+    {
+        if (_AudioDevices[deviceIndex])
+        {
+            //Release old IMMDevice*
+            PBA_COM_RELEASE(_AudioDevices[deviceIndex]);
+        }
+    }
+
+    //Get each IMMDevice*
+    for (deviceIndex=0; deviceIndex < deviceCount; deviceIndex++)
+    {
+        result = CALL(Item, deviceCollection, deviceIndex, &_AudioDevices[deviceIndex]); assert(_AudioDevices[deviceIndex]);
+        if (FAILED(result)) { fprintf(stderr, "**** Error 0x%x returned by IMMDeviceCollection::Item\n", result); assert(1 == 0); }
+    }
+
+    //Release Collection
+    PBA_COM_RELEASE(deviceCollection)
+
+#endif  
 
     _DeviceCount = deviceCount;
     
@@ -170,8 +279,31 @@ PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void)
     return (PBAudioDeviceList){(const PBAudioDevice*)&_AudioDevices[0], _DeviceCount};
 }
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceName(PBAudioDevice deviceID, char * deviceName, UInt32 * nameLen)
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceID(PBAudioDevice deviceID, char* id, uint32_t* idLen)
 {
+    LPWSTR* pwszID = NULL;
+    IPropertyStore* pProps = NULL;
+    PROPVARIANT   varName;
+
+    HRESULT result;
+    // Get the endpoint ID string.
+    result = CALL(GetId, deviceID, &pwszID);
+    if (FAILED(result)) { fprintf(stderr, "**** Error 0x%x returned by IMMDevice::GetId\n", result); assert(1 == 0); }
+
+    //copy unicode string to bytes
+    size_t w_len = wcslen(pwszID);
+    wcscpy((LPWSTR*)id, pwszID);
+    *idLen = w_len;
+
+    fprintf(stdout, "\nPBAudioDeviceID: %S\n", pwszID);
+
+    return result;
+}
+
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceName(PBAudioDevice deviceID, char * deviceName, uint32_t * nameLen)
+{
+    OSStatus result;
+#ifdef __APPLE__
     AudioObjectPropertyAddress propertyAddress = {
             kAudioDevicePropertyDeviceName,
             kAudioObjectPropertyScopeOutput,
@@ -187,11 +319,55 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceName(PBAudioDevice deviceID, 
         //fprintf(stderr, "device name get error");
         assert(1==0);
     }
+#else
+
+    LPWSTR* pwszID         = NULL;
+    IPropertyStore* pProps = NULL;
+    PROPVARIANT   varName;
+
+    // Get the endpoint ID string.
+    result = CALL(GetId, deviceID, &pwszID);
+    if (FAILED(result)) { fprintf(stderr, "**** Error 0x%x returned by IMMDevice::GetId\n", result); assert(1 == 0); }
+
+    result = CALL(OpenPropertyStore, deviceID, STGM_READ, &pProps);
+    if (FAILED(result)) { fprintf(stderr, "**** Error 0x%x returned by IMMDevice::OpenPropertyStore\n", result); assert(1 == 0); }
+
+    // Initialize container for property value.
+    PropVariantInit(&varName);
+
+    // Get the endpoint's friendly-name property.
+    result = CALL(GetValue, pProps, &PKEY_Device_FriendlyName, &varName);
+    if (FAILED(result)) { fprintf(stderr, "**** Error 0x%x returned by IPropertyStore::GetValue\n", result); assert(1 == 0); }
+
+    // GetValue succeeds and returns S_OK if PKEY_Device_FriendlyName is not found.
+    // In this case vartName.vt is set to VT_EMPTY.      
+    if (varName.vt != VT_EMPTY)
+    {
+        size_t w_len = wcslen(varName.pwszVal);
+        // Print unicode endpoint friendly name and endpoint ID.
+        //fprintf(stdout, "Endpoint: \"%S\" (%S)\n", varName.pwszVal, pwszID);
+
+        //convert a unicode string that contains only ascii to UTF-8
+        //memset(deviceName, '\0', w_len * sizeof(char));
+        //LPWSTR_2_CHAR(varName.pwszVal, deviceName, w_len);        
+        //*nameLen = strlen(deviceName);
     
+        //copy unicode string to bytes
+        wcscpy((LPWSTR*)deviceName, varName.pwszVal);
+        *nameLen = w_len;
+    }
+
+    CoTaskMemFree(pwszID);
+    pwszID = NULL;
+    PropVariantClear(&varName);
+    PBA_COM_RELEASE(pProps)
+    //PBA_COM_RELEASE(pEndpoint)
+#endif
+
     return result;
 }
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceInputChannels(PBAudioDevice deviceID, char * deviceName, UInt32 * nameLen)
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceInputChannels(PBAudioDevice deviceID, char * deviceName, uint32_t * nameLen)
 {
     OSStatus status = 0;
     
@@ -219,11 +395,13 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceInputChannels(PBAudioDevice d
 //Read StreamConfiguration to an AudioBufferList to get # Ouptut Channels
 PB_AUDIO_API PB_AUDIO_INLINE int PBAudioDeviceChannelCount(PBAudioDevice deviceID, AudioObjectPropertyScope scope)
 {
+    int nMonoOutputs = 0;
     //kAudioDevicePropertyStreamConfiguration returns the stream configuration of the device in an
     //AudioBufferList (with the buffer pointers set to NULL) which describes
     //the list of streams and the number of channels in each stream
 
-    int i = 0; int nMonoOutputs = 0; UInt32 propertySize = 0;
+#ifdef __APPLE__
+    int i = 0; UInt32 propertySize = 0;
     AudioObjectPropertyAddress scPropertyAddress = {kAudioDevicePropertyStreamConfiguration, scope, kAudioObjectPropertyElementMain};
     
     // Get output channels
@@ -243,16 +421,22 @@ PB_AUDIO_API PB_AUDIO_INLINE int PBAudioDeviceChannelCount(PBAudioDevice deviceI
     
     //TO DO: Manage pool of bufferLists that can be used for Device/Stream Configuration queries
     free(bufferList);
-    
+#else
+
+#endif
+
     return nMonoOutputs;
 }
 
 //TO DO:  return error code, accept return value as input parameter
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRate(PBAudioDevice deviceID, AudioObjectPropertyScope scope, Float64* sampleRate)
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRate(PBAudioDevice deviceID, AudioObjectPropertyScope scope, double* sampleRate)
 {
+    OSStatus status = 0;
+
+#ifdef __APPLE__
     UInt32 propertySize = sizeof(Float64);
     AudioObjectPropertyAddress srPropertyAddress = {kAudioDevicePropertyNominalSampleRate, scope, kAudioObjectPropertyElementMain};
-    OSStatus status = AudioObjectGetPropertyData(deviceID, &srPropertyAddress, 0, nil, &propertySize, sampleRate);
+    status = AudioObjectGetPropertyData(deviceID, &srPropertyAddress, 0, nil, &propertySize, sampleRate);
     if ( !PBACheckOSStatus(status, "kAudioDevicePropertyNominalSampleRate") )
     {
         fprintf(stderr, ", Unable to get PropertyData(kAudioDevicePropertyNominalSampleRate)\n");
@@ -260,7 +444,10 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRate(PBAudioDevi
         assert(1==0);
 
     }
-    
+#else
+
+#endif
+
     return status;
 }
 
@@ -268,12 +455,14 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRate(PBAudioDevi
 //TO DO:  return error code, accept return value as input parameter
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRateCount(PBAudioDevice deviceID, AudioObjectPropertyScope scope, int * nSampleRates)
 {
+    OSStatus result = 0;
+#ifdef __APPLE__
     UInt32 srListSize = 0;
     AudioObjectPropertyAddress srPropertyAddress = {kAudioDevicePropertyAvailableNominalSampleRates, scope, kAudioObjectPropertyElementMain};
 
     //Get the Size of the sample rate list
     AudioObjectPropertyAddress srListAddress = {kAudioDevicePropertyAvailableNominalSampleRates, scope, kAudioObjectPropertyElementMain};
-    OSStatus result = AudioObjectGetPropertyDataSize(deviceID, &srListAddress, 0, NULL, &srListSize);
+    result = AudioObjectGetPropertyDataSize(deviceID, &srListAddress, 0, NULL, &srListSize);
     if ( !PBACheckOSStatus(result, "kAudioDevicePropertyAvailableNominalSampleRates") )
     {
         fprintf(stderr, ", Unable to get PropertyDataSize(kAudioDevicePropertyAvailableNominalSampleRates)\n");
@@ -283,12 +472,19 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRateCount(PBAudi
     }
     
     *nSampleRates = srListSize / sizeof(AudioValueRange); //assert( deviceCount <= PBA_MAX_DEVICES);
+    
+#else
+
+#endif
+
     return result;
 }
 
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetSampleRate(PBAudioDevice deviceID, AudioObjectPropertyScope scope, Float64 sampleRate)
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetSampleRate(PBAudioDevice deviceID, AudioObjectPropertyScope scope, double sampleRate)
 {
+    OSStatus status = 0;
+#ifdef __APPLE__
     //Note: Explicitly stopping and starting the stream does not seem to be necessary for sample rate and buffer size changes
     //      and results in additonal warnings 'HALB_IOThread.cpp:326    HALB_IOThread::_Start: there already is a thread'
     volatile bool wasRunning = false;
@@ -304,7 +500,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetSampleRate(PBAudioDevice d
 
     UInt32 propertySize = sizeof(Float64);
     AudioObjectPropertyAddress srPropertyAddress = {kAudioDevicePropertyNominalSampleRate, scope, kAudioObjectPropertyElementMain};
-    OSStatus status = AudioObjectSetPropertyData(deviceID, &srPropertyAddress, 0, nil, propertySize, &sampleRate);
+    status = AudioObjectSetPropertyData(deviceID, &srPropertyAddress, 0, nil, propertySize, &sampleRate);
     if ( !PBACheckOSStatus(status, "kAudioDevicePropertyNominalSampleRate") )
     {
         fprintf(stderr, ", Unable to set PropertyData(kAudioDevicePropertyNominalSampleRate)\n");
@@ -327,41 +523,60 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetSampleRate(PBAudioDevice d
         if ( wasRunning ) PBAudioStreamStart(streamContext);
     }
     PBAudioStreamSetBypass(streamContext, false);
+#else
+
+#endif
+
     return status;
 }
 
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSizeRange(PBAudioDevice deviceID, UInt32* outMinimum, UInt32* outMaximum)
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSizeRange(PBAudioDevice deviceID, uint32_t* outMinimum, uint32_t* outMaximum)
 {
+    OSStatus theError = 0;
+
+#ifdef __APPLE__
     AudioObjectPropertyAddress theAddress = { kAudioDevicePropertyBufferFrameSizeRange, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMain };
  
     AudioValueRange theRange = { 0, 0 };
     UInt32 theDataSize = sizeof(AudioValueRange);
-    OSStatus theError = AudioObjectGetPropertyData(deviceID, &theAddress, 0, NULL, &theDataSize, &theRange); assert(theError == noErr);
+    theError = AudioObjectGetPropertyData(deviceID, &theAddress, 0, NULL, &theDataSize, &theRange); assert(theError == noErr);
     
     if(theError == 0)
     {
         *outMinimum = theRange.mMinimum;
         *outMaximum = theRange.mMaximum;
     }
-    
+#else
+
+#endif
+
     return theError;
 }
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSize(PBAudioDevice inDeviceID, UInt32* bufferSize)
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSize(PBAudioDevice inDeviceID, uint32_t* bufferSize)
 {
+    OSStatus theError = 0;
+#ifdef __APPLE__
     AudioObjectPropertyAddress theAddress = { kAudioDevicePropertyBufferFrameSize, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMain };
  
     UInt32 frameSize = 0;
     UInt32 theDataSize = sizeof(UInt32);
-    OSStatus theError = AudioObjectGetPropertyData(inDeviceID, &theAddress, 0, NULL, &theDataSize, &frameSize);
+    theError = AudioObjectGetPropertyData(inDeviceID, &theAddress, 0, NULL, &theDataSize, &frameSize);
     
     if(theError == 0) *bufferSize = frameSize;
+
+#else
+
+#endif
+
     return theError;
 }
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice deviceID, UInt32 bufferSize)
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice deviceID, uint32_t bufferSize)
 {
+    OSStatus status = 0;
+#ifdef __APPLE__
     //for each stream
     volatile bool wasRunning = false;
     PBAStreamContext * streamContext = &PBAudio.OutputStreams[0];
@@ -372,7 +587,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice d
     
     UInt32 propertySize = sizeof(UInt32);
     AudioObjectPropertyAddress bsPropertyAddress = {kAudioDevicePropertyBufferFrameSize, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMain};
-    OSStatus status = AudioObjectSetPropertyData(deviceID, &bsPropertyAddress, 0, nil, propertySize, &bufferSize);
+    status = AudioObjectSetPropertyData(deviceID, &bsPropertyAddress, 0, nil, propertySize, &bufferSize);
     if ( !PBACheckOSStatus(status, "kAudioDevicePropertyBufferFrameSize") )
     {
         fprintf(stderr, ", Unable to set PropertyData(kAudioDevicePropertyBufferFrameSize)\n");
@@ -389,6 +604,9 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice d
         PBAudioStreamUpdateFormat(streamContext, streamContext->currentSampleRate);
         if ( wasRunning ) PBAudioStreamStart(streamContext);
     }
+#else
+
+#endif
 
     return status;
 }

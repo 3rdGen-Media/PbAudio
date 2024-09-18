@@ -27,23 +27,27 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -83,18 +87,23 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDLL;_PB_AUDIO_BUILD_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\Visual Leak Detector\include;$(DXSDK_DIR)\include\10.0.14393.0\um;$(DXSDK_DIR)\include\10.0.14393.0\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_WINDLL;_CMIDI_BUILD_DLL;_PB_AUDIO_BUILD_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(VLD_DIR)\include;$(DXSDK_DIR)\include\10.0.14393.0\um;$(DXSDK_DIR)\include\10.0.14393.0\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Avrt.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)lib\x64\[Pb]Audiod.lib</ImportLibrary>
+      <AdditionalLibraryDirectories>..\lib\x64;$(VLD_DIR)\lib\Win64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>if not exist ..\include\[Pb]Audio\[Pb]Audio mkdir ..\include\[Pb]Audio\[Pb]Audio
+      <Command>if not exist ..\include\CMidi mkdir ..\include\CMidi
+if not exist ..\include\[Pb]Audio\[Pb]Audio mkdir ..\include\[Pb]Audio\[Pb]Audio
+copy .\CMidi\*.h ..\include\CMidi
 copy .\[Pb]Audio\*.h ..\include\[Pb]Audio\[Pb]Audio
-copy .\*.h ..\include\[Pb]Audio</Command>
+copy .\*.h ..\include\[Pb]Audio
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -117,7 +126,7 @@ copy .\*.h ..\include\[Pb]Audio</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(DXSDK_DIR)\include\10.0.14393.0\um;$(DXSDK_DIR)\include\10.0.14393.0\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_WINDLL;_PB_AUDIO_BUILD_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDLL;_CMIDI_BUILD_DLL;_PB_AUDIO_BUILD_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -127,33 +136,60 @@ copy .\*.h ..\include\[Pb]Audio</Command>
       <ImportLibrary>$(SolutionDir)lib\x64\[Pb]Audio.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
-      <Command>if not exist ..\include\[Pb]Audio\[Pb]Audio mkdir ..\include\[Pb]Audio\[Pb]Audio
+      <Command>if not exist ..\include\CMidi mkdir ..\include\CMidi
+if not exist ..\include\[Pb]Audio\[Pb]Audio mkdir ..\include\[Pb]Audio\[Pb]Audio
+copy .\CMidi\*.h ..\include\CMidi
 copy .\[Pb]Audio\*.h ..\include\[Pb]Audio\[Pb]Audio
 copy .\*.h ..\include\[Pb]Audio</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CMidi\CMEndian.h" />
+    <ClInclude Include="CMidi\CMEventQueue.h" />
+    <ClInclude Include="CMidi\CMidi.h" />
+    <ClInclude Include="CMidi\CMidiControl.h" />
+    <ClInclude Include="CMidi\CMidiDevice.h" />
+    <ClInclude Include="CMidi\CMidiDriverID.h" />
+    <ClInclude Include="CMidi\CMidiEndpoint.h" />
+    <ClInclude Include="CMidi\CMidiMessage.h" />
     <ClInclude Include="[Pb]Audio.h" />
     <ClInclude Include="[Pb]Audio\PbAudioAPI.h" />
     <ClInclude Include="[Pb]Audio\PbAudioBufferList.h" />
     <ClInclude Include="[Pb]Audio\PbAudioBufferStack.h" />
+    <ClInclude Include="[Pb]Audio\PbAudioByteUtils.h" />
     <ClInclude Include="[Pb]Audio\PbAudioCallbacks.h" />
-    <ClInclude Include="[Pb]Audio\PbAudioError.h" />
+    <ClInclude Include="[Pb]Audio\PbAudioDevice.h" />
     <ClInclude Include="[Pb]Audio\PbAudioExt.h" />
-    <ClInclude Include="[Pb]Audio\PbAudioFormat.h" />
+    <ClInclude Include="[Pb]Audio\PbAudioFileStream.h" />
+    <ClInclude Include="[Pb]Audio\PbAudioRenderPass.h" />
     <ClInclude Include="[Pb]Audio\PbAudioStream.h" />
-    <ClInclude Include="[Pb]Audio\PbAudioTime.h" />
+    <ClInclude Include="[Pb]Audio\pba_dsp_waveforms.h" />
+    <ClInclude Include="[Pb]Audio\pba_error.h" />
+    <ClInclude Include="[Pb]Audio\pba_event_queue.h" />
+    <ClInclude Include="[Pb]Audio\pba_format.h" />
+    <ClInclude Include="[Pb]Audio\pba_target_os.h" />
+    <ClInclude Include="[Pb]Audio\pba_time.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CMidi\CMEventQueue.c" />
+    <ClCompile Include="CMidi\CMidi.c" />
+    <ClCompile Include="CMidi\CMidiControl.c" />
+    <ClCompile Include="CMidi\CMidiDevice.c" />
+    <ClCompile Include="CMidi\CMidiDriverID.c" />
+    <ClCompile Include="CMidi\CMidiEndpoint.c" />
     <ClCompile Include="[Pb]Audio\PbAudioAPI.c" />
     <ClCompile Include="[Pb]Audio\PbAudioBufferList.c" />
-    <ClCompile Include="[Pb]Audio\PbAudioError.c" />
+    <ClCompile Include="[Pb]Audio\PbAudioDevice.c" />
     <ClCompile Include="[Pb]Audio\PbAudioExt.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="[Pb]Audio\PbAudioFormat.c" />
+    <ClCompile Include="[Pb]Audio\PbAudioFileStream.c" />
+    <ClCompile Include="[Pb]Audio\PbAudioRenderPass.c" />
     <ClCompile Include="[Pb]Audio\PbAudioStream.c" />
-    <ClCompile Include="[Pb]Audio\PbAudioTime.c" />
+    <ClCompile Include="[Pb]Audio\pba_event_queue.c" />
+    <ClCompile Include="[Pb]Audio\pba_format.c" />
+    <ClCompile Include="[Pb]Audio\pba_target_os.c" />
+    <ClCompile Include="[Pb]Audio\pba_time.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

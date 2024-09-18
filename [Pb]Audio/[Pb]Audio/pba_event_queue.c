@@ -29,20 +29,18 @@ DWORD                 pba_tlsIndex;
 #endif
 
 #pragma mark -- Define Global Kernel Queue Events
-//pba_kernel_queue_event pba_vBlankNotification = {0};
+pba_kernel_queue_event pba_vBlankNotification = {0};
 
 #pragma mark --Define Global Kernel Event Queues/Pipes
-//dispatch_queue_t _cgEventQueue = {0};
-pba_kernel_queue_id PBAudioEventQueue;
-pba_kernel_queue_id pba_platformEventQueue;
-//pba_kernel_queue_id pba_displayEventQueue;      //a global kqueue singleton for distributing display updates from a dedicated real-time thread/process
-pba_kernel_queue_id pba_inputEventQueue;          //a global kqueue singleton for distributing user input updates from main thread run loop
+
+//pba_kernel_queue_id PBAudioEventQueue;
+//pba_kernel_queue_id pba_platformEventQueue;
+//pba_kernel_queue_id pba_inputEventQueue;          //a global kqueue singleton for distributing user input updates from main thread run loop
 
 //a global read/write pipe pair singleton for sending blob messages to to the pba_displayEventQueue (allows waking pba_displayEventQueue from a separate process)
 //int pba_displayEventPipe[2];
 
 //PBAKernelQueue pba_displayEventQueue = { 0 };
-
 
 //int64_t     pba_mainWindow;
 //crgc_view * pba_mainView;            //Main crgc_view reference
@@ -78,18 +76,18 @@ PB_AUDIO_API PB_AUDIO_INLINE uintptr_t pba_event_queue_wait_with_timeout(int kqu
     return timeoutEvent;
 }
 
+#endif
+
 PBAKernelQueue PBAKernelQueueCreate(void)
 {
     PBAKernelQueue queue = { 0 };
 #ifndef _WIN32
-    queue.kq = kqueue();//{kqueue(), pipe(kq.rxPipe)};
-    pipe(queue.pq);
+    queue.kq = kqueue(); //{kqueue(), pipe(kq.rxPipe)};
+    //pipe(queue.pq);
 #else
     queue.kq = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, (ULONG_PTR)NULL, 0);
 #endif
-    queue.pnInflightCursors = (intptr_t)&(queue.pnInflightCursors); //voodoo!
+    queue.pnInflightCursors = (intptr_t) & (queue.pnInflightCursors); //voodoo!
     return queue;
 }
 
-
-#endif

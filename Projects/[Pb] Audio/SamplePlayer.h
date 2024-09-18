@@ -11,7 +11,16 @@
 
 #include <[Pb]Audio/[Pb]Audio.h>
 
-extern PBARenderPass SamplePlayerRenderPass;
+//TO DO:  I don't understand why this needs to go outside of extern "C"
+//#ifdef __BLOCKS__
+PB_AUDIO_EXTERN PBARenderPass SamplePlayerRenderPass;
+//#else
+//static void CALLBACK SamplePlayerRenderPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, void* source, void* events, uint32_t nEvents);
+//#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct SamplePlayerParams
 {
@@ -33,5 +42,11 @@ typedef struct SamplePlayer
 }SamplePlayer;
 
 void SamplePlayerInit(SamplePlayer* source, const char * audioFileURL, const char * audioFileEXT, PBAStreamFormat converterFormat);
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* SamplePlayer_h */

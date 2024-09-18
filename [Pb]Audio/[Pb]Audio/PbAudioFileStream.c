@@ -52,8 +52,11 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamClose(ExtAudioFileRef inputAu
 
     if (inputAudioFileRef)
     {
+#ifdef __APPLE__
         ExtAudioFileDispose(inputAudioFileRef);
-
+#else
+        assert(1 == 0);
+#endif
         if( err )
         {
             printf("PBAFileStreamClose Error disposing of extended audio file context");
@@ -68,6 +71,8 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamClose(ExtAudioFileRef inputAu
     
     return err;
 }
+
+#ifdef __APPLE__
 
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, const char * fileExt, PBAStreamFormat converterFormat, PBAFileRef inputAudioFileRef)//PBAStreamContext * streamContext, PBAStreamLatencyReport * report, double renderTime, double bufferDuration);
 {
@@ -95,7 +100,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, co
     // Open input audio file
     OSStatus                                err = noErr;
     //AudioStreamBasicDescription             converterFormat;
-    UInt32                                  thePropertySize = sizeof(PBAStreamFormat);
+    uint32_t                                  thePropertySize = sizeof(PBAStreamFormat);
     //ExtAudioFileRef                        outputAudioFileRef = NULL;
     //AudioStreamBasicDescription            outputFileFormat;
     
@@ -332,6 +337,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, co
 }
 
 
+
 PB_AUDIO_API PB_AUDIO_INLINE unsigned long long PBAFileStreamReadFrames(PBAFileRef audioFileRef, unsigned long long numFramesToRead, void ** sampleBuffers)
 {
 
@@ -380,6 +386,20 @@ PB_AUDIO_API PB_AUDIO_INLINE unsigned long long PBAFileStreamReadFrames(PBAFileR
         
         return (unsigned long long)extAudioFrames;
 }
+
+#else
+
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char* fileURL, const char* fileExt, PBAStreamFormat converterFormat, PBAFileRef inputAudioFileRef)//PBAStreamContext * streamContext, PBAStreamLatencyReport * report, double renderTime, double bufferDuration);
+{
+
+}
+
+PB_AUDIO_API PB_AUDIO_INLINE unsigned long long PBAFileStreamReadFrames(PBAFileRef audioFileRef, unsigned long long numFramesToRead, void** sampleBuffers)
+{
+
+}
+
+#endif
 
 //Users/jmoulton/Library/Developer/Xcode/DerivedData/[Pb]Audio-acgignvyyvqdjjdamniexffodiua/Build/Products/Debug/[Pb] Audio.app/Contents/Resources/Assets/DecadesMix.aif
 //Users/jmoulton/Library/Developer/Xcode/DerivedData/[Pb]Audio-acgignvyyvqdjjdamniexffodiua/Build/Products/Debug/[Pb] Audio.app/Contents/Resources/Assets/DecadesMix.aif

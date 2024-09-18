@@ -9,12 +9,14 @@
 #ifndef PbAudioFileStream_h
 #define PbAudioFileStream_h
 
+#ifdef __APPLE__
 //#include <stdio.h>
 //#import <Foundation/Foundation.h>
 //#import <Accelerate/Accelerate.h>
 #import <AudioToolbox/AudioToolbox.h>
-//#import "TheAmazingAudioEngine.h"
-//#import "AbstractAudioDefines.h"
+#else
+typedef void* ExtAudioFileRef;
+#endif
 
 typedef struct PBAFile
 {

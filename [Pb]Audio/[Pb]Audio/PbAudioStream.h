@@ -131,18 +131,18 @@ typedef struct PBAStreamContext
 {
 #ifdef _WIN32	
 
-    IMMDevice			*audioDevice;
-	IAudioClient2		*audioClient;
-	IAudioRenderClient	*renderClient;
-	//For now we will only allow output to a single recognized hw device
-	
-	REFERENCE_TIME devicePeriod;
-	HANDLE hEvent;
-	UINT32	bufferFrameCount;
-	unsigned int renderThreadID;   
-	unsigned int controlThreadID;
-	AUDCLNT_SHAREMODE			shareMode;
+    IMMDevice			      *audioDevice;
+	IAudioClient2		      *audioClient;
+	IAudioRenderClient	      *renderClient;
+    AUDCLNT_SHAREMODE          shareMode;
 
+    //For now we will only allow output to a single recognized hw device
+    HANDLE              hEvent;
+    unsigned int        audioThreadID;
+
+	REFERENCE_TIME      devicePeriod;
+	UINT32	            bufferFrameCount;
+	
 #elif defined(__APPLE__)
     AudioUnit _Nullable        audioUnit;
     AudioDeviceID              audioDevice;
@@ -170,13 +170,11 @@ typedef struct PBAStreamContext
 
 #ifdef _WIN32
 //We expose a WIN32 global audio device enumerator (that gets initialized with COM in a multithreaded or apartment threading model)
-PB_AUDIO_EXTERN IMMDeviceEnumerator *_PBADeviceEnumerator;
+//PB_AUDIO_EXTERN IMMDeviceEnumerator *_PBADeviceEnumerator;
 #endif
 
 
-
 PB_AUDIO_API PB_AUDIO_INLINE void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRate);
-
 
 #ifdef __APPLE__
 

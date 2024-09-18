@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 
-extern const int cm_driver_list_size;
+extern const int    cm_driver_list_size;
 extern const char * cm_driver_list[];
 extern const char * cm_driver_list_pp[];
 

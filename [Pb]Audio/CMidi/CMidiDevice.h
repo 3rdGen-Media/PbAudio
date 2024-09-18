@@ -9,11 +9,14 @@
 #define CMidiDevice_h
 
 #include "CMidiControl.h"
+
+#ifdef __APPLE__
 #include <MacTypes.h>
+#endif
 
 //We will hijack OSX ColorSyncDeprecated CMDeviceID (UInt32) for our own API
 //#ifndef CMDeviceID
-typedef UInt32 CMDeviceId;
+typedef uint32_t CMDeviceId;
 //#endif
 
 

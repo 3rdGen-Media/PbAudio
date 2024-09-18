@@ -7,17 +7,27 @@
 
 #include "CMidi.h"
 
+#ifdef CM_TARGET_WIN32
+#include <assert.h>
+#endif
+
+#ifdef __APPLE__
 const CFStringRef kCMidiSourcesAvailableChangedNotification      = CFSTR("CMidiSourcesAvailableChangedNotification");
 const CFStringRef kCMidiDestinationsAvailableChangedNotification = CFSTR("CMidiDestinationsAvailableChangedNotification");
+#else
+
+#endif
 
 struct CMClientContext CMClient = {0};
 
 OSStatus CMDeleteThruConnection(const char * thruID)
 {
+    OSStatus cmError = 0;
+#ifdef __APPLLE__
     CFDataRef data;
     
     CFStringRef cfThruID = CFStringCreateWithCString(CFAllocatorGetDefault(), thruID, kCFStringEncodingUTF8);
-    OSStatus cmError = MIDIThruConnectionFind(cfThruID, &data);
+    cmError = MIDIThruConnectionFind(cfThruID, &data);
     if( cmError != noErr ) assert(1==0);
     
     unsigned long n = CFDataGetLength(data) / sizeof(MIDIThruConnectionRef);
@@ -33,7 +43,10 @@ OSStatus CMDeleteThruConnection(const char * thruID)
     }
     
     CFRelease(cfThruID);
-        
+#else
+
+#endif
+
     return cmError;
 }
 
@@ -57,12 +70,16 @@ OSStatus CMDeleteInputConnectionAtIndex(int connectionIndex)
     
     CMSource* sourceEndpoint = &(CMClient.inputConnections[connectionIndex].source);
     
-    if( (cmError = MIDIPortDisconnectSource(CMClient.inPort, sourceEndpoint->endpoint)) != noErr)
+#ifdef __APPLE__
+    if( (cmError = MIDIPortDisconnectSource(CMClient.inPort, sourceEndpoint->endpoint)) != 0)
     {
         fprintf(stderr, "MIDIPortDisconnectSource endpoint failed to disconnect error: %d!\n", cmError);
         assert(1==0);
     }
-    
+#else
+    assert(1 == 0);
+#endif
+
     ItemCount nShiftConnections = CMClient.numInputConnections - connectionIndex;
     if( nShiftConnections > 1) memmove(&CMClient.inputConnections[connectionIndex], &CMClient.inputConnections[connectionIndex+1], nShiftConnections);
 
@@ -71,7 +88,7 @@ OSStatus CMDeleteInputConnectionAtIndex(int connectionIndex)
     return cmError;
 }
 
-OSStatus CMDeleteInputConnection(SInt32 UniqueID)
+OSStatus CMDeleteInputConnection(int32_t UniqueID)
 {
     OSStatus cmError = 0;
     
@@ -118,6 +135,7 @@ void CMInitThruParamEndpoints(MIDIThruConnectionParams* thruParams, int * source
     thruParams->numSources = numSources;
     thruParams->numDestinations = numDestinations;
     
+#ifdef __APPLE__
     for( i = 0; i<numSources; i++)
     {
         fprintf(stderr, "sources[%d] = %d\n", i, sources[i]);
@@ -137,7 +155,9 @@ void CMInitThruParamEndpoints(MIDIThruConnectionParams* thruParams, int * source
         //thruParams.destinations[i].uniqueID = 1;
         //print("thru source is \(s)")
     }
-    
+#else
+    assert(1 == 0);
+#endif
 }
 
 void CMInitSourceEndpoint(MIDIThruConnectionEndpoint* endpoint, int source)
@@ -149,7 +169,13 @@ void CMInitSourceEndpoint(MIDIThruConnectionEndpoint* endpoint, int source)
     //for( i = 0; i<numSources; i++)
     //{
         fprintf(stdout, "CMInitSourceEndpoint: %d\n", source);
+
+#ifdef __APPLE__
         sourceEndpoint = MIDIGetSource(source); assert(sourceEndpoint);
+#else
+        assert(1 == 0);
+#endif
+
         endpoint->endpointRef = sourceEndpoint;
         endpoint->uniqueID    = source; //we will hijack this property before creation so we can pull it out of the params for use in CMCreateThruConnection
     //}
@@ -160,7 +186,12 @@ void CMInitThruParams(MIDIThruConnectionParams* thruParams, int * sources, int n
     //This convenience function fills the connection structure with default values: no endpoints,
     //no transformations (mostly zeroes except for the channel map). Then, just filling in the
     //source and adding one destination will create a simple, unmodified thru connection.
+#ifdef __APPLE__
     MIDIThruConnectionParamsInitialize(thruParams);
+#else
+    assert(1 == 0);
+#endif
+
     for(int i = 0; i< 16; i++) thruParams->channelMap[i] = i;
     
     CMInitThruParamEndpoints(thruParams, sources, numSources, destinations, numDestinations);
@@ -181,11 +212,15 @@ void CMSaveThruConnectionParams(CMConnection * thruConnection)
     //set to 0 for the CoreMidi call
     thruParams->sources[0].uniqueID = 0;
     thruParams->destinations[0].uniqueID = 0;
-    
+
+#ifdef __APPLE__
     //wrap MIDIThruConnectionParams in a CFDataRef
-    CFDataRef cfDataParams = CFDataCreate(CFAllocatorGetDefault(), (const UInt8 *)(thruParams),  MIDIThruConnectionParamsSize(thruParams));
+    CFDataRef cfDataParams = CFDataCreate(CFAllocatorGetDefault(), (const uint8_t*)(thruParams),  MIDIThruConnectionParamsSize(thruParams));
     OSStatus cmError = MIDIThruConnectionSetParams(thruConnection->connection, cfDataParams);
-    if( cmError != noErr ) assert(1==0);
+    if( cmError != 0 ) assert(1==0);
+#else
+
+#endif
 
     //update CMidi internal structures (ugh have to loop thru all connections)
     for( int thruIndex = 0; thruIndex < CMClient.numThruConnections; thruIndex++ )
@@ -193,8 +228,12 @@ void CMSaveThruConnectionParams(CMConnection * thruConnection)
         if( thruConnection->connection == CMClient.thruConnections[thruIndex].connection )
         {
             //copy base memory
+#ifdef __APPLE__
             memcpy( &(CMClient.thruConnections[thruIndex].params), thruParams, MIDIThruConnectionParamsSize(thruParams) );
-            
+#else
+            memcpy(&(CMClient.thruConnections[thruIndex].params), thruParams, sizeof(MIDIThruConnectionParams));
+#endif
+
             //TO DO: copy additional maps
 
             //store source endpoints on our internal connection structure
@@ -215,13 +254,16 @@ void CMSaveThruConnectionParams(CMConnection * thruConnection)
     
     //When CoreMidi Server sends CFDataRef to us, we are responsible for deleting it
     //but what about visa versa?
+#ifdef __APPLE__
+
     CFRelease(cfDataParams);
-    
+#endif
+
 }
 
 CMConnection* CMCreateThruConnectionAtIndex(const char * thruID, MIDIThruConnectionParams* thruParams, unsigned long thruIndex)
 {
-    OSStatus cmError = noErr;
+    OSStatus cmError = 0;
 
     MIDIThruConnectionRef thruConnection = 0;
     
@@ -232,10 +274,8 @@ CMConnection* CMCreateThruConnectionAtIndex(const char * thruID, MIDIThruConnect
     thruParams->sources[0].uniqueID = 0;
     thruParams->destinations[0].uniqueID = 0;
     
-    CFDataRef cfDataParams = CFDataCreate(CFAllocatorGetDefault(), (const UInt8 *)(thruParams),  MIDIThruConnectionParamsSize(thruParams));
-    assert(cfDataParams);
-    
-    //CMidiThruCleanup();
+#ifdef __APPLE__
+    CFDataRef cfDataParams = CFDataCreate(CFAllocatorGetDefault(), (const UInt8 *)(thruParams),  MIDIThruConnectionParamsSize(thruParams)); assert(cfDataParams);
 
     CFStringRef cfThruID = CFStringCreateWithCString(CFAllocatorGetDefault(), thruID, kCFStringEncodingUTF8);
 
@@ -245,6 +285,9 @@ CMConnection* CMCreateThruConnectionAtIndex(const char * thruID, MIDIThruConnect
         assert(1==0);
         return nil;
     }
+#else
+
+#endif
 
     //Store the thruConnection in CMidi internal data structures
     CMClient.thruConnections[thruIndex].connection = thruConnection;
@@ -254,10 +297,11 @@ CMConnection* CMCreateThruConnectionAtIndex(const char * thruID, MIDIThruConnect
 
     //assert(thruParams == &(CMClient.thruConnections[thruIndex].params));
     
-    
+#ifdef __APPLE__
     CFRelease(cfThruID);
     CFRelease(cfDataParams);
-    
+#endif
+
     //return input params to existing state for caller
     thruParams->sources[0].uniqueID = sourceID;
     thruParams->destinations[0].uniqueID = destID;
@@ -445,13 +489,14 @@ void CMReplaceThruConnectionAtIndex(CMConnection * conn, const char * thruID, un
 
 CMConnection* CMCreateSoftThruConnectionAtIndex(const char * thruID, MIDIThruConnectionParams* thruParams, unsigned long thruIndex)
 {
-    OSStatus cmError = noErr;
+    OSStatus cmError = 0;
 
     //MIDIThruConnectionRef thruConnection = 0;
     
     int sourceID = thruParams->sources[0].uniqueID;
     int destID   = thruParams->destinations[0].uniqueID;
 
+#ifdef __APPLE__
     CFStringRef endpointName = NULL; //what is endpointName used for?
     if( (cmError = MIDIObjectGetStringProperty(thruParams->sources[0].endpointRef, kMIDIPropertyName, &endpointName)) != noErr)
     {
@@ -467,7 +512,9 @@ CMConnection* CMCreateSoftThruConnectionAtIndex(const char * thruID, MIDIThruCon
         assert(1==0);
         return nil;
     }
+#else
 
+#endif
     
     /*
     //set to 0 for the CoreMidi call
@@ -518,13 +565,14 @@ CMConnection* CMCreateSoftThruConnection(const char * thruID, MIDIThruConnection
 
 CMConnection* CMCreateProxyConnectionAtIndex(const char * thruID, MIDIThruConnectionParams* thruParams, unsigned long thruIndex)
 {
-    OSStatus cmError = noErr;
+    OSStatus cmError = 0;
 
     //MIDIThruConnectionRef thruConnection = 0;
     
     int sourceID = thruParams->sources[0].uniqueID;
     int destID   = thruParams->destinations[0].uniqueID;
 
+#ifdef __APPLE__
     CFStringRef endpointName = NULL; //what is endpointName used for?
     if( (cmError = MIDIObjectGetStringProperty(thruParams->sources[0].endpointRef, kMIDIPropertyName, &endpointName)) != noErr)
     {
@@ -540,7 +588,9 @@ CMConnection* CMCreateProxyConnectionAtIndex(const char * thruID, MIDIThruConnec
         assert(1==0);
         return nil;
     }
+#else
 
+#endif
     
     /*
     //set to 0 for the CoreMidi call
@@ -590,13 +640,14 @@ CMConnection* CMCreateProxyConnection(const char * thruID, MIDIThruConnectionPar
 
 CMConnection* CMCreateInputConnectionAtIndex(const char * inputID, CMSource* sourceEndpoint, unsigned long inputIndex)
 {
-    OSStatus cmError = noErr;
+    OSStatus cmError = 0;
 
     //MIDIThruConnectionRef thruConnection = 0;
     
     int sourceID = sourceEndpoint->uniqueID;//thruParams->sources[0].uniqueID;
     //int destID   = thruParams->destinations[0].uniqueID;
 
+#ifdef __APPLE__
     CFStringRef endpointName = NULL; //what is endpointName used for?
     if( (cmError = MIDIObjectGetStringProperty(sourceEndpoint->endpoint, kMIDIPropertyName, &endpointName)) != noErr)
     {
@@ -612,7 +663,10 @@ CMConnection* CMCreateInputConnectionAtIndex(const char * inputID, CMSource* sou
         assert(1==0);
         return nil;
     }
-    
+#else
+
+#endif
+
     sourceEndpoint->uniqueID = CMClient.sources[sourceID].uniqueID;
 
     //Store the softThruConnection in CMidi internal data structures
@@ -625,7 +679,7 @@ CMConnection* CMCreateInputConnectionAtIndex(const char * inputID, CMSource* sou
     return &(CMClient.inputConnections[inputIndex]);
 }
 
-CMConnection* CMCreateInputConnection(SInt32 uniqueID)//MIDIThruConnectionEndpoint* endpoint)
+CMConnection* CMCreateInputConnection(int32_t uniqueID)//MIDIThruConnectionEndpoint* endpoint)
 {
     int sourceIndex = 0;
     
@@ -659,18 +713,30 @@ CMConnection* CMCreateInputConnection(SInt32 uniqueID)//MIDIThruConnectionEndpoi
     return conn;
 }
 
+ItemCount CMGetNumberOfDevices(void)
+{
+#ifdef __APPLE__
+    return MIDIGetNumberOfDevices();
+#else
+    assert(1 == 0);
+#endif
+}
+
 
 ItemCount CMUpdateInputDevices(void)
 {
+    int i = 0;
+    ItemCount numInputs = 0;
     MIDIEndpointRef endpoint;
     //OSStatus CMError = noErr;
-    ItemCount numInputs = MIDIGetNumberOfSources();
-    int i = 0;
 
-    //assert(CMClient.client != 0);
+#ifdef __APPLE__
+
+    numInputs = MIDIGetNumberOfSources();
 
     // Iterate over the MIDI input devices
     fprintf(stderr, "\n%lu MIDI Input Devices...\n\n", numInputs);
+    
     for (i = 0; i < numInputs; i++)
     {
         CMDriverID driverID = 0;
@@ -680,10 +746,11 @@ ItemCount CMUpdateInputDevices(void)
         }
         
         OSStatus cmError;
-        SInt32 sourceEndpointUniqueID = 0;
-        cmError = MIDIObjectGetIntegerProperty(endpoint, kMIDIPropertyUniqueID, &sourceEndpointUniqueID);
-        assert(!cmError);
-        
+        int32_t sourceEndpointUniqueID = 0;
+        char s[32]; // driver name may truncate, but that's OK
+
+        cmError = MIDIObjectGetIntegerProperty(endpoint, kMIDIPropertyUniqueID, &sourceEndpointUniqueID); assert(!cmError);
+
         //set the first input we see to the default */
         //if (pm_default_input_device_id == -1)
         //    pm_default_input_device_id = pm_descriptor_len;
@@ -697,7 +764,6 @@ ItemCount CMUpdateInputDevices(void)
         MIDIEndpointGetEntity(endpoint, &entity);
         // (entity == 0) assert(1==0); //probably virtual
         CFStringRef str = NULL;
-        char s[32]; // driver name may truncate, but that's OK
         //*isIAC = FALSE;
         
         // begin with the endpoint's name
@@ -716,7 +782,7 @@ ItemCount CMUpdateInputDevices(void)
                 }
             }
         }
-        
+
         fprintf(stderr, "%d) %s (%d) [%s]\n", i, CMFullEndpointName(endpoint, CMClient.sources[i].name, &driverID), sourceEndpointUniqueID, s);
         
         CMClient.sources[i].endpoint = endpoint;//sourceEndpointUniqueID;
@@ -725,6 +791,15 @@ ItemCount CMUpdateInputDevices(void)
         //CFRelease(str);
     }
 
+#else
+    assert(1 == 0);
+
+    //numInputs = ...
+    
+    // Iterate over the MIDI input devices
+    fprintf(stderr, "\n%lu MIDI Input Devices...\n\n", numInputs);
+#endif
+
     CMClient.numSources = numInputs;
     return numInputs;
 }
@@ -732,23 +807,30 @@ ItemCount CMUpdateInputDevices(void)
 
 ItemCount CMUpdateOutputDevices(void)
 {
+    int i = 0;
+    ItemCount numOutputs = 0;
     MIDIEndpointRef endpoint;
     //OSStatus CMError = noErr;
-    ItemCount numOutputs = MIDIGetNumberOfDestinations();
-    int i = 0;
     
+#ifdef __APPLE__
+
+    numOutputs = MIDIGetNumberOfDestinations();
+
     //assert(CMClient.client != 0);
 
     // Iterate over the MIDI output devices
     fprintf(stderr, "\n%lu MIDI Output Devices...\n\n", numOutputs);
-    for (i = 0; i < numOutputs; i++) {
+    for (i = 0; i < numOutputs; i++) 
+    {
         CMDriverID driverID = 0;
         //CMDeviceId deviceID = 0;
         endpoint = MIDIGetDestination(i);
         if (endpoint == 0) continue;
         
         OSStatus cmError;
-        SInt32 destEndpointUniqueID = 0;
+        int32_t destEndpointUniqueID = 0;
+        char s[32]; // driver name may truncate, but that's OK
+
         cmError = MIDIObjectGetIntegerProperty(endpoint, kMIDIPropertyUniqueID, &destEndpointUniqueID);
         assert(!cmError);
         
@@ -765,7 +847,6 @@ ItemCount CMUpdateOutputDevices(void)
         MIDIEndpointGetEntity(endpoint, &entity);
         //if (entity == 0) assert(1==0); //probably virtual
         CFStringRef str = NULL;
-        char s[32]; // driver name may truncate, but that's OK
         //*isIAC = FALSE;
         
         // begin with the endpoint's name
@@ -793,6 +874,14 @@ ItemCount CMUpdateOutputDevices(void)
         CMClient.destinations[i].uniqueID = destEndpointUniqueID;
         CMClient.destinations[i].driverID = driverID;
     }
+#else
+    assert(1 == 0);
+
+    //numOutputs = ...
+    
+    //fprintf(stderr, "\n%lu MIDI Output Devices...\n\n", numOutputs);
+
+#endif
  
     CMClient.numDestinations = numOutputs;
     return numOutputs;
@@ -800,8 +889,11 @@ ItemCount CMUpdateOutputDevices(void)
 
 ItemCount CMUpdateThruConnections(void)
 {
-    int numThruConnections = 0;
+#ifdef __APPLE__
     CFDataRef data = nil;
+#endif
+
+    int numThruConnections = 0;
     MIDIThruConnectionParams thruParams = {0};
     
     //TO DO:  Load stored keys from cache with CoreFoundation
@@ -811,28 +903,45 @@ ItemCount CMUpdateThruConnections(void)
     //For each stored key find a midi thru connection
     for(int keyIndex = 0; keyIndex<numStoredKeys; keyIndex++)
     {
+        unsigned long n = 0;
+        MIDIThruConnectionRef* con = NULL;
         const char * storedKey = stored_keys[keyIndex];
+
+#ifdef __APPLE__
         CFStringRef cfKey = CFStringCreateWithCString(CFAllocatorGetDefault(), storedKey, kCFStringEncodingUTF8);
         OSStatus cmError = MIDIThruConnectionFind(cfKey, &data);
-        if( cmError != noErr ) assert(1==0);
-        
-        unsigned long n = CFDataGetLength(data) / sizeof(MIDIThruConnectionRef);
+        if( cmError != 0 ) assert(1==0);
+        n = CFDataGetLength(data) / sizeof(MIDIThruConnectionRef);
         
         fprintf(stderr, "\nFound %lu existing thru connection(s)!\n", n);
         
-        MIDIThruConnectionRef * con = (MIDIThruConnectionRef*)CFDataGetBytePtr(data);
+        con = (MIDIThruConnectionRef*)CFDataGetBytePtr(data);
+#else        
+
+        //MIDIThruConnectionRef* con = (MIDIThruConnectionRef*)CFDataGetBytePtr(data);
+
+#endif
+
+
         for(int i=0;i<n;i++)
         {
             //cmError = MIDIThruConnectionSetParams(thruConnection, cfDataParams);
             //cassert(cmError == noErr);
             
             //memset(&thruParams, 0, MIDIThruConnectionParamsSize());
+
+#ifdef __APPLE__
             MIDIThruConnectionParamsInitialize(&thruParams);
             CFDataRef cfDataParams = nil;//CFDataCreate(CFAllocatorGetDefault(), (const UInt8 *)(&thruParams),  MIDIThruConnectionParamsSize());
             cmError = MIDIThruConnectionGetParams(*con, &cfDataParams);
             if( cmError != noErr ) assert(1==0);
+            MIDIThruConnectionParams* tmpThruParams = (MIDIThruConnectionParams*)CFDataGetBytePtr(cfDataParams);
 
-            MIDIThruConnectionParams * tmpThruParams = (MIDIThruConnectionParams *)CFDataGetBytePtr(cfDataParams);
+#else
+            MIDIThruConnectionParams tmpThruParamsData = {0};
+            MIDIThruConnectionParams* tmpThruParams = (MIDIThruConnectionParams*)&tmpThruParamsData;
+
+#endif
             
             CMClient.thruConnections[i].connection = *con;
             memcpy(CMClient.thruConnections[i].name, storedKey, strlen(storedKey));
@@ -848,26 +957,33 @@ ItemCount CMUpdateThruConnections(void)
             numThruConnections++;
             //MIDIThruConnectionDispose(*con);
             con++;
-
+#ifdef __APPLE__
             CFRelease(cfDataParams);
+#endif
         }
-        
+
+#ifdef __APPLE__
         CFRelease(cfKey);
+#endif
+
     }
     
     CMClient.numThruConnections = numThruConnections;
     return numThruConnections;
 }
 
-OSStatus CMClientCreate(const char * clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock)
+
+CMIDI_API CMIDI_INLINE OSStatus CMClientCreate(const char * clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock)
 {
-    OSStatus cmError = noErr;
+    OSStatus cmError = 0;
 
     MIDIClientRef client = CMClient.client;
     assert(client == 0);
     //memset(isIAC, 0, sizeof(isIAC)); /* initialize all FALSE */
-    
+
+#ifdef __APPLE__
     CFStringRef cfClientID = CFStringCreateWithCString(CFAllocatorGetDefault(), clientID, kCFStringEncodingUTF8);
+
 
     // Create the CoreMidi Client App ClientRef obj while waiting for the result in synchronous + blocking fashion
     // on the current run loop (even though the run loop may not been started yet)
@@ -889,7 +1005,10 @@ OSStatus CMClientCreate(const char * clientID, MIDINotifyBlock midiNotifyBlock, 
         assert(1==0);
         return cmError;
     }
-    
+#else
+
+#endif
+
     /*
     // Create the input port
     //typedef void (*MIDIReadProc)(const MIDIPacketList *pktlist, void *readProcRefCon, void *srcConnRefCon);
@@ -908,7 +1027,7 @@ OSStatus CMClientCreate(const char * clientID, MIDINotifyBlock midiNotifyBlock, 
     */
     
     // Determine the number of MIDI devices on the system */
-    CMClient.numDevices = MIDIGetNumberOfDevices();
+    CMClient.numDevices = CMGetNumberOfDevices();
     fprintf(stderr, "# Midi Devices = %lu\n", CMClient.numDevices);
     //if (CMClient.numDevices <= 0) { assert( 1==0); return cmError; }
 
@@ -919,6 +1038,7 @@ OSStatus CMClientCreate(const char * clientID, MIDINotifyBlock midiNotifyBlock, 
     if( midiReceiveBlock )
     {
         //Create Input & Output Ports
+#ifdef __APPLE__
         //cmError = MIDIInputPortCreate(CMClient.client, CFSTR("Input"), midiInputCallback, (__bridge_retained void *)self, &CMClient.inPort), "MIDI input port error");
         cmError = MIDIInputPortCreateWithProtocol(CMClient.client, CFSTR("Input"), kMIDIProtocol_1_0, &CMClient.inPort, midiReceiveBlock);
         if( cmError != noErr )
@@ -927,11 +1047,15 @@ OSStatus CMClientCreate(const char * clientID, MIDINotifyBlock midiNotifyBlock, 
             assert(1==0);
             return cmError;
         }
+#else
+
+#endif
     }
     
     if( proxyReceiveBlock )
     {
         //Create Input & Output Ports
+#ifdef __APPLE__
         //cmError = MIDIInputPortCreate(CMClient.client, CFSTR("Input"), midiInputCallback, (__bridge_retained void *)self, &CMClient.inPort), "MIDI input port error");
         cmError = MIDIInputPortCreateWithProtocol(CMClient.client, CFSTR("Input"), kMIDIProtocol_1_0, &CMClient.proxyPort, proxyReceiveBlock);
         if( cmError != noErr )
@@ -940,10 +1064,15 @@ OSStatus CMClientCreate(const char * clientID, MIDINotifyBlock midiNotifyBlock, 
             assert(1==0);
             return cmError;
         }
+#else
+
+#endif
+
     }
     
     
     //always create output port
+#ifdef __APPLE__
     cmError = MIDIOutputPortCreate(CMClient.client, CFSTR("Output"), &CMClient.outPort);
     if( cmError != noErr )
     {
@@ -951,7 +1080,9 @@ OSStatus CMClientCreate(const char * clientID, MIDINotifyBlock midiNotifyBlock, 
         assert(1==0);
         return cmError;
     }
-    
+#else
+
+#endif
     
     return cmError;
 }

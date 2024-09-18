@@ -32,17 +32,17 @@
 #pragma mark -- CMidi Message Queue
 
 //static const long         kInFlightTriggerEventFrames             = 3;
-static const long         MAX_TRIGGER_EVENTS                        = 32;   //# elements in circular message buffer (bounded by min audio buffer size)
+#define                   MAX_TRIGGER_EVENTS                          32    //# elements in circular message buffer (bounded by min audio buffer size)
 static CMTriggerMessage   trigger_events[MAX_TRIGGER_EVENTS]        = {0};  //circular message buffer
 static unsigned int       cm_trigger_event_index                    =  0;   //circular message buffer head
 
-#pragma mark -- PBAudio 'Engine' Process Message Queue
+#pragma mark -- PBAudio Engine Process Message Queue
 
 //TO DO: This is relatively naive
-static const long          kInFlightMessageEventFrames              = 3;
-static const long          MAX_MESSAGE_EVENTS                       = CMMessageTypeTimeout * kInFlightMessageEventFrames; //# elements in circular message buffer
-static CMUniversalMessage  pba_message_events[MAX_MESSAGE_EVENTS]   = {0};                                                //circular message buffer
-static unsigned int        pba_message_event_index                  =  0;                                                  //circular message buffer head
+#define                    kInFlightMessageEventFrames              3
+#define                    MAX_MESSAGE_EVENTS                       (CMMessageTypeTimeout * kInFlightMessageEventFrames) //# elements in circular message buffer
+static CMUniversalMessage  pba_message_events[MAX_MESSAGE_EVENTS] = { CMMessageTypeUnknownF, {0}};                       //circular message buffer
+static unsigned int        pba_message_event_index                  =  0;                                                //circular message buffer head
 
 typedef enum OutputPassID
 {
@@ -51,6 +51,10 @@ typedef enum OutputPassID
     SamplerOutputPassID,
     MaxOutputPassID
 }OutputPassID;
+
+#ifndef _Nullable
+#define _Nullable 
+#endif
 
 extern PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID];
 
@@ -124,7 +128,7 @@ extern PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID];
 #include "float.h"
 #include "limits.h"
 
-#include <unistd.h>
+//#include <unistd.h>
 
 
 #pragma mark -- Application Obj-C Headers
@@ -132,10 +136,12 @@ extern PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID];
 #if defined(__APPLE__) && defined(__OBJC__)  //APPLE w/ Objective-C Main
 #import "PbAudioApplication.h"
 #import "PbAudioAppDelegate.h"
+#elif defined(WIN32)
+#include "../Vanilla/EntryPoint/PbAudioApplication.h"
 #endif
 
 
-#pragma mark -- Application 3rd Party Headers
+#pragma mark -- Application Third Party Headers
 
 /*
 #ifdef __cplusplus //|| defined(__OBJC__)

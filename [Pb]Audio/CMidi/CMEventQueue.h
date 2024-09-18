@@ -1,134 +1,141 @@
 //
-//  CMidiKeyboard.h
-//  [Pb]Audio
+//  CMidiEventQueue.h
+//  CMidi
 //
 //  Created by Joe Moulton on 9/16/24.
 //  Copyright © 2024 3rdGen Multimedia. All rights reserved.
 //
 
-#ifndef CMidiKeyboard_h
-#define CMidiKeyboard_h
+#ifndef CMidiEventQueue_h
+#define CMidiEventQueue_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+    //
+    //#include "cr_target_os.h"
 
 //FREQUENCY DEFINITIONS
 
-static const float CENT_FREQ_SCALAR = 1.00057778951;
+static const float CENT_FREQ_SCALAR = 1.00057778951f;
 
 static const float AUDIBLE_LOGARITHMIC_FREQUENCIES[11] =
 {
-    20.00,
-    40.00,
-    80.00,
-    160.0,
-    320.0,
-    640.0,
-    1280.0,
-    2560.0,
-    5120.0,
-    10240.0,
-    20480.0
+    20.00f,
+    40.00f,
+    80.00f,
+    160.0f,
+    320.0f,
+    640.0f,
+    1280.0f,
+    2560.0f,
+    5120.0f,
+    10240.0f,
+    20480.0f
 };
 
 // freq definitions from A0 to C8, putting in tables is much cheaper than calculating 12th root
 static const float WESTERN_NOTE_FREQUENCIES[95] =
 {
-    27.50,
-    29.14,
-    30.87,
-    32.70,
-    34.65,
-    36.71,
-    38.89,
-    41.20,
-    43.65,
-    46.25,
-    49.00,
-    51.91,
-    55.00,
-    58.27,
-    61.74,
-    65.41,
-    69.30,
-    73.42,
-    77.78,
-    82.41,
-    87.31,
-    92.50,
-    98.00,
-    103.83,
-    110.00,
-    116.54,
-    123.47,
-    130.81,
-    138.59,
-    146.83,
-    155.56,
-    164.81,
-    174.61,
-    185.00,
-    196.00,
-    207.65,
-    220.00,
-    233.08,
-    246.94,
-    261.63,
-    277.18,
-    293.66,
-    311.13,
-    329.63,
-    349.23,
-    369.99,
-    392.00,
-    415.30,
-    440.00,
-    466.16,
-    493.88,
-    523.25,
-    554.37,
-    587.33,
-    622.25,
-    659.26,
-    698.46,
-    739.99,
-    783.99,
-    830.61,
-    880.00,
-    932.33,
-    987.77,
-    1046.50,
-    1108.73,
-    1174.66,
-    1244.51,
-    1318.51,
-    1396.91,
-    1479.98,
-    1567.98,
-    1661.22,
-    1760.00,
-    1864.66,
-    1975.53,
-    2093.00,
-    2217.46,
-    2349.32,
-    2489.02,
-    2637.02,
-    2793.83,
-    2959.96,
-    3135.96,
-    3322.44,
-    3520.00,
-    3729.31,
-    3951.07,
-    4186.01,
-    4434.92,
-    4698.64,
-    4978.03,
-    5274.04 ,
-    5587.65 ,
-    5919.91 ,
-    6271.93
+    27.50f,
+    29.14f,
+    30.87f,
+    32.70f,
+    34.65f,
+    36.71f,
+    38.89f,
+    41.20f,
+    43.65f,
+    46.25f,
+    49.00f,
+    51.91f,
+    55.00f,
+    58.27f,
+    61.74f,
+    65.41f,
+    69.30f,
+    73.42f,
+    77.78f,
+    82.41f,
+    87.31f,
+    92.50f,
+    98.00f,
+    103.83f,
+    110.00f,
+    116.54f,
+    123.47f,
+    130.81f,
+    138.59f,
+    146.83f,
+    155.56f,
+    164.81f,
+    174.61f,
+    185.00f,
+    196.00f,
+    207.65f,
+    220.00f,
+    233.08f,
+    246.94f,
+    261.63f,
+    277.18f,
+    293.66f,
+    311.13f,
+    329.63f,
+    349.23f,
+    369.99f,
+    392.00f,
+    415.30f,
+    440.00f,
+    466.16f,
+    493.88f,
+    523.25f,
+    554.37f,
+    587.33f,
+    622.25f,
+    659.26f,
+    698.46f,
+    739.99f,
+    783.99f,
+    830.61f,
+    880.00f,
+    932.33f,
+    987.77f,
+    1046.50f,
+    1108.73f,
+    1174.66f,
+    1244.51f,
+    1318.51f,
+    1396.91f,
+    1479.98f,
+    1567.98f,
+    1661.22f,
+    1760.00f,
+    1864.66f,
+    1975.53f,
+    2093.00f,
+    2217.46f,
+    2349.32f,
+    2489.02f,
+    2637.02f,
+    2793.83f,
+    2959.96f,
+    3135.96f,
+    3322.44f,
+    3520.00f,
+    3729.31f,
+    3951.07f,
+    4186.01f,
+    4434.92f,
+    4698.64f,
+    4978.03f,
+    5274.04f,
+    5587.65f,
+    5919.91f,
+    6271.93f
 };
 
-static const float MAX_NOTE_FREQ = 4186.01;
+static const float MAX_NOTE_FREQ = 4186.01f;
 
 static const char* WESTERN_NOTE_NAMES[95] =
 {
@@ -222,8 +229,160 @@ static const char* WESTERN_NOTE_NAMES[95] =
     "C8"
 };
 
+
+#if defined(_WIN32)         //MICROSOFT WINDOWS NT PLATFORMS
+#define CM_TARGET_WIN32     1
+#elif defined( __APPLE__ )  //APPLE DARWIN XNU PLATFORMS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS
+#define CM_TARGET_IOS       1
+#elif defined(TARGET_OS_TV) && TARGET_OS_TV
+#define CM_TARGET_TVOS      1
+#elif defined(TARGET_OS_OSX) && TARGET_OS_OSX
+#define CM_TARGET_OSX       1
+#endif                      //APPLE DARWIN XNU PLATFORMS
+#endif
+
+
+//**************************************************************************************************************************//
+#pragma mark -- MICROSOFT Windows NT --
+//**************************************************************************************************************************//
+
+#ifdef CM_TARGET_WIN32                                     // CoreRender MS WINDOWS Target
+
+#define CM_PLATFORM_EXTERN
+#define NOMINMAX //Why?
+                                                           // Win8.0 is Minimum version required for DXGI DirectComposition IDCompositionDevice::IUnknown
+//#define NTDDI_VERSION NTDDI_WINBLUE                      // Win8.1 is Minimum version required for Per Monitor DPI Awareness
+//#define NTDDI_VERSION NTDDI_WINBLUE                      // Win8.0 is Minimum version required for DXGI DirectComposition IDCompositionDesktopDevice::IDCompositionDevice2::IUnknown
+//#define WINVER       _WIN32_WINNT_WINBLUE                // allow the use of Windows Version specific features
+//#define _WIN32_WINNT _WIN32_WINNT_WINBLUE                // allow the use of Windows Version specific features
+
+// standard definitions
+#define STRICT                                             // enable strict type-checking of Windows handles
+#define WIN32_LEAN_AND_MEAN                                // allow the exclusion of uncommon features
+#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES         1  // use the new secure functions in the CRT
+#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT   1  // use the new secure functions in the CRT
+
+#include <windows.h>   // fundamental Windows header file
+//#define GLDECL WINAPI
+//#define DXDECL WINAPI
+//#define VKDECL WINAPI
+
+#define _USE_MATH_DEFINES	//holy crap!!! must define this on ms windows to get M_PI definition!
+#include <math.h>
+
+#define THREADPROC WINAPI   //What does this do again?
+
+#ifdef _DEBUG
+#include <vld.h> 
+#endif
+
+
+#elif defined(__APPLE__)
+#define CM_PLATFORM_EXTERN extern
+#include <dispatch/dispatch.h>
+#if !TARGET_OS_IOS && !TARGET_OS_TV
+//#include "cg_private.h"
+#endif
+#endif
+
+//OSX Platform Threading Mechanism (Grand Central Dispatch thread pools)
+
+#pragma mark -- CMidi Process Definitions
+
+//Define an opaque process handle for supported platform process types
+#ifdef CM_TARGET_WIN32
+typedef HANDLE cm_pid_t;
+#elif defined(__APPLE__)
+typedef pid_t  cm_pid_t;
+#endif
+
+//Define Opaque Priority Class Types for Running System Processes
+typedef enum CM_PRIORITY_CLASS
+{
+    CM_DEFAULT_PRIORITY_CLASS = 0,
+    CM_REALTIME_PRIORITY_CLASS = 0x00000100  //WIn32 equivalent
+}CM_PRIORITY_CLASS;
+
+typedef enum CM_THREAD_PRIORITY
+{
+    CM_THREAD_PRIORITY_DEFAULT,
+    CM_THREAD_PRIORITY_CRITCAL // = THREAD_PRIORITY_TIME_CRITICAL
+}CM_THREAD_PRIORITY;
+
+
+#pragma mark -- Core Render Platform Thread Handle ID
+
+#ifdef CM_TARGET_WIN32
+typedef HANDLE           cm_platform_thread;
+typedef unsigned int     cm_platform_thread_id;
+#define cm_stdcall       __stdcall
+#elif defined(__APPLE__)
+typedef dispatch_queue_t cm_platform_thread;
+typedef unsigned int     cm_platform_thread_id;
+#define cm_stdcall
+#endif
+
+//#include "ReqlCoroutine.h"
+//#include "CTError.h"
+#ifdef _WIN32
+#define CMThread                 HANDLE
+#define CMThreadID               unsigned int
+typedef HANDLE                   CMKernelQueueType;
+typedef LPTHREAD_START_ROUTINE   CMThreadRoutine; //Win32 CRT Thread Routine
+#define CMDispatchSource         void
+//#define SSLContextRef          void*
+//#define CTSocketError()        (WSAGetLastError())
+
+typedef struct CMKernelQueue
+{
+    CMKernelQueueType kq;
+    CMKernelQueueType pq[2];
+    intptr_t          pnInflightCursors;
+}CMKernelQueue;
+
+typedef HANDLE CMKernelQueueEvent;
+
+#elif defined(__APPLE__) || defined(__FreeBSD__) //with libdispatch
+#define CMThread                 pthread_t
+#define CMThreadID               unsigned int
+typedef int                      CRKernelQueueType; //kqueues are just file descriptors
+typedef int                      CRKernelPipeType;  //pipes are just file descriptors
+//typedef void *                 (*CTThreadRoutine)(void *); //pthread routine
+#define CMDispatchSource         dispatch_source_t
+typedef void(^ CMDispatchSourceHandler)(void);      //clang block
+//#define CTSocketError() (errno)
+
+typedef struct CMKernelQueue
+{
+    CMKernelQueueType kq;
+    CMKernelQueueType pq[2];
+    intptr_t          pnInflightCursors;
+}CMKernelQueue;
+
+typedef struct kevent CMKernelQueueEvent;
+
+#define CM_INCOMING_PIPE    0
+#define CM_OUTGOING_PIPE    1
+
+#endif
+
+
+#pragma mark -- CMidi Kernel Event Queue
+
+/***
+ *  "Kernel Event Queues" are useful for sending/receiving and waiting on events between threads and processes when standard provided event/message queue mechanisms provided by the OS to the application dont cut the mustard)
+ *
+ *	Core Render defines the notion of a kernel event queue as some implementation that allows handling of associated "Kernel Events" for the purposes of interprocess and interthread communication without incurring the cost of a User Space->Kernel Space->User Space memory transfer.
+ *	Core Render defines the notion of a "Kernel Event" as an event that a process thread may idle on and "woken up" by the kernel to receive the memory associated with the event directly from the kernel.
+ *
+ *	Note that some platforms may not have a dedicated "Kernel Event Queue" data type or handle exposed but still have "Kernel Event" type that a process thread may idle on.  For example, Win32 thread handles and their associated event queues are one in the same (see comment below).
+ *	When no sufficient "Kernel Event" mechanism can be provided by or implemented on top of the OS, a run loop must fall back to polling for events which is not suitable for real-time operation :(
+ ***/
+
+
 //Define Opaque OS Kernel Event Queue Data Type for Queue Mechanisms exposed by the OS Kernel
-#ifdef CR_TARGET_WIN32
+#ifdef CM_TARGET_WIN32
 //For Win32 Interprocess Events, there is no queue manually created or exposed with an event that can be passed and triggered/waited on between processes as with BSD kqueue + pipe combination.
 //For Win32 Interthread Messages/Events, every thread comes with a dedicated event queue "under the hood" in the kernel.
 //The handles to these thread event/message queues themselves are not exposed as they can be identified and sent to by their corresponding thread address stored as unsigned int
@@ -234,9 +393,22 @@ typedef unsigned int  cm_kernel_queue_id;  //a platform kernel queue id
 typedef int           cm_kernel_queue_id;  //on BSD platforms kernel queues are just kqueues, and kqueue handles are just file descriptors
 #endif
 
-extern cm_kernel_queue_id CMTriggerEventQueue; //a global kqueue singleton for the main Core Midi Event Loop to IPC with real-time audio threads
+//Define Opaque Event Data Type for OS Kernel Event Queue
+#ifdef CM_TARGET_WIN32
+typedef HANDLE        cm_kernel_queue_event;
+#elif defined(__APPLE__)
+typedef struct kevent cm_kernel_queue_event;
+#endif
+
+
+//CM_PLATFORM_EXTERN cm_kernel_queue_id CMTriggerEventQueue; //a global kqueue singleton for the main Core Midi Event Loop to IPC with real-time audio threads
 
 
 //END FREQUENCY DEFINITIONS
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* CMidiKeyboard_h */

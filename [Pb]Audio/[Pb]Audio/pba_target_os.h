@@ -467,7 +467,7 @@ PBA_INLINE crgc_size crgc_size_make(int width, int height){crgc_size size = {wid
 //***************************************************//
 
 // CRGC Defines are shared between all _ext.h implementations
-PBA_EXTERN volatile int PBA_MAX_TEXTURE_SIZE;
+//PBA_EXTERN volatile int PBA_MAX_TEXTURE_SIZE;
 
 
 //#ifdef __cplusplus

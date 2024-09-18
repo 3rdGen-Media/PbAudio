@@ -7,6 +7,9 @@
 
 #include "CMidiEndpoint.h"
 
+#include <assert.h>
+
+#ifdef __APPLE__
 //
 // Code taken from http://developer.apple.com/qa/qa2004/qa1374.html
 //////////////////////////////////////
@@ -173,3 +176,12 @@ char *CMFullEndpointName(MIDIEndpointRef endpoint, char* cmname, CMDriverID *dri
     if (fullName) CFRelease(fullName);
     return cmname;
 }
+
+#else
+
+char* CMFullEndpointName(MIDIEndpointRef endpoint, char* cmname, CMDriverID* driverID)
+{
+    assert(1 == 0);
+}
+
+#endif

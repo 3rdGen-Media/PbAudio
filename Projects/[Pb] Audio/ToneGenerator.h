@@ -11,7 +11,18 @@
 
 #include <[Pb]Audio/[Pb]Audio.h>
 
-extern PBARenderPass ToneGeneratorRenderPass;
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+    //TO DO:  I don't understand why this needs to go outside of extern "C"
+#ifdef __BLOCKS__
+PB_AUDIO_EXTERN PBARenderPass ToneGeneratorRenderPass;
+#else
+void CALLBACK ToneGeneratorRenderPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, void* source, void* events, uint32_t nEvents);
+#endif
 
 typedef struct ToneGeneratorParams
 {
@@ -36,5 +47,11 @@ typedef struct ToneGenerator
 
 void ToneGeneratorInit(ToneGenerator* source, float freq, float sampleRate);
 void ToneGeneratorSetFrequency(ToneGenerator* source, float freq, float sampleRate);
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* ToneGenerator_h */

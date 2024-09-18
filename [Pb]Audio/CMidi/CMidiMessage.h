@@ -9,7 +9,11 @@
 #define CMidiMessage_h
 
 #include "CMEndian.h"
+#include <stdint.h>
+
+#ifdef __APPLE__
 #include <CoreMIDI/MIDIMessages.h>                   //Core Midi Protocol Definitions
+#endif
 
 #define MIDI_SYSEX       0xf0
 #define MIDI_EOX         0xf7
@@ -20,7 +24,7 @@ typedef int32_t CMTimestamp;
 typedef CMTimestamp (*CMTimeProcPtr)(void *time_info);
 typedef uint32_t CMMessage; /**< @brief see #PmEvent */
 
-typedef CF_ENUM(uint32_t,  CMMessageType)
+typedef enum CMMessageType //CF_ENUM(uint32_t,  CMMessageType)
 {
     //CMMessageTypeUnknownF        =   0x00,
     //CMMessageTypeUtility         =   1<<0,    // 1 word
@@ -50,7 +54,7 @@ typedef CF_ENUM(uint32_t,  CMMessageType)
     // D: 4 words
     // E: 4 words
     // F: 4 words
-};
+}CMMessageType;
 
 static const char*  CMStringForMIDIMessageType(CMMessageType messageType)
 {
@@ -75,7 +79,7 @@ static const char*  CMStringForMIDIMessageType(CMMessageType messageType)
 
 
 // kMIDIMessageTypeChannelVoice1 / kMIDIMessageTypeChannelVoice2 status nibbles.
-typedef CF_ENUM(uint32_t, CMMessageCVStatus)
+typedef enum CMMessageCVStatus //CF_ENUM(uint32_t, CMMessageCVStatus)
 {
     // MIDI 1.0
     CMMessageCVStatusNoteOff                =    0x8,
@@ -95,7 +99,7 @@ typedef CF_ENUM(uint32_t, CMMessageCVStatus)
     CMMessageCVStatusRelAssignableControl    =    0x5, // Relative
     CMMessageCVStatusPerNotePitchBend        =    0x6,
     CMMessageCVStatusPerNoteMgmt             =    0xF
-};
+}CMMessageCVStatus;
 
 
 static const char * CMStringForMIDICVStatus(CMMessageCVStatus status)
@@ -141,7 +145,7 @@ static const char * CMStringForMIDICVStatus(CMMessageCVStatus status)
 }
 
 // CMMessageTypeSystem status bytes.
-typedef CF_ENUM(uint32_t, CMSystemStatus)
+typedef enum CMSystemStatus //CF_ENUM(uint32_t, CMSystemStatus)
 {
     // MIDI 1.0 only
     CMStatusStartOfExclusive        = 0xF0,
@@ -160,10 +164,10 @@ typedef CF_ENUM(uint32_t, CMSystemStatus)
     CMStatusActiveSending           = 0xFE,
     CMStatusActiveSensing           = CMStatusActiveSending,
     CMStatusSystemReset             = 0xFF
-};
+}CMSystemStatus;
 
 // CMMessageTypeSysEx / CMMessageTypeData128 status nibbles.
-typedef CF_ENUM(uint32_t, CMSysExStatus) 
+typedef enum CMSysExStatus //CF_ENUM(uint32_t, CMSysExStatus) 
 {
     CMSysExStatusComplete              = 0x0,
     CMSysExStatusStart                 = 0x1,
@@ -173,37 +177,37 @@ typedef CF_ENUM(uint32_t, CMSysExStatus)
     // MIDI 2.0
     CMSysExStatusMixedDataSetHeader    = 0x8,
     CMSysExStatusMixedDataSetPayload   = 0x9
-};
+}CMSysExStatus;
 
 // CMMessageTypeUtility status nibbles.
-typedef CF_ENUM(uint32_t, CMUtilityStatus) 
+typedef enum CMUtilityStatus //CF_ENUM(uint32_t, CMUtilityStatus) 
 {
     CMUtilityStatusNOOP                        = 0x0,
     CMUtilityStatusJitterReductionClock        = 0x1,
     CMUtilityStatusJitterReductionTimestamp    = 0x2
-};
+}CMUtilityStatus;
 
 // MIDI 2.0 Note On/Off Message Attribute Types
-typedef CF_ENUM(uint8_t, CMNoteAttribute)
+typedef enum CMNoteAttribute //CF_ENUM(uint8_t, CMNoteAttribute)
 {
     CMNoteAttributeNone                     = 0x0,    // no attribute data
     CMNoteAttributeManufacturerSpecific     = 0x1,    // Manufacturer-specific = unknown
     CMNoteAttributeProfileSpecific          = 0x2,    // MIDI-CI profile-specific data
     CMNoteAttributePitch                    = 0x3    // Pitch 7.9
-};
+}CMNoteAttribute;
 
 // MIDI 2.0 Program Change Options
-typedef CF_OPTIONS(uint8_t, CMProgramChangeOptions)
+typedef enum CMProgramChangeOptions //CF_OPTIONS(uint8_t, CMProgramChangeOptions)
 {
     CMProgramChangeBankValid = 0x1
-};
+}CMProgramChangeOptions;
 
 // MIDI 2.0 Per Note Management Options
-typedef CF_OPTIONS(uint8_t, CMPerNoteManagementOptions)
+typedef enum CMPerNoteManagementOptions //CF_OPTIONS(uint8_t, CMPerNoteManagementOptions)
 {
     CMPerNoteManagementReset = 0x1,
     CMPerNoteManagementDetach = 0x2
-};
+}CMPerNoteManagementOptions;
 
 //==================================================================================================
 #pragma mark -
@@ -255,8 +259,8 @@ typedef struct CMUniversalMessage
         struct {
             CMUtilityStatus status;  //!< determines which variant is active
             union {
-                UInt16 jitterReductionClock;      //!< active when status is kMIDIUtilityStatusJitterReductionClock
-                UInt16 jitterReductionTimestamp;  //!< active when status is kMIDIUtilityStatusJitterReductionTimestamp
+                uint16_t jitterReductionClock;      //!< active when status is kMIDIUtilityStatusJitterReductionClock
+                uint16_t jitterReductionTimestamp;  //!< active when status is kMIDIUtilityStatusJitterReductionTimestamp
             };
         } utility;   //!< active when type is kMIDIMessageTypeUtility
 
@@ -293,7 +297,7 @@ typedef struct CMUniversalMessage
 
                 uint8_t  program;          //!< 7 bit program nr, active when status is kMIDICVStatusProgramChange
                 uint8_t  channelPressure;  //!< 7 bit channel pressure, active when status is kMIDICVStatusChannelPressure
-                UInt16   pitchBend;        //!< 7 bit pitch bend active when status is kMIDICVStatusPitchBend
+                uint16_t   pitchBend;        //!< 7 bit pitch bend active when status is kMIDICVStatusPitchBend
             };
         } channelVoice1;   //!< active when type is kMIDIMessageTypeChannelVoice1
 
@@ -436,14 +440,17 @@ typedef enum
 typedef struct CMidiNote
 {
     //const MIDIPacket *packet;
+#ifdef __APPLE__
     const MIDIEventPacket* packet;
-    
     MIDITimeStamp        timeStamp; /*UInt64*/
+#else
+    CMTimestamp          timeStamp;
+#endif
     
-    UInt8 status;
-    UInt8 data1;
-    UInt8 data2;
-    UInt8 channel;
+    uint8_t status;
+    uint8_t data1;
+    uint8_t data2;
+    uint8_t channel;
     
     CMMessageCVStatus statusType;
 
@@ -459,7 +466,13 @@ typedef struct CMTriggerCursor
 
 typedef struct CMTriggerMessage
 {
-    MIDITimeStamp       timestamp;
+#ifdef __APPLE__
+    //const MIDIEventPacket* packet;
+    MIDITimeStamp        timestamp; /*UInt64*/
+#else
+    CMTimestamp          timeStamp;
+#endif
+
     CMTriggerCursor        cursor; //sample cursor value for rescheduling
     union
     {
@@ -486,13 +499,13 @@ void CMidiNoteInitWithPacket(CMidiNote* note, MIDIEventPacket * packet);
 }
 */
 
-static uint8_t CMNoteNumberFromEventWord(const UInt32 packetWord)
+static uint8_t CMNoteNumberFromEventWord(const uint32_t packetWord)
 {
     //return (packet->wordCount > 0) ? packet->data[1] : 0;
     return (packetWord >> 8) & 0x000000ff;
 }
 
-static uint8_t CMNoteVelocityFromEventWord(const UInt32 packetWord)
+static uint8_t CMNoteVelocityFromEventWord(const uint32_t packetWord)
 {
     //return (packet->wordCount > 0) ? packet->data[1] : 0;
     return packetWord & 0x000000ff;

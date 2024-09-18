@@ -33,7 +33,7 @@ static bool PBARateLimit(void) {
 #else
 
 #ifndef OSStatus 
-typedef int OSStatus;
+typedef HRESULT OSStatus;
 #define noErr 0
 #define _Nonnull 
 #endif 

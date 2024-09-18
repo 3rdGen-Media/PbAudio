@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="CMidi">
+      <UniqueIdentifier>{6ced6cc9-99a7-4dde-b88d-5bd4ab81aace}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="[Pb]Audio.h">
@@ -30,19 +33,64 @@
     <ClInclude Include="[Pb]Audio\PbAudioCallbacks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="[Pb]Audio\PbAudioError.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="[Pb]Audio\PbAudioFormat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="[Pb]Audio\PbAudioStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="[Pb]Audio\PbAudioTime.h">
+    <ClInclude Include="[Pb]Audio\PbAudioExt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="[Pb]Audio\PbAudioExt.h">
+    <ClInclude Include="CMidi\CMEndian.h">
+      <Filter>CMidi</Filter>
+    </ClInclude>
+    <ClInclude Include="CMidi\CMEventQueue.h">
+      <Filter>CMidi</Filter>
+    </ClInclude>
+    <ClInclude Include="CMidi\CMidi.h">
+      <Filter>CMidi</Filter>
+    </ClInclude>
+    <ClInclude Include="CMidi\CMidiControl.h">
+      <Filter>CMidi</Filter>
+    </ClInclude>
+    <ClInclude Include="CMidi\CMidiDevice.h">
+      <Filter>CMidi</Filter>
+    </ClInclude>
+    <ClInclude Include="CMidi\CMidiDriverID.h">
+      <Filter>CMidi</Filter>
+    </ClInclude>
+    <ClInclude Include="CMidi\CMidiEndpoint.h">
+      <Filter>CMidi</Filter>
+    </ClInclude>
+    <ClInclude Include="CMidi\CMidiMessage.h">
+      <Filter>CMidi</Filter>
+    </ClInclude>
+    <ClInclude Include="[Pb]Audio\pba_dsp_waveforms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="[Pb]Audio\pba_error.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="[Pb]Audio\pba_event_queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="[Pb]Audio\pba_format.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="[Pb]Audio\pba_target_os.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="[Pb]Audio\pba_time.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="[Pb]Audio\PbAudioByteUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="[Pb]Audio\PbAudioFileStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="[Pb]Audio\PbAudioRenderPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="[Pb]Audio\PbAudioDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -50,22 +98,52 @@
     <ClCompile Include="[Pb]Audio\PbAudioAPI.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="[Pb]Audio\PbAudioError.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="[Pb]Audio\PbAudioFormat.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="[Pb]Audio\PbAudioStream.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="[Pb]Audio\PbAudioTime.c">
+    <ClCompile Include="[Pb]Audio\PbAudioBufferList.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="[Pb]Audio\PbAudioExt.c">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="[Pb]Audio\PbAudioBufferList.c">
+    <ClCompile Include="CMidi\CMEventQueue.c">
+      <Filter>CMidi</Filter>
+    </ClCompile>
+    <ClCompile Include="CMidi\CMidi.c">
+      <Filter>CMidi</Filter>
+    </ClCompile>
+    <ClCompile Include="CMidi\CMidiControl.c">
+      <Filter>CMidi</Filter>
+    </ClCompile>
+    <ClCompile Include="CMidi\CMidiDevice.c">
+      <Filter>CMidi</Filter>
+    </ClCompile>
+    <ClCompile Include="CMidi\CMidiDriverID.c">
+      <Filter>CMidi</Filter>
+    </ClCompile>
+    <ClCompile Include="CMidi\CMidiEndpoint.c">
+      <Filter>CMidi</Filter>
+    </ClCompile>
+    <ClCompile Include="[Pb]Audio\pba_event_queue.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="[Pb]Audio\pba_format.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="[Pb]Audio\pba_target_os.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="[Pb]Audio\pba_time.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="[Pb]Audio\PbAudioDevice.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="[Pb]Audio\PbAudioFileStream.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="[Pb]Audio\PbAudioRenderPass.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

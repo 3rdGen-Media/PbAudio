@@ -9,59 +9,28 @@
 
 #include "PbAudioAppInterface.h"
 
-#ifdef _WIN32
-
-/*
-#define NOMINMAX
-#define NTDDI_VERSION NTDDI_WIN7
-#define _WIN32_WINNT _WIN32_WINNT_WIN7 
-
-// standard definitions
-#define STRICT                                                  // enable strict type-checking of Windows handles
-#define WIN32_LEAN_AND_MEAN                                     // allow the exclusion of uncommon features
-//#define WINVER                                          _WIN32_WINNT_WIN7  // allow the use of Windows XP specific features
-//#define _WIN32_WINNT                                    _WIN32_WINNT_WIN7  // allow the use of Windows XP specific features
-#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES         1       // use the new secure functions in the CRT
-#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT   1       // use the new secure functions in the CRT
-*/
-#include <windows.h>            // fundamental Windows header file
-//#define GLDECL WINAPI
-//#define DXDECL WINAPI
-
-#define _USE_MATH_DEFINES	//holy crap!!! must define this on ms windows to get M_PI definition!
-#include <math.h>
-
-#define THREADPROC WINAPI   //What does this do again?
-
-//Win32 c based dependencies
-#include <tchar.h>              // generic text character mapping
-#include <string.h>             // includes string manipulation routines
-#include <stdlib.h>           // includes standard libraries
-#include <stdint.h>           // includes uint64_t, etc types
-
-#include <stdio.h>              // includes standard input/output routines
-#include <process.h>            // threading routines for the CRT
-//#include <tlhelp32.h>
-
-//For Win32 Media Manager File Loading
-static const GUID _IID_MF_LOW_LATENCY = { 0x9c27891a, 0xed7a, 0x40e1, {0x88, 0xe8, 0xb2, 0x27, 0x27, 0xa0, 0x24, 0xee} };
-
-#endif
-
 #pragma mark -- [Pb]Audio Stream Output Pass
 
-#include "ToneGenerator.h"
-#include "SamplePlayer.h"
+#include "../ToneGenerator.h"
+#include "../SamplePlayer.h"
 
 SamplePlayer  samplePlayer  = {0};
 ToneGenerator toneGenerator = {0};
 
+#ifdef __APPLE__
 PBAStreamOutputPass TestOutputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp)
+#else
+void CALLBACK TestOutputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp)
+#endif
 {
     ToneGeneratorRenderPass(ioData, frames, timestamp, &toneGenerator, NULL, 0);
 };
 
-PBAStreamOutputPass ArticulationInstrumentOutputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp)
+#ifdef __APPLE__
+PBAStreamOutputPass SamplerOutputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp)
+#else
+void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp)
+#endif
 {
     //local trigger event iterator/cache
     int nTriggerEvents = 0;
@@ -119,6 +88,7 @@ PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID] = {0};
 
 #pragma mark -- CMidi Device Messages
 
+#ifdef __APPLE__
 MIDINotifyBlock CMidiNotifyBlock = ^void(const MIDINotification *msg)
 {
     //for debugging, trace change notifications:
@@ -257,6 +227,9 @@ MIDIReceiveBlock CMidiReceiveBlock = ^void(const MIDIEventList *evtlist, void * 
     }
 };
 
+#else
+
+#endif
 
 
 
@@ -456,10 +429,9 @@ void InitPlatform()
     HANDLE threadID;
 
     //Elevate Process And Thread Priorities
-    GetProcessId(pID);
-    threadID = GetCurrentThread();
+    pID = (HANDLE)GetProcessId(GetCurrentProcess()); threadID = GetCurrentThread();
     SetPriorityClass(pID, REALTIME_PRIORITY_CLASS);
-    SetThreadPriority(threadID, THREAD_PRIORITY_TIME_CRITICAL);
+    //SetThreadPriority(threadID, THREAD_PRIORITY_TIME_CRITICAL);
     
 #elif defined(__APPLE__) && TARGET_OS_OSX
      //Initialize kernel timing mechanisms for debugging
@@ -501,13 +473,16 @@ void ExitHandler(void)
 
 int StartPlatformEventLoop(int argc, const char * argv[])
 {
-#ifdef _WIN32
+    fprintf(stdout, "\nStartPlatformEventLoop");
+
+#if defined(_WIN32) //Vanilla Run Loop
+
+    /*
     MSG msg;
     //int exitStatus;
     bool appIsRunning = true;
 
     //will just idle for now (in a multiwindow scenario this is best)
-    //later we will probably put the physics loop here
     //_idleEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
     while (appIsRunning)
     {
@@ -516,23 +491,27 @@ int StartPlatformEventLoop(int argc, const char * argv[])
         //if(PeekMessage(&msg, NULL, CR_PLATFORM_EVENT_MSG_LOOP_QUIT, CR_PLATFORM_EVENT_MSG_LOOP_QUIT, PM_REMOVE))
         if(GetMessage(&msg, NULL, 0, 0) && msg.message != WM_QUIT)  //run the event loop until it spits out error or quit
         {
-			/*
-            //observe our custom defined quit message
-            if( msg.message == CR_PLATFORM_EVENT_MSG_LOOP_QUIT)
-            {
-                fprintf(stdout, "\nCR_PLATFORM_EVENT_MSG_LOOP_QUIT\n");
-                appIsRunning = false;
-            }
-			*/
 			//pass on the messages to the __main_event_queue for processing
 			//TranslateMessage(&msg);
 			DispatchMessage(&msg);
             memset(&msg, 0, sizeof(MSG));
         }
     }
+    */
+
+    DemoApp app;
+
+    if (SUCCEEDED(app.Initialize()))
+    {
+        app.RunMessageLoop();
+    }
+    else assert(1 == 0);
+
+
     //TO DO: Cleanup();
+    
     return 0;
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) //Cocoa Run Loop
 
 #if TARGET_OS_OSX
     atexit(&ExitHandler);
@@ -575,278 +554,10 @@ int StartPlatformEventLoop(int argc, const char * argv[])
 
 #endif
 #endif
-    printf("\nStartPlatformEventLoop() End\n");
+
+    fprintf(stdout, "\nStartPlatformEventLoop() End\n");
     return -1;
 }
-
-
-
-
-#ifdef _WIN32
-int PBAInitCOM()
-{
-	//CoIntialize(Ex) Initializes the COM library for use by the calling thread, sets the thread's concurrency model, and creates a new apartment for the thread if one is required.
-	//You should call Windows::Foundation::Initialize to initialize the thread instead of CoInitializeEx if you want to use the Windows Runtime APIs or if you want to use both COM and Windows Runtime components. 
-	//Windows::Foundation::Initialize is sufficient to use for COM components.
-	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	if (FAILED(hr)) { printf("**** Error 0x%x returned by CoInitializeEx\n", hr); return -1; }
-	
-	//Create MMDeviceEnumerator so we can get an audio endpoint
-	//CoCreateInstance Creates a single uninitialized object of the class associated with a specified CLSID.
-	//Call CoCreateInstance when you want to create only one object on the local system. 
-	//To create a single object on a remote system, call the CoCreateInstanceEx function. To create multiple objects based on a single CLSID, call the CoGetClassObject function.
-    hr = CoCreateInstance(__clsid(MMDeviceEnumerator), NULL, CLSCTX_ALL, __riid(IMMDeviceEnumerator), (void**)&_PBADeviceEnumerator);
-	if (FAILED(hr)) { printf("**** Error 0x%x returned by CoCreateInstance\n", hr); return -1; }
-	return 0;
-}
-
-int PBAGetDefaultAudioDevice(IMMDevice **pDevice)
-{
-    //HRESULT hr = gEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, pDevice);
-	HRESULT hr = CALL(GetDefaultAudioEndpoint, _PBADeviceEnumerator, eRender, eConsole, pDevice);
-	if (FAILED(hr)) { printf("**** Error 0x%x returned by GetDefaultAudioEndpoint\n", hr); return -1; }
-	
-	return 0;
-}
-
-
-int PBAActivateAudioDevice(IMMDevice * device, IAudioClient2 ** audioClient)
-{
-	//Active a version 1 Aucio Client
-    //HRESULT hr = clientStream->gDevice->Activate( IID_IAudioClient, CLSCTX_ALL, NULL, (void**)&(clientStream->audioClient));
-	//HRESULT hr = PBADeviceActivate( clientStream->gDevice, IID_IAudioClient, CLSCTX_ALL, NULL, (void**)&(clientStream->audioClient));
-	HRESULT hr = CALL(Activate, device, __riid(IAudioClient), CLSCTX_ALL, NULL, (void**)audioClient);
-    
-	if (FAILED(hr)) { printf("**** Error 0x%x returned by Activate\n", hr); return -1; }
-	return 0;
-}
-
-typedef union fourByteInt
-{
-	uint32_t i;
-	char bytes[4];
-}fourByteInt;
-
-#define PBA_COM_RELEASE(punk) if ((punk) != NULL) { CALL(Release, punk); (punk) = NULL; }
-
-static unsigned int __stdcall pbaudio_stream_render(void * stream)
-{
-	//int bytesPerSample;
-	HRESULT hr;
-	DWORD flags = 0;
-
-	//Task is used to elevate thread to ProAudio Latency
-	HANDLE hTask = NULL;
-	DWORD taskIndex = 0;
-	
-	
-	PBAStreamContext * clientStream = (PBAStreamContext*)stream;
-
-	//UINT64 playbackSampleOffset = 0;
-	//UINT64 samplesToCopy = 0;
-	//UINT64 remainingSamples =0;
-	
-	fourByteInt fourI = {0};
-	char * buffer = NULL;
-	//BYTE *pData;// = {NULL, NULL};
-	
-	//for render callback
-	PBABuffer interleavedBuffer = { clientStream->format.nChannels, clientStream->format.wBitsPerSample/8, NULL};
-	PBABufferList bufferList = {1, &interleavedBuffer};
-
-
-	HANDLE threadID;
-	threadID = GetCurrentThread();
-	SetThreadPriority(threadID, THREAD_PRIORITY_TIME_CRITICAL);
-
-	 // Ask MMCSS to temporarily boost the thread priority
-    // to reduce glitches while the low-latency stream plays.
-    taskIndex = 0;
-    hTask = AvSetMmThreadCharacteristics(TEXT("Pro Audio"), &taskIndex);
-    if (hTask == NULL)
-    {
-        hr = E_FAIL;
-		printf("**** AvSetMmThreadCharacteristics (Pro Audio) failed!\n"); return -1;    
-	}
-
-	/*
-	// To reduce latency, load the first buffer with data
-    // from the audio source before starting the stream.
-    //hr = clientStream->renderClient->GetBuffer(clientStream->bufferFrameCount ,&pData);
-	hr = CALL(GetBuffer, clientStream->renderClient, clientStream->bufferFrameCount, &pData);
-	if (FAILED(hr)) { printf("**** Error 0x%x returned by GetBuffer\n", hr); return -1; }
-
-	//Adjust buffer size in samples (shared mode streams only)
-	//clientStream->bufferFrameCount =  clientStream->bufferFrameCount /4;// pwfx->nBlockAlign;
-	//printf("bufferSizeInSamples = %u\n", bufferFrameCount);
-
-	//Calculate the frames available (shared mode streams only)
-	//UINT32 FramesAvailable = 0;
-	//UINT32 PaddingFrames = 0;
-
-	// Get padding in existing buffer (shared mode streams only)
-	//hr = clientStream->audioClient->GetCurrentPadding( &PaddingFrames );
-    //if (FAILED(hr)) { printf("**** Error 0x%x returned by GetCurrentPadding\n", hr); return -1; }
-	//printf("Current padding = %d\n", PaddingFrames);
-
-	//Copy samples to output render buffer
-	//hr = pMySource->LoadData(bufferFrameCount, pData, &flags);
-
-	samplesToCopy = clientStream->bufferFrameCount;
-	remainingSamples = g_sourceBufferLengthInSamples - playbackSampleOffset;//audioEvent.audioData.size() - playbackSampleOffset;
-
-	printf("samplesToCopy = %d\n", samplesToCopy);
-	printf("remainingSamples = %d\n", remainingSamples);
-	printf("playbackSampleOffset = %d\n", playbackSampleOffset);
-	printf("g_sourceBufferLengthInSamples  = %d\n", g_sourceBufferLengthInSamples);
-
-	if(  remainingSamples > 0 && remainingSamples < samplesToCopy )
-		samplesToCopy = remainingSamples;
-
-	//memcpy(pData, &(audioEvent.audioData[playbackSampleOffset]), samplesToCopy );
-	//memcpy(pData, &(g_sourceBuffer[playbackSampleOffset*g_sourceBufferChannels*g_sourceBytesPerSample]), samplesToCopy*g_sourceBufferChannels*g_sourceBytesPerSample );
-	//memcpy(pData, &(g_sineWaveBuffer[playbackSampleOffset*g_sourceBufferChannels]), samplesToCopy*g_sourceBufferChannels*3);
-	memcpy(pData, &(g_sineWaveBuffer[playbackSampleOffset*g_sourceBufferChannels]), samplesToCopy*g_sineBufferChannels*sizeof(float));
-	
-	//bytesPerSample = clientStream->format.nBlockAlign / clientStream->format.nChannels;
-	playbackSampleOffset += samplesToCopy;
-
-	//release the output render buffer of size bufferFrameCount after copying data to the buffer
-    //hr = clientStream->renderClient->ReleaseBuffer(clientStream->bufferFrameCount, flags);
-    hr = CALL(ReleaseBuffer, clientStream->renderClient, clientStream->bufferFrameCount, flags);
-	
-	if (FAILED(hr)) { printf("**** Error 0x%x returned by ReleaseBuffer\n", hr); return -1; }
-	pData = NULL;
-	*/
-
-   
-    //hr = clientStream->audioClient->Start();  // Start playing.
-	hr = CALL(Start, clientStream->audioClient);
-    if (FAILED(hr)) { printf("**** Error 0x%x returned by Start (pAudioClient)\n", hr); return -1; }
-
-	//RENDER LOOP
-	hr = S_OK;
-	
-	// Each loop fills one of the two buffers.
-    while ( flags != AUDCLNT_BUFFERFLAGS_SILENT)
-    {
-	    // Wait for next buffer event to be signaled.
-        DWORD retval = WaitForSingleObject(clientStream->hEvent, 2000);
-        if (retval != WAIT_OBJECT_0)
-        {
-            // Event handle timed out after a 2-second wait.
-            //hr = clientStream->audioClient->Stop();
-            hr = CALL(Stop, clientStream->audioClient);
-			hr = ERROR_TIMEOUT;
-			break;
-		}
-
-		//printf("Requesting %d buffer samples...\n", clientStream->bufferFrameCount);
-
-		// Grab the next empty buffer from the audio device.
-	    //hr = clientStream->renderClient->GetBuffer(clientStream->bufferFrameCount, &pData);
-		hr = CALL(GetBuffer, clientStream->renderClient, clientStream->bufferFrameCount, &((BYTE*)(interleavedBuffer.mData)) );
-	
-		//BUFFER_TOO_LARGE actually means we are asking the audio client for more buffer space than is currently available!
-		//Microsoft loves to leave this cryptic little holes in their sample code demonstrating their APIs
-		if( hr == AUDCLNT_E_BUFFER_TOO_LARGE ) { continue; } ;
-        if (FAILED(hr)) { printf("**** Error 0x%x returned by GetBuffer\n", hr); break; }
-
-		//Calculate the frames available (only if we choose to render to a portion of the buffer at a time in shared mode)
-		//FramesAvailable = 0;
-		//PaddingFrames = 0;
-		// Get padding in existing buffer
-		//hr = pAudioClient->GetCurrentPadding( &PaddingFrames );
-        //if (FAILED(hr)) { printf("**** Error 0x%x returned by GetCurrentPadding\n", hr); break; }
-		//printf("Current padding = %d\n", PaddingFrames);
-
-		// In HW mode, GetCurrentPadding returns the number of available frames in the 
-		// buffer, so we can just use that directly
-		//if (m_DeviceProps.IsHWOffload) FramesAvailable = PaddingFrames;
-		// In non-HW shared mode, GetCurrentPadding represents the number of queued frames
-		// so we can subtract that from the overall number of frames we have
-		//else
-		//	FramesAvailable = bufferFrameCount - PaddingFrames;
-
-		//Package the buffer as a PBABufferList
-		//interleavedBuffer.mData = clientStream->pData;
-		//PBABufferList bufferList;
-
-		//Execute the client render callback
-		clientStream->renderCallback(&bufferList, clientStream->bufferFrameCount, NULL);
-
-		/*
-		//Fill the buffer with source material
-
-		UINT64 playbackSampleOffset = 0;
-		UINT64 samplesToCopy = 0;
-		UINT64 remainingSamples =0;
-
-		samplesToCopy = clientStream->bufferFrameCount;// * 3 / 4; ;
-		remainingSamples = g_sourceBufferLengthInSamples - playbackSampleOffset;//audioEvent.audioData.size() - playbackSampleOffset;
-
-		if(  remainingSamples > 0 && remainingSamples < samplesToCopy )
-			samplesToCopy = remainingSamples;
-		if( remainingSamples < 1 )
-			break;
-		
-		//printf("Requesting %d buffer samples...\n", clientStream->bufferFrameCount);
-
-		//Debug output
-		//printf("samplesToCopy = %d\n", samplesToCopy);
-		//printf("remainingSamples = %d\n", remainingSamples);		
-		//printf("playbackSampleOffset = %d\n", playbackSampleOffset);
-
-		//memcpy(pData, &(audioEvent.audioData[playbackSampleOffset]), samplesToCopy );
-		memcpy(pData, &(g_sineWaveBuffer[playbackSampleOffset*g_sourceBufferChannels]), samplesToCopy*g_sineBufferChannels*sizeof(float));
-	    //memcpy(pData, &(g_sourceBuffer[playbackSampleOffset*g_sourceBufferChannels*g_sourceBytesPerSample]), samplesToCopy*g_sourceBufferChannels*g_sourceBytesPerSample );		
-		playbackSampleOffset += samplesToCopy;
-
-		if(playbackSampleOffset >= g_sourceBufferLengthInSamples )
-			break;
-		*/
-
-		//hr = clientStream->renderClient->ReleaseBuffer(clientStream->bufferFrameCount, flags);
-	    hr = CALL(ReleaseBuffer, clientStream->renderClient, clientStream->bufferFrameCount, flags);
-		if (FAILED(hr)) { printf("**** Error 0x%x returned by ReleaseBuffer\n", hr); break; }
-		//pData = NULL;
-
-
-    }
-
-    // Wait for the last buffer to play before stopping.
-
-
-	Sleep(2000);
-	//if( hr = S_OK) 
-	//	Sleep(1000);
-
-    //hr = clientStream->audioClient->Stop();  // Stop playing.
-	hr = CALL(Stop, clientStream->audioClient);
-	if (FAILED(hr)) { printf("**** Error 0x%x returned by Stop (pAudioClient)\n", hr); }
-
-	//Cleanup Motherfucker!
-
-		if (clientStream->hEvent != NULL)
-		{
-			CloseHandle(clientStream->hEvent);
-		}
-		if (hTask != NULL)
-		{
-			AvRevertMmThreadCharacteristics(hTask);
-		}
-		//CoTaskMemFree(pwfx);
-		PBA_COM_RELEASE(_PBADeviceEnumerator)
-		PBA_COM_RELEASE(clientStream->audioDevice)
-		PBA_COM_RELEASE(clientStream->audioClient)
-		PBA_COM_RELEASE(clientStream->renderClient)
-
-	free(g_sineWaveBuffer);
-	g_sineWaveBuffer = NULL;
-
-	return 0;
-}
-#endif
 
 
 
@@ -856,15 +567,7 @@ void PBAudioInit(void)
 
     //Process and Thread Handles
     PBAStreamFormat desiredStreamFormat;
-        
-    //Initalize COM and allocate a Device Enumerator object
-    //So [Pb]Audio can create a stream against a hardware device
 #ifdef WIN32
-    PBAInitCOM();
-
-    //Get the Default or Desired Audio Hardware Device Endpoint + Active a context to the device if needed
-    PBAGetDefaultAudioDevice(&(_PBAMasterStream.audioDevice));
-    PBAActivateAudioDevice(_PBAMasterStream.audioDevice, &(_PBAMasterStream.audioClient));
     
     //Send the desired format to PBAInitStream if we wish to use an exclusive mode stream on Win32
     //or a non-default format on Darwin platforms
@@ -889,7 +592,7 @@ void PBAudioInit(void)
 #endif
 
     //A stream must first be initialized in order to know the system sample rate setting of the device if a compatible format isn't requested explicitly
-    PBAudio.Init(&PBAudio.OutputStreams[0], NULL, kAudioObjectUnknown, ArticulationInstrumentOutputPass);
+    PBAudio.Init(&PBAudio.OutputStreams[0], NULL, kAudioObjectUnknown, TestOutputPass);
     
     //Load some audio from disk while converting to the desired format
     const char * audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/Unknown Artist/Unknown Album/Print#45.1.aif";//Assets/DecadesMix\0";
@@ -899,26 +602,16 @@ void PBAudioInit(void)
     //const char * audioFileExt = "wav\0";
         
     ToneGeneratorInit(&toneGenerator, 440.f, PBAudio.OutputStreams[0].currentSampleRate);           //Initialize a 32-bit floating point sine wave buffer
-    SamplePlayerInit(&samplePlayer, audioFileURL, audioFileExt, PBAudio.OutputStreams[0].format);   //Read an audio file from disk to formatted buffer for playback
+    //SamplePlayerInit(&samplePlayer, audioFileURL, audioFileExt, PBAudio.OutputStreams[0].format);   //Read an audio file from disk to formatted buffer for playback
     
     OutputPass[TestOutputPassID]    = TestOutputPass;
-    OutputPass[SamplerOutputPassID] = ArticulationInstrumentOutputPass;
+    //OutputPass[SamplerOutputPassID] = SamplerOutputPass;
     
-    //Start the audio stream render callback to be issued from a registered audio unit's system provided real-time audio thread
-    PBAudio.Start(&PBAudio.OutputStreams[0]);
-    
-    //Or start a dedicated audio rendering callback thread for the stream
-    //_beginthreadex(NULL, 0, pbaudio_stream_render, &_PBAMasterStream, 0, &(_PBAMasterStream.renderThreadID));
 }
 
 //must return void* in order to use with GCD dispatch_async_f
-static void* PBAudioRunLoop(void* opaqueQueue)
-{
-    /***
-     * 1     Init [Pb]Audio [Session/Stream] for Playback
-     ***/
-     PBAudioInit();
-    
+static void* CRRunLoop(void* opaqueQueue)
+{   
     //fprintf("\ninit app_event_loop\n");
 #ifdef CR_TARGET_WIN32
     //Currently does nothing
@@ -984,12 +677,8 @@ static void* PBAudioRunLoop(void* opaqueQueue)
 //must return void* in order to use with GCD dispatch_async_f
 static void* PBAudioEventLoop(void* opaqueQueue)
 {
-    /***
-     * 1     Init [Pb]Audio [Session/Stream] for Playback
-     ***/
-     PBAudioInit();
-    
-    //fprintf("\ninit app_event_loop\n");
+    fprintf(stdout, "\nPBAudioEventLoop");
+
 #ifdef CR_TARGET_WIN32
     //Currently does nothing
 #elif defined(__APPLE__)
@@ -1047,28 +736,70 @@ static void* PBAudioEventLoop(void* opaqueQueue)
         }
     }
 #endif
+
+    return NULL;
 }
+
 
 void StartAudioMessageEventLoop(void)
 {
-#ifdef CR_TARGET_WIN32
-    //Currently does nothing
-#elif defined(__APPLE__)
-    
-    //register kevents [for Universal Midi Protocol Message Types]
-    //that have been repurposed to remotely control the [Pb]Audio 'Engine' process
-    uint64_t audioEvent; PBAudioEventQueue = kqueue(); //create kqueue
+    //*** [Pb]Audio ***//
+
+    //Create IOCP port/kqueue for [Pb]Audio Application<->Process IPC
+    PBAudio.eventQueue = PBAKernelQueueCreate();
+
+    //It is not be strictly necessary to occur before but for posterity events are registered to the queue prior to initializing [Pb]Audio
+#ifdef __APPLE__
+    uint64_t audioEvent;
+
+    //register kevents [for Universal Midi Protocol Message Types] that have been repurposed to remotely control the [Pb]Audio 'Engine' process
     for (audioEvent = CMMessageTypeUtility; audioEvent < CMMessageTypeTimeout; ++audioEvent)
     {
         struct kevent kev;
         EV_SET(&kev, audioEvent, EVFILT_USER, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
-        kevent(PBAudioEventQueue, &kev, 1, NULL, 0, NULL);
+        kevent((int)opaqueQueue, &kev, 1, NULL, 0, NULL);
     }
+#else
 
-    //Option 1:  Launch Event Loop on Current Thread that will serve as the Main Event Loop in [Pb]Audio C-Land
-    //PBAudioEventLoop((void*)PBAudioEventQueue);
+#endif
+
+    /***
+     * Init [Pb]Audio [Session/Stream] for Scheduling Audio [Buffers] to a Real-Time Thread
+     * 
+     ***/
+    PBAudioInit();
+
+    /***
+     * Start receiving audio stream buffer callbacks issued on a corresponding real-time audio thread
+     * Darwin: the system provides the client access to a real-time audio thread of elevated priority [via a callback]
+     * Win32:  the client is responsible for creating the real-time audio thread of elevated priority
+     *
+     * In both cases, the system provides the buffers that are consumed from the real-time audio thread
+     ***/
+#if defined(__APPLE__)
+    PBAudio.Start(&PBAudio.OutputStreams[0]);
+#else
+     _beginthreadex(NULL, 0, (_beginthreadex_proc_type)PBAudio.Start, &PBAudio.OutputStreams[0], 0, &(PBAudio.OutputStreams[0].audioThreadID));
+#endif
+
+
+#ifdef CR_TARGET_WIN32
+
+    //Standalone Engine Process Option: Launch Event Loop on Current Thread that will serve as the Main Event Loop in [Pb]Audio C-Land
+    //PBAudioEventLoop((void*)PBAudio.eventQueue.kq);
+
+    //Shared Application + Engine Process Option:  Launch a single thread that that will serve as the Main Event Loop in [Pb]Audio C-Land
+    //_beginthreadex(NULL, 0, pbaudio_stream_render, &_PBAMasterStream, 0, &(_PBAMasterStream.renderThreadID));
+    //PBAudio.eventQueue.kq = PBAudio.eventThreadID; //When there is no IOCP thread pool, the thread handle itself is used to access the msg queue associated with the thread
+     
+    //Thread Pool Option:  Launch a concurrent [IOCP] thread pool that will serve as the Main Event Loop in [Pb]Audio C - Land
+
+#elif defined(__APPLE__)
     
-    //Option 2:  Launch a pthread that that will serve as the Main Event Loop in [Pb]Audio C-Land
+    //Standalone Engine Process Option:  Launch Event Loop on Current Thread that will serve as the Main Event Loop in [Pb]Audio C-Land
+    //PBAudioEventLoop((void*)PBAudio.eventQueue.kq);
+    
+    //Shared Application + Engine Process Option:  Launch a pthread that that will serve as the Main Event Loop in [Pb]Audio C-Land
     pthread_attr_t attr;
     struct sched_param sched_param;
     int sched_policy = SCHED_FIFO;
@@ -1076,14 +807,13 @@ void StartAudioMessageEventLoop(void)
     pthread_attr_setschedpolicy(&attr, sched_policy);
     sched_param.sched_priority = sched_get_priority_max(sched_policy);
     pthread_attr_setschedparam(&attr, &sched_param);
-    pthread_create(&pba_eventThread, &attr, PBAudioEventLoop, (void*)PBAudioEventQueue);
+    pthread_create(&pba_eventThread, &attr, PBAudioEventLoop, (void*)PBAudio.eventQueue.kq);
     pthread_attr_destroy(&attr);
     //pthread_mutex_init(&_mutex, NULL); //locks are for losers
     //pthread_setname_np("com.3rdgen.pbaudio.event-loop");
 
     /***
-     *  Option 3:  Launch a concurrent thread pool that will serve as the Main Event Loop in [Pb]Audio C-Land
-     *  Leaving the main thread to run the Cocoa Obj-C Land NSApplication Run Loop
+     *  Thread Pool Option:  Launch a concurrent thread pool that will serve as the Main Event Loop in [Pb]Audio C-Land
      *
      *  Its responsibilities include:
      *
@@ -1098,12 +828,16 @@ void StartAudioMessageEventLoop(void)
      //a neat feature of GCD is that it exposes a hash dictionary for each dispatch_queue_t
      //making GCD a great candidate for cross-platform threading across all platforms
      //for( int viewIndex = 0; viewIndex < NUM_VIEWS; viewIndex++) dispatch_queue_set_specific(glView[viewIndex].controlThread, (void*)(glView[viewIndex].window), &(glView[viewIndex]), NULL);
-
      //glView[viewIndex].controlQueue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
-     dispatch_async(queue, ^{ PBAudioEventLoop((void*)PBAudioEventQueue); });
+
+     dispatch_async(queue, ^{ PBAudioEventLoop((void*)PBAudio.eventQueue.kq); });
     */
     
-    
+#endif   
+
+//*** CMidi ***//
+
+#if defined(__APPLE__)
     //register kevents [for Midi Note On Types] that can be queued to trigger audio on the real-time audio thread
     uint64_t triggerEvent; CMTriggerEventQueue = kqueue(); //create kqueue
     for (triggerEvent = 0; triggerEvent < 128; ++triggerEvent)
@@ -1112,28 +846,26 @@ void StartAudioMessageEventLoop(void)
         EV_SET(&kev, triggerEvent, EVFILT_USER, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
         kevent(CMTriggerEventQueue, &kev, 1, NULL, 0, NULL);
     }
-    
-    //A CoreMidi client is used to get notification that thru connections have been updated
-    //as a result of this client app modifying thru connections
-    CMidi.init(CM_CLIENT_OWNER_ID, CMidiNotifyBlock, CMidiReceiveBlock, NULL);
-    
-    //[CMThruConnection deleteThruConnectionKeysFromCache];
-    //[CMThruConnection loadThruConnections];
+#else
 
+    
 #endif
+
+    //CMidi.init(CM_CLIENT_OWNER_ID, CMidiNotifyBlock, CMidiReceiveBlock, NULL);
+
 }
  
 int main(int argc, const char * argv[]) {
  
 	//HRESULT hr;
 
-   /***
-    * 0     Do any necessary platform initializations
-    ***/
+    /***
+     * 0  Do any necessary platform initializations
+     ***/
     InitPlatform();
     
     /***
-     * 1     Init Core Render
+     * 1  Init Core Render
      *
      * --  Create a CRView (ie an OS Platform Window backed by a Accelerated Graphics Context) with its own dedicated event queue thread
      * --  Create an [OpenGL, Vulkan and/or DirectX] Accelerated Graphics Context to backup the platform window with its own dedicated render thread
@@ -1195,10 +927,9 @@ int main(int argc, const char * argv[]) {
     /***
      *  5.1  Launch Core Render C-Land Application Event Loop
      *
-     *  Launch a dedicated thread that will act as arbiter for our Core Render Application Domain
+     *  Launch a dedicated thread that will act as arbiter for our [Pb]Audio Application<->Process Domain
      *  Responsibilities include:
      *
-     *  --  Pulling CGEvents from a kqueue bsd mechanism that are sent from the CRApplication.m run loop in CocoaLand
      *  --  Managing the application state
      ***/
     StartAudioMessageEventLoop();

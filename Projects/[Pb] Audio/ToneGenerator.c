@@ -6,15 +6,12 @@
 //  Copyright © 2024 3rdGen Multimedia. All rights reserved.
 //
 
-#include <stdio.h>
-
 #include "ToneGenerator.h"
 
-
-#ifndef __APPLE__
-void ToneGeneratorRenderPass(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp, void* source, void* events, UInt32 nEvents)
+#ifdef __BLOCKS
+PBARenderPass ToneGeneratorRenderPass = ^ (AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, void* source, void* events, UInt32 nEvents)
 #else
-PBARenderPass ToneGeneratorRenderPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, void* source, void* events, UInt32 nEvents)
+void CALLBACK ToneGeneratorRenderPass(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp, void* source, void* events, uint32_t nEvents)
 #endif
 {
     //UINT64 playbackSampleOffset = 0;
@@ -42,7 +39,6 @@ PBARenderPass ToneGeneratorRenderPass = ^(AudioBufferList * _Nonnull ioData, UIn
     // Clear the output buffer
     //PBABufferListSilence(ioData, 0, frames);
     
-    /*
     //Fill the buffer with source material
     samplesToCopy = frames;//clientStream->bufferFrameCount;// * 3 / 4; ;
     remainingSamples = (uint32_t)(generator->SineWave.length - generator->WaveSampleOffset);//audioEvent.audioData.size() - playbackSampleOffset;
@@ -53,38 +49,31 @@ PBARenderPass ToneGeneratorRenderPass = ^(AudioBufferList * _Nonnull ioData, UIn
     //printf("remainingSamples = %d\n", remainingSamples);
     //printf("g_playbackSampleOffset = %d\n", g_playbackSampleOffset );
 
-    if( remainingSamples > 0 )
-    {
-        memcpy(fBufferL, &(samplesL[generator->WaveSampleOffset]), samplesToCopy * sizeof(float));
-        //memcpy(fBufferR, &(samplesR[generator->WaveSampleOffset]), samplesToCopy * sizeof(float));
-        if( samplesR ) memcpy(fBufferR, &(samplesR[generator->WaveSampleOffset]), samplesToCopy * sizeof(float));
-        else           memcpy(fBufferR, &(samplesL[generator->WaveSampleOffset]), samplesToCopy * sizeof(float));
-         
-        //for(frameIndex=0; frameIndex<samplesToCopy; frameIndex++)
-        //{
-        //    fBufferL[frameIndex] = samples[g_playbackSampleOffset + frameIndex];
-        //}
-
-        generator->WaveSampleOffset += samplesToCopy;
-    }
-    */
-
     float rate = generator->rate;
     static float position = 0.f;
 
+    //TO DO: how to detect interleaved formats or prevent them
+    bool interleaved = true;
+
     for ( int i=0; i<frames; i++ )
     {
-        float * fBufferL = (float*)ioData->mBuffers[0].mData;
-        float * fBufferR = (float*)ioData->mBuffers[1].mData;
+        //float * fBufferL = (float*)ioData->mBuffers[0].mData;
+        //float * fBufferR = (float*)ioData->mBuffers[1].mData;
         double sample = pseudo_sin(rate, &position) - 0.5;
-        fBufferL[i] = fBufferR[i] = sample;
+        
+        if( interleaved ) fBufferL[i*2] = fBufferL[i*2+1] = sample;
+        else              fBufferL[i] = fBufferR[i] = sample;
     }
-    
+
 //#ifdef DEBUG
 //        PBAStreamReportRenderTime(&PBAudio.OutputStreams[0], &_audioReport, PBASecondsFromHostTicks(PBACurrentTimeInHostTicks() - start), (double)frames / PBAudio.OutputStreams[0].currentSampleRate);
 //#endif
  };
- 
+
+//#ifndef __BLOCKS
+//PB_AUDIO_EXTERN PBARenderPass ToneGeneratorRenderPass = ToneGeneratorRenderPassCallback;
+//#endif
+
 void ToneGeneratorSetFrequency(ToneGenerator* source, float freq, float sampleRate)
 {
     source->sampleRate = sampleRate;
@@ -105,6 +94,7 @@ void ToneGeneratorInit(ToneGenerator* source, float freq, float sampleRate)
     source->SineWave.length = renderDataLengthInSamples;
     
     source->SineWave.length = sampleRate*5.f;
-    GenerateSineSamplesFloat(&source->SineWave.buffer, source->SineWave.length, freq, nSineBufferChannels, PBAudio.OutputStreams[0].currentSampleRate, 0.25f, NULL);
+    double currentSampleRate = PBAudio.OutputStreams[0].currentSampleRate;
+    GenerateSineSamplesFloat(&source->SineWave.buffer, source->SineWave.length, freq, nSineBufferChannels, currentSampleRate, 0.25f, NULL);
     ToneGeneratorSetFrequency(source, freq, sampleRate);
 }

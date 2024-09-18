@@ -8,9 +8,15 @@
 #ifndef CMidiEndpoint_h
 #define CMidiEndpoint_h
 
+#include <stdint.h>
+
+#include "CMidiDriverID.h"
+
+#ifdef __APPLE__
+
 #include <CoreServices/CoreServices.h>               //Core Services needed for EndianS32_BtoN
 #include <CoreMIDI/MIDIServices.h>                   //Core Midi
-#include "CMidiDriverID.h"
+
 //#include "CMEndian.h"
 
 
@@ -22,6 +28,14 @@ CFStringRef CMEndpointName(MIDIEndpointRef endpoint, bool isExternal, CMDriverID
 // The result should be released by the caller.
 CFStringRef CMConnectedEndpointName(MIDIEndpointRef endpoint, CMDriverID *driverID);
 
+#else
+
+typedef uint32_t	  MIDIObjectRef;
+typedef MIDIObjectRef MIDIEndpointRef;
+
 char *CMFullEndpointName(MIDIEndpointRef endpoint, char* cmname, CMDriverID *driverID);
+
+
+#endif
 
 #endif /* CMidiEndpoint_h */

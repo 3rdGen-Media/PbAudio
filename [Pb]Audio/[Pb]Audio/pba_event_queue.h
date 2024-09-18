@@ -414,47 +414,44 @@ static const char * pba_process_ext = "";
 
 #pragma mark -- Declare Main Thread Run Loop References
 
-PB_AUDIO_EXTERN pba_platform_thread    pba_mainThread;
-PB_AUDIO_EXTERN pba_platform_thread_id pba_mainThreadID;
+//PB_AUDIO_EXTERN pba_platform_thread    pba_mainThread;
+//PB_AUDIO_EXTERN pba_platform_thread_id pba_mainThreadID;
 
-PB_AUDIO_EXTERN pba_platform_thread    pba_eventThread;
-PB_AUDIO_EXTERN pba_platform_thread_id pba_eventThreadID;
+//PB_AUDIO_EXTERN pba_platform_thread    pba_eventThread;
+//PB_AUDIO_EXTERN pba_platform_thread_id pba_eventThreadID;
 
 #pragma mark -- Declare Thread Local Storage IDs
 
-#ifdef CR_TARGET_WIN32
-PB_AUDIO_EXTERN DWORD                 pba_tlsIndex;
-#endif
+//#ifdef CR_TARGET_WIN32
+//PB_AUDIO_EXTERN DWORD                 pba_tlsIndex;
+//#endif
 
 #pragma mark -- Define Global Kernel Queues and corresponding Events (That live in crPlatform memory space)
 
 //define a global vertical retrace notification event suitable for use on all platforms
-PB_AUDIO_EXTERN pba_kernel_queue_event pba_vBlankNotification;    //a native windows event associated with the display vertical retrace that can be waited on for thread synchronization
+//PB_AUDIO_EXTERN pba_kernel_queue_event pba_vBlankNotification;  //a native windows event associated with the display vertical retrace that can be waited on for thread synchronization
                                                                 //(A HANDLE is just a void*, a kqueue is just an int file descriptor)
 
 #pragma mark -- Declare Global Event Queues and Pipes (for responding/handling events sent to a threads queue or sending messages to queues between process, respectively)
 
 #define CR_INCOMING_PIPE 0  //always use the same indexes for reading/writing to a pipe pair for posterity
-#define CR_OUTGOING_PIPE 1    //always use the same indexes for reading/writing to a pipe pair for posterity
+#define CR_OUTGOING_PIPE 1  //always use the same indexes for reading/writing to a pipe pair for posterity
 
-//a kqueue singleton designed to that lives in crPlatform shared lib
-//so it can be shared and used for kernel level communication between
-//threads, processes and most importantly shared between application frameworks
-//such as Cocoa and Core Render
+//a kqueue singleton designed to that lives in [Pb]Audio shared lib so it can be shared and used for kernel level communication between
+//threads, processes and most importantly shared between application frameworks such as Cocoa and CoreRender, CoreTransport or [Pb]Audio
 
 static const char * kPBAMainEventQueue     = "cr.3rdgen.[Pb]Audio.MainEventQueue";       //an identifier that can be used with pba_mainEventQueue
 //static const char * kCRPlatformEventQueue = "cr.3rdgen.crPlatform.pba_platformEventQueue";  //an identifier that can be used with pba_platformEventQueue
 //static const char * kCRDisplayEventQueue  = "cr.3rdgen.crPlatform.pba_DisplayEventQueue";   //an identifier that can be used with pba_DisplayEventQueue
 //static const char * kCRResourceEventQueue = "cr.3rdgen.crPlatform.pba_ResourceEventQueue";  //an identifier that can be used with pba_DisplayEventQueue
 
-extern           pba_kernel_queue_id pba_platformEventQueue;  //a global kqueue singleton for injecting events into the platform event loop [if one exists, and it should]
-PB_AUDIO_EXTERN  pba_kernel_queue_id PBAudioEventQueue;       //a global kqueue singleton for the main Core Render application event loop
-//extern         pba_kernel_queue_id pba_displayEventQueue;   //a global kqueue singleton for distributing display updates from a dedicated real-time thread
-PB_AUDIO_EXTERN  pba_kernel_queue_id pba_inputEventQueue;     //a global kqueue singleton for distributing user input updates from main thread run loop
+//extern           pba_kernel_queue_id pba_platformEventQueue;  //a global kqueue singleton for injecting events into the platform event loop [if one exists, and it should]
+//PB_AUDIO_EXTERN  pba_kernel_queue_id PBAudioEventQueue;       //a global kqueue singleton for the main Core Render application event loop
+//PB_AUDIO_EXTERN  pba_kernel_queue_id pba_inputEventQueue;     //a global kqueue singleton for distributing user input updates from main thread run loop
 
 //a global read/write pipe pair singleton for sending blob messages to to the pba_displayEventQueue (allows waking kqueue from a separate process)
 //extern int pba_displayEventPipe[2];
-PB_AUDIO_EXTERN  PBAKernelQueue      pba_displayEventQueue;
+//PB_AUDIO_EXTERN  PBAKernelQueue      pba_displayEventQueue;
 
 extern int64_t pba_mainWindow;            //Main platform window id/handle
 //extern crgc_view * pba_mainView;       //Main crgc_view reference

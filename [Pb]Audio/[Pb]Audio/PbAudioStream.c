@@ -17,14 +17,17 @@
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #endif
 
-#ifdef _WIN32
-IMMDeviceEnumerator *_PBADeviceEnumerator = NULL;
-#endif
 
+//PBAStreamContext	_PBAMasterStream;
+
+
+#ifdef __APPLE__
 const CFStringRef kPBAudioDidUpdateStreamFormatNotification  = CFSTR("PBAudioDidUpdateStreamFormatNotification");
 //const CFStringRef kPBAStreamFormatChangedNotification      = CFSTR("kPBAStreamFormatChangedNotification");
 const CFStringRef kPBAStreamSampleRateChangedNotification    = CFSTR("PBAudioStreamSampleRateChangedNotification");
+#else
 
+#endif
 
 #ifdef __APPLE__
 void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRate)

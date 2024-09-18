@@ -8,10 +8,14 @@
 
 #include "SamplePlayer.h"
 
-#ifndef __APPLE__
-void SamplePlayerRenderPass(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp, void* source, void* events, UInt32 nEvents)
-#else
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#ifdef __BLOCKS__
 PBARenderPass SamplePlayerRenderPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, void* source, void* events, UInt32 nEvents)
+#else
+void SamplePlayerRenderPassCallback(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, void* source, void* events, uint32_t nEvents)
 #endif
 {
     //UINT64 playbackSampleOffset = 0;
@@ -64,7 +68,13 @@ PBARenderPass SamplePlayerRenderPass = ^(AudioBufferList * _Nonnull ioData, UInt
 
  };
 
+#ifndef __BLOCKS
+PB_AUDIO_EXTERN PBARenderPass SamplePlayerRenderPass = SamplePlayerRenderPassCallback;
+#endif
 
+#ifndef mChannelsPerFrame
+#define mChannelsPerFrame nChannels
+#endif
 
 void SamplePlayerInit(SamplePlayer* player, const char * audioFileURL, const char * audioFileEXT, PBAStreamFormat converterFormat)
 {

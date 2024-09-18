@@ -106,7 +106,7 @@ extern "C" {
 #define PB_AUDIO_EXTERN extern
 #endif
 
-    //CONFIGURATION -- THESE ARE THE ONLY MACROS CLIENTS SHOULD EDIT WHEN BUILDING
+//CONFIGURATION -- THESE ARE THE ONLY MACROS CLIENTS SHOULD EDIT WHEN BUILDING
 
 //typically, this should be defined by the project file, but you can define it here to explicitly enable
 //memory alignment sanity checking for release builds

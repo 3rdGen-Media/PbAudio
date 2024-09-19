@@ -624,7 +624,7 @@
         
     struct kevent kev;
     EV_SET(&kev, message->type, EVFILT_USER, 0, NOTE_TRIGGER, 0, message);
-    kevent(PBAudioEventQueue, &kev, 1, NULL, 0, NULL);
+    kevent(PBAudio.eventQueue.kq, &kev, 1, NULL, 0, NULL);
     
     //MCUApplicationDelegate *appDelegate = (MCUApplicationDelegate *)[[NSApplication sharedApplication] delegate];
     //[appDelegate dismissModalWindow];
@@ -785,7 +785,7 @@
         
         struct kevent kev;
         EV_SET(&kev, message->type, EVFILT_USER, 0, NOTE_TRIGGER, 0, message);
-        kevent(PBAudioEventQueue, &kev, 1, NULL, 0, NULL);
+        kevent(PBAudio.eventQueue.kq, &kev, 1, NULL, 0, NULL);
             
     }
 }

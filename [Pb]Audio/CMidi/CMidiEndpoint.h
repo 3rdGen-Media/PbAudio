@@ -28,13 +28,12 @@ CFStringRef CMEndpointName(MIDIEndpointRef endpoint, bool isExternal, CMDriverID
 // The result should be released by the caller.
 CFStringRef CMConnectedEndpointName(MIDIEndpointRef endpoint, CMDriverID *driverID);
 
+char *CMFullEndpointName(MIDIEndpointRef endpoint, char* cmname, CMDriverID *driverID);
+
 #else
 
 typedef uint32_t	  MIDIObjectRef;
 typedef MIDIObjectRef MIDIEndpointRef;
-
-char *CMFullEndpointName(MIDIEndpointRef endpoint, char* cmname, CMDriverID *driverID);
-
 
 #endif
 

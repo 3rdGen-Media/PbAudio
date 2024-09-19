@@ -3,22 +3,4 @@
    uuid = "981B2668-B63F-4BEB-BA19-0756BAABB034"
    type = "0"
    version = "2.0">
-   <Breakpoints>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "FADB639F-B849-47D9-8225-CEFA3ECFB9DE"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "[Pb]Audio/[Pb]Audio/PbAudioFileStream.c"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "236"
-            endingLineNumber = "236"
-            landmarkName = "PBAFileStreamOpen(fileURL, fileExt, converterFormat, inputAudioFileRef)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-   </Breakpoints>
 </Bucket>

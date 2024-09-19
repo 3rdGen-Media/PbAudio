@@ -9,6 +9,12 @@
 #ifndef CMidiEventQueue_h
 #define CMidiEventQueue_h
 
+#ifndef _WIN32
+#include <sys/types.h>
+#include <sys/event.h>
+#include <sys/time.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -346,8 +352,8 @@ typedef HANDLE CMKernelQueueEvent;
 #elif defined(__APPLE__) || defined(__FreeBSD__) //with libdispatch
 #define CMThread                 pthread_t
 #define CMThreadID               unsigned int
-typedef int                      CRKernelQueueType; //kqueues are just file descriptors
-typedef int                      CRKernelPipeType;  //pipes are just file descriptors
+typedef int                      CMKernelQueueType; //kqueues are just file descriptors
+typedef int                      CMKernelQueueType;  //pipes are just file descriptors
 //typedef void *                 (*CTThreadRoutine)(void *); //pthread routine
 #define CMDispatchSource         dispatch_source_t
 typedef void(^ CMDispatchSourceHandler)(void);      //clang block
@@ -400,8 +406,7 @@ typedef HANDLE        cm_kernel_queue_event;
 typedef struct kevent cm_kernel_queue_event;
 #endif
 
-
-//CM_PLATFORM_EXTERN cm_kernel_queue_id CMTriggerEventQueue; //a global kqueue singleton for the main Core Midi Event Loop to IPC with real-time audio threads
+CM_PLATFORM_EXTERN cm_kernel_queue_id CMTriggerEventQueue; //a global kqueue singleton for the main Core Midi Event Loop to IPC with real-time audio threads
 
 
 //END FREQUENCY DEFINITIONS

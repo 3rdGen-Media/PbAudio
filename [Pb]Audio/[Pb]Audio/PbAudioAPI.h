@@ -58,7 +58,7 @@ typedef struct PBAudioStreamFactory
 
     //Event Queue
     PBAKernelQueue           eventQueue;       //event queue
-    //pba_platform_thread    eventThread;      //event queue thread [pool]
+    pba_platform_thread      eventThread;      //event queue thread [pool]
     unsigned int             eventThreadID;
 
     //Resource Queue

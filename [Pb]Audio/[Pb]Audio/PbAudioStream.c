@@ -182,7 +182,7 @@ PB_AUDIO_API PB_AUDIO_INLINE double PBABufferDuration(PBAStreamContext* streamCo
        
 #else
     // Get the default device
-    AudioDeviceID deviceId = PBAudioDefaultDevice(streamContext->outputEnabled ? kAudioHardwarePropertyDefaultOutputDevice : kAudioHardwarePropertyDefaultInputDevice);
+    AudioDeviceID deviceId; PBAudioDefaultDevice(streamContext->outputEnabled ? kAudioHardwarePropertyDefaultOutputDevice : kAudioHardwarePropertyDefaultInputDevice, &deviceId);
     if ( deviceId == kAudioDeviceUnknown ) return 0.0;
     
     // Get the buffer duration

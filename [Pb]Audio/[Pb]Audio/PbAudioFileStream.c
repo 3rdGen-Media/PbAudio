@@ -8,44 +8,6 @@
 
 #include "../[Pb]Audio.h"
 
-
-/*
-#if defined( CR_TARGET_OSX)
-    char vertexShaderPath[1024] = "/Users/jmoulton/Development/svn/CoreRender/crShaders/crShaders/glsl/cr_mesh_vbo.es2.vert.glsl";
-    char fragmentShaderPath[1024] = "/Users/jmoulton/Development/svn/CoreRender/crShaders/crShaders/glsl/cr_mesh_vbo.es2.frag.glsl";
-    char gbufferVertexShaderPath[1024] = "/Users/jmoulton/Development/svn/CoreRender/crShaders/crShaders/glsl/cr_gbuffer.es2.vert.glsl";
-    char gbufferFragmentShaderPath[1024] =  "/Users/jmoulton/Development/svn/CoreRender/crShaders/crShaders/glsl/cr_gbuffer.es2.frag.glsl";
-    const char * terrainPath = "/Users/jmoulton/Development/svn/CoreRender/assets/models/Animate/Bipedal/RedPanda/RedPandaRigged.abc";
-    const char * cratePath = "/Users/jmoulton/Development/svn/CoreRender/assets/models/Inanimate/Crates/TexturedCratePBR/TexturedCrate.abc";
-    char * animationPath = "/Users/jmoulton/Development/svn/CoreRender/assets/animations/idle.animation";
-#elif defined( CR_TARGET_WIN32 )
-    char vertexShaderPath[1024] = "C:\\Development\\svn\\CoreRender\\crShaders\\crShaders\\glsl\\cr_mesh_vbo.es2.vert.glsl";
-    char fragmentShaderPath[1024] = "C:\\Development\\svn\\CoreRender\\crShaders\\crShaders\\glsl\\cr_mesh_vbo.es2.frag.glsl";
-    char gbufferVertexShaderPath[1024] = "C:\\Development\\svn\\CoreRender\\crShaders\\crShaders\\glsl\\cr_gbuffer.es2.vert.glsl";
-    char gbufferFragmentShaderPath[1024] =  "C:\\Development\\svn\\CoreRender\\crShaders\\crShaders\\glsl\\cr_gbuffer.es2.frag.glsl";
-    const char * terrainPath = "C:\\Development\\svn\\CoreRender\\assets\\models\\Animate\\Bipedal\\RedPanda\\RedPandaRigged.abc";
-    char * animationPath = "C:\\Development\\svn\\CoreRender\\assets\\assets\\animations\\idle.animation";
-#endif
-    
-    //Build path to 3d geometry file on disk
-#if defined( CR_TARGET_IOS) || defined(CR_TARGET_TVOS)
-    //char * terrainPath = cr_file_path_in_documents_dir("/MK2Grenade_OBJ/MetalGrenade.obj");
-#else
-
-#ifdef _WIN32
-    const char * cratePath = "C:\\Development\\svn\\CoreRender\\assets\\models\\Inanimate\\Crates\\TexturedCratePBR\\TexturedCrate.abc";
-#else
-    //char * terrainPath = "/Users/jmoulton/Desktop/MK2Grenade_OBJ/MetalGrenade2.obj\0";
-    //char * terrainPath = "/Users/jmoulton/Desktop/Backup/terrain/UrbanBlock/urbanBlock.obj\0";
-    //const char * terrainPath = "/Users/jmoulton/Development/svn/CoreRender/assets/models/Inanimate/Shapes/UnitCube/UnitCube.abc";
-
-#endif
-
-#endif
-*/
-
-
-
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamClose(ExtAudioFileRef inputAudioFileRef)
 {
     OSStatus err = noErr;
@@ -98,9 +60,9 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, co
     
     char buffer[1024] = "\0";
     // Open input audio file
-    OSStatus                                err = noErr;
-    //AudioStreamBasicDescription             converterFormat;
-    uint32_t                                  thePropertySize = sizeof(PBAStreamFormat);
+    OSStatus                                 err = noErr;
+    //AudioStreamBasicDescription            converterFormat;
+    uint32_t                                 thePropertySize = sizeof(PBAStreamFormat);
     //ExtAudioFileRef                        outputAudioFileRef = NULL;
     //AudioStreamBasicDescription            outputFileFormat;
     
@@ -231,8 +193,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, co
     PBAStreamFormatPrint(&(inputAudioFileRef->conversionFormat));
     
     // Handle the case of reading from a mono input file and writing to a stereo
-    // output file by setting up a channel map. The mono output is duplicated
-    // in the left and right channel.
+    // output file by setting up a channel map. The mono output is duplicated in the left and right channel.
     if (inputAudioFileRef->sourceFormat.mChannelsPerFrame == 1 && converterFormat.mChannelsPerFrame == 2)
     {
         SInt32 channelMap[2] = { 0, 0 };
@@ -401,5 +362,6 @@ PB_AUDIO_API PB_AUDIO_INLINE unsigned long long PBAFileStreamReadFrames(PBAFileR
 
 #endif
 
-//Users/jmoulton/Library/Developer/Xcode/DerivedData/[Pb]Audio-acgignvyyvqdjjdamniexffodiua/Build/Products/Debug/[Pb] Audio.app/Contents/Resources/Assets/DecadesMix.aif
+
+//Example Asset Bundle Path:
 //Users/jmoulton/Library/Developer/Xcode/DerivedData/[Pb]Audio-acgignvyyvqdjjdamniexffodiua/Build/Products/Debug/[Pb] Audio.app/Contents/Resources/Assets/DecadesMix.aif

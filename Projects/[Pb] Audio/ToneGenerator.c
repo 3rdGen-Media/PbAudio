@@ -8,7 +8,7 @@
 
 #include "ToneGenerator.h"
 
-#ifdef __BLOCKS
+#ifdef __BLOCKS__
 PBARenderPass ToneGeneratorRenderPass = ^ (AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, void* source, void* events, UInt32 nEvents)
 #else
 void CALLBACK ToneGeneratorRenderPass(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp, void* source, void* events, uint32_t nEvents)
@@ -53,8 +53,12 @@ void CALLBACK ToneGeneratorRenderPass(struct PBABufferList * ioData, uint32_t fr
     static float position = 0.f;
 
     //TO DO: how to detect interleaved formats or prevent them
+#ifdef WIN32
     bool interleaved = true;
-
+#else
+    bool interleaved = false;
+#endif
+    
     for ( int i=0; i<frames; i++ )
     {
         //float * fBufferL = (float*)ioData->mBuffers[0].mData;

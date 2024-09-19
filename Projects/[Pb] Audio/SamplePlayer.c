@@ -68,12 +68,14 @@ void SamplePlayerRenderPassCallback(struct PBABufferList* ioData, uint32_t frame
 
  };
 
-#ifndef __BLOCKS
+#ifndef __BLOCKS__
 PB_AUDIO_EXTERN PBARenderPass SamplePlayerRenderPass = SamplePlayerRenderPassCallback;
 #endif
 
+#ifdef _WIN32
 #ifndef mChannelsPerFrame
 #define mChannelsPerFrame nChannels
+#endif
 #endif
 
 void SamplePlayerInit(SamplePlayer* player, const char * audioFileURL, const char * audioFileEXT, PBAStreamFormat converterFormat)

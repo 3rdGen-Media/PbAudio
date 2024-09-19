@@ -68,7 +68,7 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
                 //Unpack/Process the Triggered Note
                 uint8_t note     = CMNoteNumberFromEventWord(triggerEvent->word);
                 uint8_t velocity = CMNoteVelocityFromEventWord(triggerEvent->word);
-                //fprintf(stdout, "\nTrigger Event (%lu) Note = %u (%u)\n", kev[i].ident, note, velocity);
+                fprintf(stdout, "\nTrigger Event (%lu) Note = %u (%u)\n", kev[i].ident, note, velocity);
                 
             }
         }
@@ -269,7 +269,7 @@ void NSApplicationDidResignActiveNotificationCallback(CFNotificationCenterRef ce
 
 static void PBAudioDeviceDefaultOutputChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
 {
-    AudioDeviceID outputDeviceID = PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice);
+    AudioDeviceID outputDeviceID; PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &outputDeviceID);
     
     assert(userInfo);
 
@@ -292,7 +292,7 @@ static void PBAudioDeviceDefaultOutputChangedNotificationCallback(CFNotification
 
 static void PBAudioStreamFormatChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
 {
-    AudioDeviceID outputDeviceID = PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice);
+    AudioDeviceID outputDeviceID; PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &outputDeviceID);
     
     assert(userInfo);
 
@@ -592,7 +592,7 @@ void PBAudioInit(void)
 #endif
 
     //A stream must first be initialized in order to know the system sample rate setting of the device if a compatible format isn't requested explicitly
-    PBAudio.Init(&PBAudio.OutputStreams[0], NULL, kAudioObjectUnknown, TestOutputPass);
+    PBAudio.Init(&PBAudio.OutputStreams[0], NULL, kAudioObjectUnknown, SamplerOutputPass);
     
     //Load some audio from disk while converting to the desired format
     const char * audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/Unknown Artist/Unknown Album/Print#45.1.aif";//Assets/DecadesMix\0";
@@ -602,10 +602,10 @@ void PBAudioInit(void)
     //const char * audioFileExt = "wav\0";
         
     ToneGeneratorInit(&toneGenerator, 440.f, PBAudio.OutputStreams[0].currentSampleRate);           //Initialize a 32-bit floating point sine wave buffer
-    //SamplePlayerInit(&samplePlayer, audioFileURL, audioFileExt, PBAudio.OutputStreams[0].format);   //Read an audio file from disk to formatted buffer for playback
+    SamplePlayerInit(&samplePlayer, audioFileURL, audioFileExt, PBAudio.OutputStreams[0].format);   //Read an audio file from disk to formatted buffer for playback
     
     OutputPass[TestOutputPassID]    = TestOutputPass;
-    //OutputPass[SamplerOutputPassID] = SamplerOutputPass;
+    OutputPass[SamplerOutputPassID] = SamplerOutputPass;
     
 }
 
@@ -757,7 +757,7 @@ void StartAudioMessageEventLoop(void)
     {
         struct kevent kev;
         EV_SET(&kev, audioEvent, EVFILT_USER, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
-        kevent((int)opaqueQueue, &kev, 1, NULL, 0, NULL);
+        kevent((int)PBAudio.eventQueue.kq, &kev, 1, NULL, 0, NULL);
     }
 #else
 
@@ -807,7 +807,7 @@ void StartAudioMessageEventLoop(void)
     pthread_attr_setschedpolicy(&attr, sched_policy);
     sched_param.sched_priority = sched_get_priority_max(sched_policy);
     pthread_attr_setschedparam(&attr, &sched_param);
-    pthread_create(&pba_eventThread, &attr, PBAudioEventLoop, (void*)PBAudio.eventQueue.kq);
+    pthread_create(&PBAudio.eventThread, &attr, PBAudioEventLoop, (void*)PBAudio.eventQueue.kq);
     pthread_attr_destroy(&attr);
     //pthread_mutex_init(&_mutex, NULL); //locks are for losers
     //pthread_setname_np("com.3rdgen.pbaudio.event-loop");
@@ -851,7 +851,7 @@ void StartAudioMessageEventLoop(void)
     
 #endif
 
-    //CMidi.init(CM_CLIENT_OWNER_ID, CMidiNotifyBlock, CMidiReceiveBlock, NULL);
+    CMidi.init(CM_CLIENT_OWNER_ID, CMidiNotifyBlock, CMidiReceiveBlock, NULL);
 
 }
  

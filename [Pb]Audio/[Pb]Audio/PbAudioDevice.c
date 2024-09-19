@@ -169,17 +169,17 @@ PB_AUDIO_API PB_AUDIO_INLINE PBAudioDevice PBAudioStreamOutputDevice(PBAStreamCo
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDefaultDevice(AudioObjectPropertySelector selector, PBAudioDevice* pDevice)
 {
     OSStatus result;
-    PBAudioDevice deviceID;
-    uint32_t size = sizeof(deviceID);
+    //PBAudioDevice deviceID;
+    uint32_t size = sizeof(PBAudioDevice);
 
 #ifdef __APPLE__
     AudioObjectPropertyAddress addr = {selector, kAudioObjectPropertyScopeGlobal, 0};
     
-    OSStatus result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &addr, 0, NULL, &size, &deviceID);
+    result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &addr, 0, NULL, &size, pDevice);
     
-    if ( !PBACheckOSStatus(result, "kAudioHardwarePropertyDefaultOutputDevice") || deviceID == kAudioObjectUnknown )
+    if ( !PBACheckOSStatus(result, "kAudioHardwarePropertyDefaultOutputDevice") || *pDevice == kAudioObjectUnknown )
     {
-        fprintf(stderr, ", Unable to get default audio unit output device\n");
+        fprintf(stderr, ", Unable to get default audio unit output device\n"); assert(1==0);
         //return nil;
     }
 #else
@@ -191,7 +191,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDefaultDevice(AudioObjectPropertySe
     return result;
 }
 
-
+#ifdef _WIN32
 PB_AUDIO_API PB_AUDIO_INLINE int PBAudioActivateDevice(IMMDevice* device, IAudioClient2** audioClient)
 {
     //Active a version 1 Aucio Client
@@ -207,7 +207,7 @@ static void LPWSTR_2_CHAR(LPWSTR in_char, LPSTR out_char, size_t str_len)
 {
     WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, in_char, -1, out_char, str_len, NULL, NULL);
 }
-
+#endif
 
 PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void)
 {
@@ -281,11 +281,12 @@ PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void)
 
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceID(PBAudioDevice deviceID, char* id, uint32_t* idLen)
 {
+    OSStatus result;
+#ifdef WIN32
     LPWSTR* pwszID = NULL;
     IPropertyStore* pProps = NULL;
     PROPVARIANT   varName;
 
-    HRESULT result;
     // Get the endpoint ID string.
     result = CALL(GetId, deviceID, &pwszID);
     if (FAILED(result)) { fprintf(stderr, "**** Error 0x%x returned by IMMDevice::GetId\n", result); assert(1 == 0); }
@@ -296,7 +297,9 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceID(PBAudioDevice deviceID, ch
     *idLen = w_len;
 
     fprintf(stdout, "\nPBAudioDeviceID: %S\n", pwszID);
-
+#else
+    assert(1==0);
+#endif
     return result;
 }
 
@@ -313,7 +316,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceName(PBAudioDevice deviceID, 
     //UInt32 len = 128;
     //char devName[len];
     
-    OSStatus result = AudioObjectGetPropertyData(deviceID, &propertyAddress, 0, NULL, nameLen, deviceName);
+    result = AudioObjectGetPropertyData(deviceID, &propertyAddress, 0, NULL, nameLen, deviceName);
     if (result != noErr)
     {
         //fprintf(stderr, "device name get error");

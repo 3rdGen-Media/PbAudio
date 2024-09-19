@@ -86,7 +86,9 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDeviceName(PBAudioDevice d
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDefaultDevice(AudioObjectPropertySelector selector, PBAudioDevice* pDevice);
 PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void);
 
+#ifdef _WIN32
 PB_AUDIO_API PB_AUDIO_INLINE int               PBAudioActivateDevice(IMMDevice* device, IAudioClient2** audioClient);
+#endif
 
 //Query Stream Device
 //PB_AUDIO_API PB_AUDIO_INLINE AudioDeviceID PBAudioStreamOutputDevice(PBAStreamContext* streamContext);

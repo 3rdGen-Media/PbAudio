@@ -238,7 +238,7 @@ OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * f
         if( streamContext->audioDevice == kAudioObjectUnknown )
         {
             //TO DO:  Handle Input Devices Also
-            streamContext->audioDevice = PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice);
+            PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &streamContext->audioDevice );
             //streamContext->audioDevice = PBAudioStreamOutputDevice(&streamContext);//PBAudio.GetOuputDevice( );
         }
         else assert(1==0); //TO DO:

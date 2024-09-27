@@ -130,8 +130,12 @@ extern "C" {
 
 //SIMD datatypes are processor/platform specific includes
 
+#define XNZ_AUDIO
+
 #include "[Pb]Audio/pba_target_os.h"
 #include "[Pb]Audio/pba_time.h"
+#include "[Pb]Audio/pba_format.h"
+#include "[Pb]Audio/pba_error.h"
 #include "[Pb]Audio/pba_dsp_waveforms.h"
 
 
@@ -139,8 +143,6 @@ extern "C" {
 #ifdef _WIN32
 #include "[Pb]Audio/PbAudioExt.h"
 #endif
-#include "[Pb]Audio/pba_format.h"
-#include "[Pb]Audio/pba_error.h"
 #include "[Pb]Audio/PbAudioBufferList.h"
 #include "[Pb]Audio/PbAudioBufferStack.h"
 #include "[Pb]Audio/PbAudioCallbacks.h"
@@ -167,7 +169,7 @@ extern "C" {
 
 
 //Midi
-#include "CMidi/CMidi.h"
+//#include "CMidi/CMidi.h"
 
 #ifdef __cplusplus
 }

@@ -15,6 +15,7 @@
 #include <CoreAudio/AudioHardwareBase.h>
 #endif
 
+
 //typedef uint8_t PBAudioDeviceType;
 
 /*
@@ -51,7 +52,7 @@ typedef struct PBAudioDeviceList
 {
     //TO DO:  Should there be separate Input/Output Device Management?
     const PBAudioDevice *devices;//[PBA_MAX_DEVICES];
-          ItemCount     count;
+          ItemCount      count;
 }PBAudioDeviceList;
 
 //extern const int    cm_device_list_size;
@@ -75,7 +76,8 @@ PB_AUDIO_EXTERN const CFStringRef kPBADevicesAvailableChangedNotification;
 //PB_AUDIO_API PB_AUDIO_INLINE OSStatus    PBAudioDeviceDefaultOutputChanged(AudioObjectID inObjectID, UInt32 inNumberAddresses, const AudioObjectPropertyAddress *inAddresses, void *inClientData);
 //PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceAvailableDevicesChanged(AudioObjectID inObjectID, UInt32 inNumberAddresses, const AudioObjectPropertyAddress *inAddresses, void *inClientData);
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus         PBAudioRegisterDeviceListeners(PBAStreamContext* streamContext);
+struct PBADeviceNotificationClient;
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus         PBAudioRegisterDeviceListeners(struct PBADeviceNotificationClient* notificationClient, void* context);
 
 #pragma mark -- Get Devices
 
@@ -87,7 +89,9 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDefaultDevice(AudioObjectP
 PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void);
 
 #ifdef _WIN32
-PB_AUDIO_API PB_AUDIO_INLINE int               PBAudioActivateDevice(IMMDevice* device, IAudioClient2** audioClient);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioActivateDevice(IMMDevice* device, IAUDIOCLIENT** audioClient);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBADefaultFormatForDevice(PBAudioDevice device, PBAStreamFormat** ppFormat);
+
 #endif
 
 //Query Stream Device

@@ -33,10 +33,6 @@ typedef OSStatus (*PBAStreamDeviceFunc) (PBAStreamContext * streamContext, PBAud
 typedef OSStatus (*PBAStreamFormatFunc) (PBAStreamContext * streamContext, PBAStreamFormat * format);
 typedef OSStatus (*PBAStreamInitFunc)   (PBAStreamContext * streamContext, PBAStreamFormat * format, PBAudioDevice deviceID, PBAStreamOutputPass outputpass);
 
-//typedef void     (^CMidiClientReceiveBlock)(const MIDIEventList *evtlist, void * __nullable srcConnRefCon);
-
-//forward declarations
-
 
 //#pragma mark -- Global Audio Stream Factory Object
 typedef struct PBAudioStreamFactory
@@ -68,7 +64,7 @@ typedef struct PBAudioStreamFactory
 
 }PBAudioStreamFactory;
 
-//Note:  DYNAMIC libraries can only resolve links functions but not global exported vars
+//Note:  DYNAMIC libraries can only resolve links to functions but not global exported vars
 //extern PBAudioStreamFactory PBAudio;// = {PBAudioStreamInit, PBAudioStreamStart, PBAudioStreamStop, PBAudioStreamSetOutputDevice};
 
 //Global [Pb]Audio Singleton Instance Struct

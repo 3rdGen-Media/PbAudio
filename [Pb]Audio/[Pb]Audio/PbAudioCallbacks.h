@@ -11,6 +11,13 @@
 
 #include "PbAudioStream.h"
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #ifdef __APPLE__
 
 static OSStatus PBAudioStreamSubmitBuffers(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)
@@ -214,8 +221,154 @@ static void AVAudioSessionRouteChangeNotificationCallback(CFNotificationCenterRe
     */
 }
 
+#else
 
+//static OSStatus PBAudioStreamSubmitBuffers(void* inRefCon, AudioUnitRenderActionFlags* ioActionFlags, const AudioTimeStamp* inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList* ioData)
+
+
+
+#pragma mark -- Pure C COM Virtual Interface Implementation
+
+//#include <windows.h>
+//#include <unknwn.h>
+//#include <unknwnbase.h>
+//#include <objbase.h>
+//#include <INITGUID.H>
+#include <mmdeviceapi.h>
+
+struct PBADeviceNotificationClient;
+
+typedef HRESULT STDMETHODCALLTYPE QueryInterfacePtr(struct PBADeviceNotificationClient*, REFIID, void**);
+typedef ULONG   STDMETHODCALLTYPE AddRefPtr(struct PBADeviceNotificationClient*);
+typedef ULONG   STDMETHODCALLTYPE ReleasePtr(struct PBADeviceNotificationClient*);
+
+typedef HRESULT STDMETHODCALLTYPE OnDeviceStateChangedPtr(struct PBADeviceNotificationClient*, LPCWSTR, DWORD);
+typedef HRESULT STDMETHODCALLTYPE OnDeviceAddedPtr(struct PBADeviceNotificationClient* This, LPCWSTR pwstrDeviceId);
+typedef HRESULT STDMETHODCALLTYPE OnDeviceRemovedPtr(struct PBADeviceNotificationClient* This, LPCWSTR pwstrDeviceId);
+typedef HRESULT STDMETHODCALLTYPE OnDefaultDeviceChangedPtr(struct PBADeviceNotificationClient*, EDataFlow, ERole, LPCWSTR);
+typedef HRESULT STDMETHODCALLTYPE OnPropertyValueChangedPtr(struct PBADeviceNotificationClient* This, LPCWSTR pwstrDeviceId, const PROPERTYKEY key);
+
+typedef struct PBADeviceNotificationCallbacks
+{
+    OnDeviceStateChangedPtr*               OnDeviceStateChanged;
+    OnDeviceAddedPtr*                      OnDeviceAdded;
+    OnDeviceRemovedPtr*                    OnDeviceRemoved;
+    OnDefaultDeviceChangedPtr*             OnDefaultDeviceChanged;
+    OnPropertyValueChangedPtr*             OnPropertyValueChanged;
+}PBADeviceNotificationCallbacks;
+
+typedef struct PBADeviceNotificationClientVtbl
+{
+    // First 3 members must be called QueryInterface, AddRef, and Release
+    QueryInterfacePtr*                     QueryInterface;
+    AddRefPtr*                             AddRef;
+    ReleasePtr*                            Release;
+
+    union
+    {
+        struct
+        {
+            OnDeviceStateChangedPtr*       OnDeviceStateChanged;
+            OnDeviceAddedPtr*              OnDeviceAdded;
+            OnDeviceRemovedPtr*            OnDeviceRemoved;
+            OnDefaultDeviceChangedPtr*     OnDefaultDeviceChanged;
+            OnPropertyValueChangedPtr*     OnPropertyValueChanged;
+        };  PBADeviceNotificationCallbacks callbacks;
+    };
+
+
+    volatile LONG                          _cRef;// = 1;
+
+}PBADeviceNotificationClientVtbl;
+
+typedef struct PBADeviceNotificationClient 
+{ 
+    struct PBADeviceNotificationClientVtbl* lpVtbl;
+    void*                                   context;
+}PBADeviceNotificationClient;
+
+
+static ULONG STDMETHODCALLTYPE AddRef(PBADeviceNotificationClient* This){ return InterlockedIncrement(&((volatile const LONG)This->lpVtbl->_cRef)); }
+
+static ULONG STDMETHODCALLTYPE Release(PBADeviceNotificationClient* This)
+{
+    ULONG ulRef = InterlockedDecrement(&((volatile const LONG)This->lpVtbl->_cRef));
+    if (0 == ulRef) { /*delete this;*/ }
+    return ulRef;
+}
+
+static HRESULT STDMETHODCALLTYPE QueryInterface(PBADeviceNotificationClient* This, REFIID riid, VOID** ppvInterface)
+{
+    //AddRef(This); *ppvInterface = (IMMNotificationClient*)This;
+
+#ifdef __cplusplus
+    if (IID_IUnknown == riid) { AddRef(This); *ppvInterface = (IUnknown*)This; }
+    else if (__uuidof(IMMNotificationClient) == riid) { AddRef(This); *ppvInterface = (IMMNotificationClient*)This; }
+    else { *ppvInterface = NULL; return E_NOINTERFACE; }
+#else
+    if (__riid(IUnknown) == riid) { AddRef(This); *ppvInterface = (IUnknown*)This; }
+    else if (__riid(IMMNotificationClient) == riid) { AddRef(This); *ppvInterface = (IMMNotificationClient*)This; }
+    else { *ppvInterface = NULL; return E_NOINTERFACE; }
+#endif
+
+    return S_OK;
+}
+
+// Callback methods for device-event notifications.
+
+static HRESULT STDMETHODCALLTYPE PBADeviceStateChanged(PBADeviceNotificationClient* This, LPCWSTR pwstrDeviceId, DWORD dwNewState)
+{
+    fprintf(stdout, "  -->PBADeviceStateChanged\n");
+    return S_OK;
+}
+
+static HRESULT STDMETHODCALLTYPE PBADeviceAdded(PBADeviceNotificationClient* This, LPCWSTR pwstrDeviceId)
+{
+
+    fprintf(stdout, "  -->PBADeviceAdded\n");
+    return S_OK;
+};
+
+static HRESULT STDMETHODCALLTYPE PBADeviceRemoved(PBADeviceNotificationClient* This, LPCWSTR pwstrDeviceId)
+{
+    fprintf(stdout, "  -->PBADeviceRemoved\n");
+    return S_OK;
+}
+
+
+static HRESULT STDMETHODCALLTYPE PBAudioDeviceDefaultOutputChanged(PBADeviceNotificationClient* This, EDataFlow flow, ERole role, LPCWSTR pwstrDeviceId)
+{
+    fprintf(stdout, "  -->PBAudioDeviceDefaultOutputChanged\n");
+    return S_OK;
+}
+
+
+static HRESULT STDMETHODCALLTYPE PBAudioDevicePropertyValueChanged(PBADeviceNotificationClient* This, LPCWSTR pwstrDeviceId, const PROPERTYKEY key)
+{
+    fprintf(stdout, "  -->PBAudioDevicePropertyValueChanged\n");
+    return S_OK;
+}
+
+
+//Since the contents of IExample_Vtbl will never change, we'll just declare it static and initialize it that way. It can be reused for arbitrary # of instances of IMMNotificationClient.
+static PBADeviceNotificationClientVtbl PBADeviceNotificationClient_Vtbl = { QueryInterface, AddRef, Release, PBADeviceStateChanged, PBADeviceAdded, PBADeviceRemoved, PBAudioDeviceDefaultOutputChanged, PBAudioDevicePropertyValueChanged, 1 };
+
+static PBADeviceNotificationClient _PBADeviceNotificationClient = { &PBADeviceNotificationClient_Vtbl, NULL };
+
+static PBADeviceNotificationClient PbAudioDeviceNotificationClient(PBADeviceNotificationCallbacks * callbacks)
+{
+    PBADeviceNotificationClient client = { &PBADeviceNotificationClient_Vtbl, NULL };
+    client.lpVtbl->callbacks = *callbacks;
+    return client;
+}
 
 #endif //__APPLE__
+
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* pbaudio_callbacks_h */

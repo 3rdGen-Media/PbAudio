@@ -10,7 +10,6 @@
 
 #ifdef _WIN32
 #include <assert.h>
-#include "Functiondiscoverykeys_devpkey.h"
 #endif
 
 //Private
@@ -19,7 +18,7 @@ volatile char          _DeviceNames[PBA_MAX_DEVICES][128] = {0};
 volatile uint32_t      _DeviceCount                       =  0;
 
 #ifdef _WIN32
-IMMDeviceEnumerator*   _PBADeviceEnumerator = NULL;
+IMMDeviceEnumerator*   _PBADeviceEnumerator   = NULL;
 #endif
 
 
@@ -98,45 +97,58 @@ PB_AUDIO_API PB_AUDIO_INLINE  OSStatus PBAudioDeviceAvailableDevicesChanged(Audi
     return noErr;
 }
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioRegisterDeviceListeners(PBAStreamContext* sc)
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioRegisterDeviceListeners(struct PBADeviceNotificationClient* notificationClient, void* context)
 {
     OSStatus status = 0;
     
     //Note:  The client streamContext passed to PbAudio.Init() is passed as Listener inClientData property0
     //TO DO: Error Checking?
-    AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDefaultInputDevice,  kAudioObjectPropertyScopeGlobal}, PBAudioDeviceDefaultInputChanged,     sc);
-    AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyScopeGlobal}, PBAudioDeviceDefaultOutputChanged,    sc);
-    AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDevices,             kAudioObjectPropertyScopeGlobal}, PBAudioDeviceAvailableDevicesChanged, sc);
+    AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDefaultInputDevice,  kAudioObjectPropertyScopeGlobal}, PBAudioDeviceDefaultInputChanged,     context);
+    AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyScopeGlobal}, PBAudioDeviceDefaultOutputChanged,    context);
+    AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDevices,             kAudioObjectPropertyScopeGlobal}, PBAudioDeviceAvailableDevicesChanged, context);
     
     return status;
 }
 
 #else
 
-
-int PBAudioDeviceInitCOM()
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioRegisterDeviceListeners(struct PBADeviceNotificationClient * notificationClient, void* context)
 {
-    //CoIntialize(Ex) Initializes the COM library for use by the calling thread, sets the thread's concurrency model, and creates a new apartment for the thread if one is required.
-    //You should call Windows::Foundation::Initialize to initialize the thread instead of CoInitializeEx if you want to use the Windows Runtime APIs or if you want to use both COM and Windows Runtime components. 
-    //Windows::Foundation::Initialize is sufficient to use for COM components.
-    HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-    if (FAILED(hr)) { fprintf(stderr, "**** Error 0x%x returned by CoInitializeEx\n", hr); return -1; }
+    OSStatus result = 0;
+    
+    notificationClient->context = context;
+
+    result = CALL(RegisterEndpointNotificationCallback, _PBADeviceEnumerator, notificationClient);
+    if (FAILED(result)) { printf("**** Error 0x%x returned by RegisterEndpointNotificationCallback\n", result); assert(1 == 0);  }
+
+    return result;
+}
+
+
+OSStatus PBAudioDeviceInitCOM()
+{
+    HRESULT hr;
+    if (!_PBADeviceEnumerator)
+    {
+        //CoIntialize(Ex) Initializes the COM library for use by the calling thread, sets the thread's concurrency model, and creates a new apartment for the thread if one is required.
+        //You should call Windows::Foundation::Initialize to initialize the thread instead of CoInitializeEx if you want to use the Windows Runtime APIs or if you want to use both COM and Windows Runtime components. 
+        //Windows::Foundation::Initialize is sufficient to use for COM components.
+        hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+        if (FAILED(hr)) { fprintf(stderr, "**** Error 0x%x returned by CoInitializeEx\n", hr); assert(1 == 0);  return hr; }
+    }
+
+    if (_PBADeviceEnumerator) CALL(Release, _PBADeviceEnumerator); _PBADeviceEnumerator = NULL;
 
     //Create MMDeviceEnumerator so we can get an audio endpoint
     //CoCreateInstance Creates a single uninitialized object of the class associated with a specified CLSID.
     //Call CoCreateInstance when you want to create only one object on the local system. 
     //To create a single object on a remote system, call the CoCreateInstanceEx function. To create multiple objects based on a single CLSID, call the CoGetClassObject function.
     hr = CoCreateInstance(__clsid(MMDeviceEnumerator), NULL, CLSCTX_ALL, __riid(IMMDeviceEnumerator), (void**)&_PBADeviceEnumerator);
-    if (FAILED(hr)) { fprintf(stderr, "**** Error 0x%x returned by CoCreateInstance\n", hr); return -1; }
-    return 0;
+    if (FAILED(hr)) { fprintf(stderr, "**** Error 0x%x returned by CoCreateInstance\n", hr); assert(1 == 0); }
+   
+    return hr;
 }
 
-
-//typedef union fourByteInt
-//{
-//	uint32_t i;
-//	char bytes[4];
-//}fourByteInt;
 
 #define PBA_COM_RELEASE(punk) if ((punk) != NULL) { CALL(Release, punk); (punk) = NULL; }
 
@@ -185,22 +197,34 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDefaultDevice(AudioObjectPropertySe
 #else
     //HRESULT hr = gEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, pDevice);
     result = CALL(GetDefaultAudioEndpoint, _PBADeviceEnumerator, eRender, eConsole, pDevice);
-    if (FAILED(result)) { printf("**** Error 0x%x returned by GetDefaultAudioEndpoint\n", result); return -1; }
+    if (FAILED(result)) { printf("**** Error 0x%x returned by GetDefaultAudioEndpoint\n", result); assert(1 == 0);  return result; }
 #endif
 
     return result;
 }
 
 #ifdef _WIN32
-PB_AUDIO_API PB_AUDIO_INLINE int PBAudioActivateDevice(IMMDevice* device, IAudioClient2** audioClient)
+
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioActivateDevice(IMMDevice* device, IAUDIOCLIENT** audioClient)
 {
     //Active a version 1 Aucio Client
-    //HRESULT hr = clientStream->gDevice->Activate( IID_IAudioClient, CLSCTX_ALL, NULL, (void**)&(clientStream->audioClient));
-    //HRESULT hr = PBADeviceActivate( clientStream->gDevice, IID_IAudioClient, CLSCTX_ALL, NULL, (void**)&(clientStream->audioClient));
-    HRESULT hr = CALL(Activate, device, __riid(IAudioClient), CLSCTX_ALL, NULL, (void**)audioClient);
+#ifdef IAUDIOCLIENT3
+    HRESULT hr = CALL(Activate, device, __riid(IAudioClient3), CLSCTX_ALL, NULL, (void**)audioClient);
+#else
+    HRESULT hr = CALL(Activate, device, __riid(IAudioClient2), CLSCTX_ALL, NULL, (void**)audioClient);
+#endif
 
-    if (FAILED(hr)) { printf("**** Error 0x%x returned by Activate\n", hr); return -1; }
-    return 0;
+    if (FAILED(hr)) { printf("**** Error 0x%x returned by Activate\n", hr); assert(1 == 0); }
+    return hr;
+}
+
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBADefaultFormatForDevice(PBAudioDevice device, PBAStreamFormat** ppFormat)
+{
+    HRESULT hr; PROPVARIANT prop = {0}; IPropertyStore* store = NULL;
+    hr = CALL(OpenPropertyStore, device, STGM_READ, &store);           if (FAILED(hr)) { assert(1 == 0); }
+    hr = CALL(GetValue, store, &PKEY_AudioEngine_DeviceFormat, &prop); if (FAILED(hr)) { assert(1 == 0); }
+    *ppFormat = (PBAStreamFormat*)prop.blob.pBlobData;
+    return hr;
 }
 
 static void LPWSTR_2_CHAR(LPWSTR in_char, LPSTR out_char, size_t str_len)

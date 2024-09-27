@@ -79,8 +79,10 @@ typedef enum CR_THREAD_PRIORITY
 
 #pragma mark -- Core Render Platform Run Loop Event Message Type Definitions
 
+*/
+
 //Define Opaque OS Platform Event Loop Message Data Type Provided by the OS Windowing API (ie GDI for Win32 or Core Graphics for Cocoa)
-#ifdef CR_TARGET_WIN32
+#ifdef _WIN32
 typedef MSG        pba_platform_event_msg;  //an OS defined container for wrapping a system genereated kernel message delivered to an application's main event loop or async window event loop
 #elif defined(__APPLE__) && defined(TARGET_OS_OSX) && TARGET_OS_OSX
 typedef CGEventRef pba_platform_event_msg;  //an OS defined container for wrapping a system genereated kernel message delivered to an application's main event loop or async window event loop
@@ -92,26 +94,25 @@ typedef uintptr_t  pba_platform_event_msg;
 #ifndef WM_APP
 #define WM_APP 0x8000
 #endif
-#define CR_PLATFORM_EVENT_MSG_BASE_ID WM_APP
-#define CR_PLATFORM_EVENT_MSG_LOOP_QUIT                CR_PLATFORM_EVENT_MSG_BASE_ID + 1
-//typedef enum CR_PLATFORM_EVENT_MSG{
-//    CR_PLATFORM_EVENT_MSG_LOOP_QUIT        = () //this is really the only event that is needed as the OS generally abstracts system messages on the platform event loop from you, but we can "inject messages back into the main loop with queue mechanisms if desired
-//}CR_PLATFORM_EVENT_MSG;
+#define PBA_EVENT_MSG_BASE_ID WM_APP
+#define PBA_EVENT_MSG_LOOP_QUIT                     PBA_EVENT_MSG_BASE_ID + 1
 
-// user defined window messages the render thread uses to communicate
-//crgc_view render thread messages
-#define CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID        CR_PLATFORM_EVENT_MSG_LOOP_QUIT + 1
-#define CR_PLATFORM_WINDOW_EVENT_MSG_PAUSE            CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID
-#define CR_PLATFORM_WINDOW_EVENT_MSG_RESIZE            CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 1
-#define CR_PLATFORM_WINDOW_EVENT_MSG_SHOW            CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 2
-#define CR_PLATFORM_WINDOW_EVENT_MSG_RECREATE       CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 3
-#define CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE            CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 4
+#define PBA_EVENT_UMP_CONTROL                       PBA_EVENT_MSG_LOOP_QUIT + 1 // HID Event
+
+
+//#define PBA_EVENT_MSG_BASE_ID                       CR_PLATFORM_EVENT_MSG_LOOP_QUIT + 1
+//#define CR_PLATFORM_WINDOW_EVENT_MSG_PAUSE            CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID
+//#define CR_PLATFORM_WINDOW_EVENT_MSG_RESIZE            CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 1
+//#define CR_PLATFORM_WINDOW_EVENT_MSG_SHOW            CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 2
+//#define CR_PLATFORM_WINDOW_EVENT_MSG_RECREATE       CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 3
+//#define CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE            CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 4
 
 //TO DO: Better distinguish between a scene event and simulation control event
-#define CR_PLATFORM_WINDOW_CONTROL_EVENT            CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE + 1 // HID Event
-#define CR_SCENE_CONTROL_EVENT                        CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE + 2 // Scene ECS Event
-#define CR_SIMULATION_CONTROL_EVENT                    CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE + 3 // Scene Simulation Event
+//#define CR_PLATFORM_WINDOW_CONTROL_EVENT            CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE + 1 // HID Event
+//#define CR_SCENE_CONTROL_EVENT                        CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE + 2 // Scene ECS Event
+//#define CR_SIMULATION_CONTROL_EVENT                    CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE + 3 // Scene Simulation Event
 
+/*
 //enumerate options for a bitfield option mask
 typedef enum CR_PLATFORM_WINDOW_RESIZE_OPTION
 {
@@ -250,7 +251,9 @@ typedef enum crevent_type
 typedef enum pba_system_event_group
 {
     pba_no_group,
-    pba_midi_input_connection,
+    pba_midi_input_connection,          //send a start/stop to indicate create/remove
+    pba_midi_create_input_connection,   //send a start to indicate create
+    pba_midi_remove_input_connection    //send a stop to indicate remove
 }pba_system_event_group;
 
 typedef enum pba_sysex_event_type

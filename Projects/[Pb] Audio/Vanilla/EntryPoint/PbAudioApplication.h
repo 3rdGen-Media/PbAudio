@@ -7,6 +7,8 @@
 
 #include <objbase.h>
 
+#include "../../EntryPoint/PbAudioAppInterface.h"
+
 /******************************************************************
 *                                                                 *
 *  Macros                                                         *
@@ -50,31 +52,55 @@ class DemoApp
 {
 public:
     DemoApp();
+    DemoApp(struct CMClientDriver *midi);
     ~DemoApp();
 
     HRESULT Initialize();
-
     void RunMessageLoop();
+
+    int  UpdateOutputDeviceList();
+
+    //void Midi() { return m_midi };
 
 private:
     //HRESULT CreateResources();
     //void    DiscardResources();
 
-    static LRESULT CALLBACK WndProc(
-        HWND hWnd,
-        UINT message,
-        WPARAM wParam,
-        LPARAM lParam
-    );
+    static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+    static LRESULT CALLBACK ListViewSubclassProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-    //User Interface
+    void CreateDriverModeLabel();
+    void CreateDriverModePopupButton();
+
+    //Output [Audio] Device
     void CreateOutputDeviceLabel();
     void CreateTestButton();
     void CreateOutputPopupButton();
 
-    int  UpdateOutputDeviceList();
+    //Output [Audio] Channels
+    void CreateOutputChannelsLabel();
+    void CreateOutputChannelFilterView();
+
+    //Sample Rate
+    void CreateSampleRateLabel();
+    void CreateSampleRatePopupButton();
+
+    //Buffer Size
+    void CreateBufferSizeLabel();
+    void CreateBufferSizePopupButton();
+
+    //MIDI Inputs
+    void CreateMidiInputLabel();
+    void CreateMidiInputFilterView();
+
+    int  UpdateDriverModeList();
+    int  UpdateSampleRateList();
+    int  UpdateBufferSizeList();
+
+    void buttonToggledAtIndex(int index, HWND sender, bool state, struct CMClientDriver * midi);
+    void comboBoxSelectedAtIndex(HWND sender, int selectedIndex, TCHAR* name);
+
 
 private:
-    HWND m_hwnd;
-
+    HWND                   m_hwnd;
 };

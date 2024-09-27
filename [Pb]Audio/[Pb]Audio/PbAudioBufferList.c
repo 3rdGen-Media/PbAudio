@@ -48,14 +48,14 @@ PB_AUDIO_API PB_AUDIO_INLINE PBABufferList *PBABufferListCreate(int frameCount) 
 //Schedule to Audio Buffer List
 
 
-PB_AUDIO_API PB_AUDIO_INLINE void PBABufferListSilenceWithFormat(const PBABufferList *bufferList, PBAStreamFormat audioFormat, uint32_t offset, uint32_t length)
+PB_AUDIO_API PB_AUDIO_INLINE void PBABufferListSilenceWithFormat(const PBABufferList *bufferList, PBAStreamFormat* audioFormat, uint32_t offset, uint32_t length)
 {
     uint32_t i;
     //printf("PBAudioBufferListSilenceWithFormat\n");
 #ifdef __APPLE__
-	uint32_t bytesPerFrame = audioFormat.mBytesPerFrame;
+	uint32_t bytesPerFrame = audioFormat->mBytesPerFrame;
 #else
-	uint16_t bytesPerFrame = audioFormat.nBlockAlign;
+	uint16_t bytesPerFrame = audioFormat->nBlockAlign;
 #endif
     for ( i=0; i<bufferList->mNumberBuffers; i++ )
     {
@@ -65,9 +65,9 @@ PB_AUDIO_API PB_AUDIO_INLINE void PBABufferListSilenceWithFormat(const PBABuffer
 
 
 //List silence to default engine format
-PB_AUDIO_API PB_AUDIO_INLINE void PBABufferListSilence(const PBABufferList *bufferList, uint32_t offset, uint32_t length)
-{
-    PBABufferListSilenceWithFormat(bufferList, _audioFormat, offset, length);
-}
+//PB_AUDIO_API PB_AUDIO_INLINE void PBABufferListSilence(const PBABufferList *bufferList, uint32_t offset, uint32_t length)
+//{
+//    PBABufferListSilenceWithFormat(bufferList, _audioFormat, offset, length);
+//}
 
 

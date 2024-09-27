@@ -87,8 +87,8 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDLL;_CMIDI_BUILD_DLL;_PB_AUDIO_BUILD_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VLD_DIR)\include;$(DXSDK_DIR)\include\10.0.14393.0\um;$(DXSDK_DIR)\include\10.0.14393.0\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_WINDLL;_PB_AUDIO_BUILD_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(VLD_DIR)\include;$(DXSDK_DIR)\include\10.0.14393.0\um;$(DXSDK_DIR)\include\10.0.14393.0\shared;..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -125,8 +125,8 @@ copy .\*.h ..\include\[Pb]Audio
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\include\10.0.14393.0\um;$(DXSDK_DIR)\include\10.0.14393.0\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_WINDLL;_CMIDI_BUILD_DLL;_PB_AUDIO_BUILD_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\include\10.0.14393.0\um;$(DXSDK_DIR)\include\10.0.14393.0\shared;..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WINDLL;_PB_AUDIO_BUILD_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -144,15 +144,10 @@ copy .\*.h ..\include\[Pb]Audio</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CMidi\CMEndian.h" />
-    <ClInclude Include="CMidi\CMEventQueue.h" />
-    <ClInclude Include="CMidi\CMidi.h" />
-    <ClInclude Include="CMidi\CMidiControl.h" />
-    <ClInclude Include="CMidi\CMidiDevice.h" />
-    <ClInclude Include="CMidi\CMidiDriverID.h" />
-    <ClInclude Include="CMidi\CMidiEndpoint.h" />
-    <ClInclude Include="CMidi\CMidiMessage.h" />
+    <ClInclude Include="..\include\xnz\xnz_aif_codec.h" />
+    <ClInclude Include="..\include\xnz\xnz_wav_codec.h" />
     <ClInclude Include="[Pb]Audio.h" />
+    <ClInclude Include="[Pb]Audio\cr_file.h" />
     <ClInclude Include="[Pb]Audio\PbAudioAPI.h" />
     <ClInclude Include="[Pb]Audio\PbAudioBufferList.h" />
     <ClInclude Include="[Pb]Audio\PbAudioBufferStack.h" />
@@ -171,12 +166,6 @@ copy .\*.h ..\include\[Pb]Audio</Command>
     <ClInclude Include="[Pb]Audio\pba_time.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CMidi\CMEventQueue.c" />
-    <ClCompile Include="CMidi\CMidi.c" />
-    <ClCompile Include="CMidi\CMidiControl.c" />
-    <ClCompile Include="CMidi\CMidiDevice.c" />
-    <ClCompile Include="CMidi\CMidiDriverID.c" />
-    <ClCompile Include="CMidi\CMidiEndpoint.c" />
     <ClCompile Include="[Pb]Audio\PbAudioAPI.c" />
     <ClCompile Include="[Pb]Audio\PbAudioBufferList.c" />
     <ClCompile Include="[Pb]Audio\PbAudioDevice.c" />

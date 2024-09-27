@@ -418,49 +418,7 @@ typedef enum PBA_BUFFER_USAGE
 #pragma mark -- Core Render Graphics Context Typedefs --
 //***************************************************//
 
-//*** crgc_size ***/
-typedef struct crgc_size
-{
-    uint32_t    width;
-    uint32_t    height;
-}crgc_size;
 
-//*** crgc_rect ***/
-typedef struct crgc_rect
-{
-    //union
-    //{
-        int x, y, width, height;
-        //cr_int4 frame;
-        //crgc_size origin, size;
-    //};
-}crgc_rect;
-
-//Deprecated!
-//TO DO:  Remove after updating on all platforms
-/*
-typedef enum crgc_profile
-{
-    CURRENT = 0,             //WGL = most current opengl context provided by the graphics device, kCGLOGLPVersion_GL4_Core
-    CORE = 1,                //WGL_CONTEXT_CORE_PROFILE_BIT_ARB, kCGLOGLPVersion_GL3_Core
-    COMPATIBILITY = 2        //WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB, kCGLOGLPVersion_Legacy
-}crgcProfile;
-*/
-
-//Core Render OpenGL Profile Enumeraitons
-typedef enum crgc_profile
-{
-    CRGL_NONE          = 0,
-    CRGL_CURRENT       = 1, //WGL = most current opengl context provided by the graphics device, kCGLOGLPVersion_GL4_Core
-    CRGL_CORE          = 2, //WGL_CONTEXT_CORE_PROFILE_BIT_ARB, kCGLOGLPVersion_GL3_Core
-    CRGL_COMPATIBILITY = 3, //WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB, kCGLOGLPVersion_Legacy
-    CRGL_DIRECTX       = 4,
-    CRGL_METAL         = 5,
-    CRGL_VULKAN        = 6
-}crgc_profile;
-
-PBA_INLINE crgc_rect crgc_rect_make(int x, int y, int width, int height){crgc_rect rect = {x, y, width, height};return rect;}
-PBA_INLINE crgc_size crgc_size_make(int width, int height){crgc_size size = {width, height};return size;}
 
 //***************************************************//
 #pragma mark -- Core Render Graphics Context Externs --

@@ -1,0 +1,9 @@
+1.  Obtain the source, NuGet packages and ensure proper vc14 redist for building Windows MIDI Services (WMS) release.
+
+2.  Build the cpp-winrt sample applications in the Windows MIDI Services Release to generate WinRT projection headers
+    for the version of the Windows Runtime (WinRT) used by the given Windows MIDI Services release.
+
+3.  Copy the the NuGet generated WinRT projection headers to be used as includes in your Win32 WinRT Wrapper dll library vcxproj.
+
+4.  Copy the NuGet package Microsoft.Windows.Devices.Midi2.*.dll(s) to your workspace bin for linking WinRT ABI implementations 
+    at runtime.

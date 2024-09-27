@@ -8,6 +8,73 @@
 #ifndef CMidi_h
 #define CMidi_h
 
+/*
+namespace WinRT
+{
+    enum WinRTMidiPortType { In, Out };
+    enum WinRTMidiPortUpdateType { PortAdded, PortRemoved, EnumerationComplete };
+
+    enum WinRTMidiErrorType {
+        WINRT_NO_ERROR = 0,                         //no error
+        WINRT_WINDOWS_RUNTIME_ERROR,                // unable to initialize Windows Runtime
+        WINRT_WINDOWS_VERSION_ERROR,                // version of Windows does not support Windows::Devices::Midi api
+        WINRT_PORTWATCHER_INITIALIZATION_ERROR,     // error initialize midi port watcher
+        WINRT_INVALID_PORT_INDEX_ERROR,             // requested port index is out of range
+        WINRT_OPEN_PORT_ERROR,                      // open midi port error
+        WINRT_INVALID_PARAMETER_ERROR,
+        WINRT_MEMORY_ERROR,
+        WINRT_UNSPECIFIED_ERROR
+    };
+
+    typedef void* WinRTMidiPtr;
+    typedef void* WinRTMidiPortWatcherPtr;
+    typedef void* WinRTMidiInPortPtr;
+    typedef void* WinRTMidiOutPortPtr;
+
+    // Midi port changed callback
+    typedef void(*MidiPortChangedCallback) (const WinRTMidiPortWatcherPtr portWatcher, WinRTMidiPortUpdateType update);
+
+    // Midi In callback
+    typedef void(*WinRTMidiInCallback) (const WinRTMidiInPortPtr port, double timeStamp, const unsigned char* message, unsigned int nBytes);
+
+    // WinRT Midi Functions
+    typedef WinRTMidiErrorType(__cdecl* WinRTMidiInitializeFunc)(MidiPortChangedCallback callback, WinRTMidiPtr* midi);
+    WINRTMIDI_API WinRTMidiErrorType __cdecl winrt_initialize_midi(MidiPortChangedCallback callback, WinRTMidiPtr* winrtMidi);
+
+    typedef void(__cdecl* WinRTMidiFreeFunc)(WinRTMidiPtr midi);
+    WINRTMIDI_API void __cdecl winrt_free_midi(WinRTMidiPtr midi);
+
+    typedef const WinRTMidiPortWatcherPtr(__cdecl* WinRTMidiGetPortWatcherFunc)(WinRTMidiPtr midi, WinRTMidiPortType type);
+    WINRTMIDI_API const WinRTMidiPortWatcherPtr __cdecl winrt_get_portwatcher(WinRTMidiPtr midi, WinRTMidiPortType type);
+
+    // WinRT Midi In Port Functions
+    typedef WinRTMidiErrorType(__cdecl* WinRTMidiInPortOpenFunc)(WinRTMidiPtr midi, unsigned int index, WinRTMidiInCallback callback, WinRTMidiInPortPtr* midiPort);
+    WINRTMIDI_API WinRTMidiErrorType __cdecl winrt_open_midi_in_port(WinRTMidiPtr midi, unsigned int index, WinRTMidiInCallback callback, WinRTMidiInPortPtr* midiPort);
+
+    typedef void(__cdecl* WinRTMidiInPortFreeFunc)(WinRTMidiInPortPtr port);
+    WINRTMIDI_API void __cdecl winrt_free_midi_in_port(WinRTMidiInPortPtr port);
+
+    // WinRT Midi Out Port Functions
+    typedef WinRTMidiErrorType(__cdecl* WinRTMidiOutPortOpenFunc)(WinRTMidiPtr midi, unsigned int index, WinRTMidiOutPortPtr* midiPort);
+    WINRTMIDI_API WinRTMidiErrorType __cdecl winrt_open_midi_out_port(WinRTMidiPtr midi, unsigned int index, WinRTMidiOutPortPtr* midiPort);
+
+    typedef void(__cdecl* WinRTMidiOutPortFreeFunc)(WinRTMidiOutPortPtr port);
+    WINRTMIDI_API void __cdecl winrt_free_midi_out_port(WinRTMidiOutPortPtr port);
+
+    typedef void(__cdecl* WinRTMidiOutPortSendFunc)(WinRTMidiOutPortPtr port, const unsigned char* message, unsigned int nBytes);
+    WINRTMIDI_API void __cdecl winrt_midi_out_port_send(WinRTMidiOutPortPtr port, const unsigned char* message, unsigned int nBytes);
+
+    // WinRT Midi Watcher Functions
+    typedef unsigned int(__cdecl* WinRTWatcherPortCountFunc)(WinRTMidiPortWatcherPtr watcher);
+    WINRTMIDI_API unsigned int __cdecl winrt_watcher_get_port_count(WinRTMidiPortWatcherPtr watcher);
+
+    typedef const char* (__cdecl* WinRTWatcherPortNameFunc)(WinRTMidiPortWatcherPtr watcher, unsigned int index);
+    WINRTMIDI_API const char* __cdecl winrt_watcher_get_port_name(WinRTMidiPortWatcherPtr watcher, unsigned int index);
+
+    typedef WinRTMidiPortType(__cdecl* WinRTWatcherPortTypeFunc)(WinRTMidiPortWatcherPtr watcher);
+    WINRTMIDI_API WinRTMidiPortType __cdecl winrt_watcher_get_port_type(WinRTMidiPortWatcherPtr watcher);
+};
+*/
 
 /*************************************************************************
  * Compiler- and platform-specific preprocessor work
@@ -33,10 +100,10 @@
  */
 #if defined(_WIN32) && defined(_CMIDI_BUILD_DLL)
  /* We are building crMath as a Win32 DLL */
- #define CMIDI_API __declspec(dllexport)
+ #define CMIDI_API extern "C" __declspec(dllexport)
 #elif defined(_WIN32) && defined(CMIDI_DLL)
  /* We are calling crMath as a Win32 DLL */
- #define CMIDI_API__declspec(dllimport)
+ #define CMIDI_API extern "C" __declspec(dllimport)
 #elif defined(__GNUC__) && defined(_CMIDI_BUILD_DLL)
  /* We are building CR_PRIMITIVES as a shared / dynamic library */
  #define CMIDI_API __attribute__((visibility("default")))
@@ -83,7 +150,6 @@
 #include "CMidiMessage.h"
 #include "CMidiDriverID.h"
 #include "CMidiDevice.h"
-//#include "CMidiInput.h"
 #include "CMidiEndpoint.h"
 
 //Non-Essential Utilities
@@ -94,29 +160,52 @@
 #include <CoreMIDI/MIDIServices.h>                   //Core Midi Create Client Ports
 #endif
 
-#define MAX_IAC_NUM         63
+#define MAX_IAC_NUM              63
 
-#define CM_MAX_SOURCES      64
-#define CM_MAX_DESTINATIONS 64
-#define CM_MAX_CONNECTIONS  64
+#define CM_MAX_SOURCES           64
+#define CM_MAX_DESTINATIONS      64
+#define CM_MAX_CONNECTIONS       64
 #define CM_MAX_SOFT_CONNECTIONS  64
 
-/***/
-
-/* We are building or calling CMidi as a static library */
-#ifdef _WIN32
-#define CMIDI_EXTERN
-#else
-#define CMIDI_EXTERN extern
-#endif
 
 #ifdef __APPLE__
 CMIDI_EXTERN const CFStringRef kCMidiSourcesAvailableChangedNotification;
 CMIDI_EXTERN const CFStringRef kCMidiDestinationsAvailableChangedNotification;
 #else
 
-//typedef void* MIDIEndpointRef;
-typedef void* MIDIThruConnectionRef;
+
+typedef int32_t ItemCount;
+typedef HRESULT OSStatus;
+
+//Block Parameters
+typedef void* MIDINotification;
+
+typedef struct MIDIEventList
+{
+    CMTimestamp timestamp; //The event packet timestamp.
+    uint32_t    wordCount; //The number of valid MIDI 32 - bit words in this event packet.
+    uint32_t    words[64]; //A variable - length stream of native - endian 32 - bit Universal MIDI Packets(UMP).
+}MIDIEventList;
+
+
+//Block Functions
+#ifndef __BLOCKS__
+typedef void(*MIDINotifyBlock)   (const MIDINotification* msg);
+typedef void(*MIDIReceiveBlock)  (const MIDIEventList* evtlist, void* srcConnRefCon);
+
+//typedef void* MIDIClientRef;  //shared_ptr<MIDISession>
+typedef MIDIReceiveBlock MIDIPortRef;      //C-Style Receive/Send Block Callback
+
+#else
+#error "CMidi Clang blocks need to be defined"
+#endif
+
+
+//Apple:   Not used for input connections, only thru/soft thru connections
+//Windows: The GUID of the WinRT MidiEndpointConnection
+typedef GUID   MIDIThruConnectionRef;
+
+#endif
 
 typedef struct MIDIThruConnectionEndpoint
 {
@@ -136,8 +225,6 @@ typedef struct MIDIThruConnectionParams
 
 }MIDIThruConnectionParams;
 
-#endif
-
 /*
 //A Device is just a collection of displays + controls
 typedef struct MCUDevice
@@ -152,7 +239,11 @@ typedef struct CMSource
     MIDIEndpointRef endpoint;
     char            name[256];
     CMDriverID      driverID;
-    int32_t         uniqueID;
+#ifdef __APPLE__
+    int32_t         uniqueID; //CoreMIDI
+#else
+    uintptr_t        uniqueID; //WMS hstring
+#endif
 }CMSource;
 
 typedef CMSource CMDestination;
@@ -164,27 +255,20 @@ typedef struct CMConnection
     CMDestination            destination;
     char                     name[256];
     MIDIThruConnectionParams params;
-    
+
+    int64_t                  eventToken;
 }CMConnection;
 
-#ifndef __APPLE__
-typedef void* MIDIClientRef;
-typedef void* MIDIPortRef;
-typedef void* MIDIClientRef;
-typedef int32_t ItemCount;
-typedef HRESULT OSStatus;
+//Forward Declare Private Client Context Definition
+struct CMClientContext;
 
-typedef void* MIDINotifyBlock;
-typedef void* MIDIReceiveBlock;
-
-#endif
-
+/*
 typedef struct CMClientContext
 {
-    MIDIClientRef client;             /* Client handle to the MIDI server */
-    MIDIPortRef   inPort;             /* Input port handle  */
-    MIDIPortRef   outPort;            /* Output port handle */
-    MIDIPortRef   proxyPort;          /* Seocndary Input port handle */
+    MIDIClientRef client;             // Client handle to the MIDI server 
+    MIDIPortRef   inPort;             // Input port handle  
+    MIDIPortRef   outPort;            // Output port handle
+    MIDIPortRef   proxyPort;          // Seocndary Input port handle
 
     //CoreMIDI
     ItemCount numDevices;
@@ -211,10 +295,13 @@ typedef struct CMClientContext
     CMDeviceDescription  hardwareDevices[CM_MAX_SOFT_CONNECTIONS];
     
     uint8_t       activeDevice;
-    //char        isIAC[MAX_IAC_NUM + 1];           /* is device an IAC device */
+    //char        isIAC[MAX_IAC_NUM + 1];           
 }CMClientContext;
+*/
 
-extern struct CMClientContext CMClient;
+#ifndef _CMIDI_BUILD_DLL
+extern struct CMClientContext CMClient; //expose internal memory directly for static libs
+#endif
 
 /*
 static void CMidiStatusNotification(const MIDINotification *msg)
@@ -242,58 +329,148 @@ static void CMidiStatusNotification(const MIDINotification *msg)
 //static void CMidiNotifyProc(const MIDINotification *msg, void *refCon) { CMidiStatusNotification(msg); }
 //static MIDINotifyBlock CMidiNotifyBlock = ^void(const MIDINotification *msg) { CMidiStatusNotification(msg); };
 
-void CMInitSourceEndpoint(MIDIThruConnectionEndpoint* endpoint, int source);
+void          CMInitSourceEndpoint(MIDIThruConnectionEndpoint* endpoint, int source);
 
-void CMInitThruParamEndpoints(MIDIThruConnectionParams* thruParams, int * sources, int numSources, int * destinations, int numDestinations);
-void CMInitThruParams(MIDIThruConnectionParams* thruParams, int * sources, int numSources, int * destinations, int numDestinations);
-void CMSaveThruConnectionParams(CMConnection * thruConnection);
+void          CMInitThruParamEndpoints(MIDIThruConnectionParams* thruParams, int * sources, int numSources, int * destinations, int numDestinations);
+void          CMInitThruParams(MIDIThruConnectionParams* thruParams, int * sources, int numSources, int * destinations, int numDestinations);
+void          CMSaveThruConnectionParams(CMConnection * thruConnection);
 
 //Persistent Thru Connections
-OSStatus CMDeleteThruConnection(const char * thruID);
 CMConnection* CMCreateThruConnectionAtIndex(const char * thruID, MIDIThruConnectionParams* thruParams, unsigned long thruIndex);
 CMConnection* CMCreateThruConnection(const char * thruID, MIDIThruConnectionParams* thruParams);
-void CMReplaceThruConnectionAtIndex(CMConnection * conn, const char * thruID, unsigned long thruIndex);
+OSStatus      CMDeleteThruConnection(const char* thruID);
+void          CMReplaceThruConnectionAtIndex(CMConnection * conn, const char * thruID, unsigned long thruIndex);
 
 //"Soft" Thru Connections
-OSStatus CMDeleteSoftThruConnection(const char * thruID);
 CMConnection* CMCreateSoftThruConnectionAtIndex(const char * thruID, MIDIThruConnectionParams* thruParams, unsigned long thruIndex);
 CMConnection* CMCreateSoftThruConnection(const char * thruID, MIDIThruConnectionParams* thruParams);
+OSStatus      CMDeleteSoftThruConnection(const char* thruID);
+
 //void CMReplaceSoftThruConnectionAtIndex(CMConnection * conn, const char * thruID, unsigned long thruIndex);
 
 //Proxy Connections
-OSStatus CMDeleteProxyConnection(const char * thruID);
 CMConnection* CMCreateProxyConnectionAtIndex(const char * thruID, MIDIThruConnectionParams* thruParams, unsigned long thruIndex);
 CMConnection* CMCreateProxyConnection(const char * thruID, MIDIThruConnectionParams* thruParams);
+OSStatus      CMDeleteProxyConnection(const char* thruID);
 //void CMReplaceSoftThruConnectionAtIndex(CMConnection * conn, const char * thruID, unsigned long thruIndex);
 
 //Input Connections
-OSStatus CMDeleteInputConnection(int32_t UniqueID);
-CMConnection* CMCreateInputConnectionAtIndex(const char * inputID, CMSource* sourceEndpoint, unsigned long inputIndex);
-CMConnection* CMCreateInputConnection(int32_t uniqueID);//MIDIThruConnectionEndpoint* endpoint)
-
+                       CMConnection* CMCreateInputConnectionAtIndex(const char * inputID, CMSource* sourceEndpoint, unsigned long sourceIndex, unsigned long inputIndex);
+CMIDI_API CMIDI_INLINE CMConnection* CMCreateInputConnection(uintptr_t uniqueID);//MIDIThruConnectionEndpoint* endpoint)
+CMIDI_API CMIDI_INLINE OSStatus      CMDeleteInputConnection(uintptr_t UniqueID);
 
 //Hardware Devices
 OSStatus CMDeleteHardwareDevice(const char * deviceID);
-void CMCreateHardwareDevice(/*const char * deviceID,*/ CMDeviceDescription * deviceDescription, CMDisplay ** deviceDisplays, CMControl ** deviceControls, CMControl ** deviceSwitches);
+void     CMCreateHardwareDevice(/*const char * deviceID,*/ CMDeviceDescription * deviceDescription, CMDisplay ** deviceDisplays, CMControl ** deviceControls, CMControl ** deviceSwitches);
 
-ItemCount CMGetNumberOfDevices(void);
-ItemCount CMUpdateInputDevices(void);
-ItemCount CMUpdateOutputDevices(void);
-ItemCount CMUpdateThruConnections(void);
+CMIDI_API CMIDI_INLINE ItemCount CMGetNumberOfDevices(void);
+CMIDI_API CMIDI_INLINE ItemCount CMUpdateInputDevices(void);
+CMIDI_API CMIDI_INLINE ItemCount CMUpdateOutputDevices(void);
+CMIDI_API CMIDI_INLINE ItemCount CMUpdateThruConnections(void);
+
+CMIDI_API CMIDI_INLINE const CMSource*      CMGetSource(int srcIndex);
+CMIDI_API CMIDI_INLINE const CMDestination* CMGetDestination(int dstIndex);
+
 CMIDI_API CMIDI_INLINE OSStatus CMClientCreate(const char * clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock);
+//CMIDI_API CMIDI_INLINE OSStatus CMClientDestroy(CMClientContext* clientContext);
 
 //#pragma mark -- CTConnection API Method Function Pointer Definitions
 //typedef int (*CTConnectFunc)(struct CTTarget * service, CTConnectionClosure callback);
-typedef OSStatus (*CMidiClientCreateFunc)  (const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock);
-//typedef void     (^CMidiClientReceiveBlock)(const MIDIEventList *evtlist, void * __nullable srcConnRefCon);
+typedef OSStatus       (*CMidiClientCreateFunc)  (const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock);
+typedef OSStatus       (*CMidiUpdateCountFunc)       (void);
+typedef CMSource*      (*CMidiSourceFunc)            (int srcIndex);
+typedef CMDestination* (*CMidiDestinationFunc)       (int dstIndex);
+
+typedef CMConnection*  (*CMidiCreateConnectionFunc)   (uintptr_t uniqueID);
+typedef OSStatus       (*CMidiDeleteConnectionFunc)   (uintptr_t uniqueID);
 
 //#pragma mark -- Global ReqlClientDriver Object
-typedef struct CMClientDriver
+CMIDI_DECLSPEC () typedef struct CMClientDriver
 {
     //The Client Driver Object can create Reql Connections
-    CMidiClientCreateFunc             init;
+    CMidiClientCreateFunc             Init;
+    
+    //Manage client list of devices
+    CMidiUpdateCountFunc              UpdateInputDevices;
+    CMidiUpdateCountFunc              UpdateOutputDevices;
+
+    //Retrieve individual endpoints from list
+    CMidiSourceFunc                   Source;
+    CMidiDestinationFunc              Destination;
+
+    //Create endpoint connections
+    CMidiCreateConnectionFunc         CreateInputConnection;
+    CMidiCreateConnectionFunc         CreateOutputConnection;
+
+    //Remove endpoint connections
+    CMidiDeleteConnectionFunc         DeleteInputConnection;
+    CMidiDeleteConnectionFunc         DeleteOutputConnection;
+
+    cm_kernel_queue_id                triggerEventQueue; //a global kqueue singleton for the main Core Midi Event Loop to IPC with real-time audio threads
+
 }CMClientDriver;
 
-static const CMClientDriver CMidi = {CMClientCreate};
+//Load functions from DLL
+static OSStatus cmidi_ext_load(CMClientDriver* client);
+static OSStatus cmidi_ext_load_init(const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock);
+
+#ifndef _WIN32 //TO DO: Provide an appropriate way to optionally expose static lib function population
+static const CMClientDriver CMidi = { 0 };// { CMClientCreate };
+#else
+static CMClientDriver CMidi = { cmidi_ext_load_init };// { CMClientCreate };
+#endif
+
+#include <stdio.h>
+#include <tchar.h>
+#include <assert.h>
+
+static OSStatus cmidi_ext_load(CMClientDriver* client)
+{
+    HMODULE cmidi_dll;
+    OSStatus ret = 0;
+
+#ifdef _DEBUG
+    cmidi_dll = LoadLibraryEx(_T("CMidid.dll"), NULL, 0);
+#else
+    cmidi_dll = LoadLibraryEx(_T("CMidi.dll"), NULL, 0);
+#endif
+
+    if (!cmidi_dll)
+    {
+        fprintf(stderr, "\ncmidi_dll.dll not found.\n");
+        return -1;
+    }
+
+    //Load CMidi API functions from dll
+    client->Init                  = (CMidiClientCreateFunc)   GetProcAddress(cmidi_dll, "CMClientCreate");             assert(client->Init);
+
+    client->UpdateInputDevices    = (CMidiUpdateCountFunc)    GetProcAddress(cmidi_dll, "CMUpdateInputDevices");       assert(client->UpdateInputDevices);
+    client->UpdateOutputDevices   = (CMidiUpdateCountFunc)    GetProcAddress(cmidi_dll, "CMUpdateOutputDevices");      assert(client->UpdateInputDevices);
+
+    client->Source                = (CMidiSourceFunc)         GetProcAddress(cmidi_dll, "CMGetSource");                assert(client->Source);
+    client->Destination           = (CMidiDestinationFunc)    GetProcAddress(cmidi_dll, "CMGetDestination");           assert(client->Destination);
+
+    client->CreateInputConnection = (CMidiCreateConnectionFunc)GetProcAddress(cmidi_dll, "CMCreateInputConnection");   assert(client->CreateInputConnection);
+    //client->CreateOutputConnection = (CMidiCreateConnectionFunc)GetProcAddress(cmidi_dll, "CMCreateOutputConnection"); assert(client->CreateOutputConnection);
+
+    client->DeleteInputConnection = (CMidiDeleteConnectionFunc)GetProcAddress(cmidi_dll, "CMDeleteInputConnection");   assert(client->DeleteInputConnection);
+    //client->DeleteOutputConnection = (CMidiDeleteConnectionFunc)GetProcAddress(cmidi_dll, "CMDeleteOutputConnection"); assert(client->DeleteOutputConnection);
+
+    return ret;
+}
+
+static OSStatus cmidi_ext_load_init(const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock)
+{
+    //Load CMidi API functions from DLL
+    OSStatus ret = cmidi_ext_load(&CMidi);
+
+    //Call the Init function loaded from dll
+    CMidi.Init(clientID, midiNotifyBlock, midiReceiveBlock, proxyReceiveBlock);
+
+    return ret;
+}
+
+
+
 
 #endif /* CTMidi_h */

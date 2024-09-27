@@ -29,9 +29,9 @@ const CFStringRef kPBAStreamSampleRateChangedNotification    = CFSTR("PBAudioStr
 
 #endif
 
-#ifdef __APPLE__
 void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRate)
 {
+
     bool running = streamContext->running;
     bool stoppedUnit = false;
     bool hasChanges = false;
@@ -40,7 +40,9 @@ void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRa
     //double priorSampleRate = streamContext->currentSampleRate;
 
     fprintf(stdout, "PBAUpdateStreamFormat...\n");
-    
+
+#ifdef __APPLE__
+
 #if TARGET_OS_IPHONE || TARGET_OS_TVOS
     UInt32 iaaConnected = NO;
     UInt32 size = sizeof(iaaConnected);
@@ -166,6 +168,10 @@ void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRa
     streamContext->hasSetInitialStreamFormat = true;
     
     if ( stoppedUnit ) PBACheckOSStatus(AudioOutputUnitStart(streamContext->audioUnit), "AudioOutputUnitStart");
+#else
+    assert(1==0);
+#endif //__APPLE__
+
 }
 
 #ifdef __APPLE__
@@ -197,7 +203,6 @@ PB_AUDIO_API PB_AUDIO_INLINE double PBABufferDuration(PBAStreamContext* streamCo
 #endif
 }
 
-#endif //__APPLE__
 
 //DEBUG
 

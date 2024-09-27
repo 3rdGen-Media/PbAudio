@@ -13,8 +13,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="CMidi">
-      <UniqueIdentifier>{6ced6cc9-99a7-4dde-b88d-5bd4ab81aace}</UniqueIdentifier>
+    <Filter Include="xnz">
+      <UniqueIdentifier>{94095cff-0646-477c-9c92-b08470eb444e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -38,30 +38,6 @@
     </ClInclude>
     <ClInclude Include="[Pb]Audio\PbAudioExt.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CMidi\CMEndian.h">
-      <Filter>CMidi</Filter>
-    </ClInclude>
-    <ClInclude Include="CMidi\CMEventQueue.h">
-      <Filter>CMidi</Filter>
-    </ClInclude>
-    <ClInclude Include="CMidi\CMidi.h">
-      <Filter>CMidi</Filter>
-    </ClInclude>
-    <ClInclude Include="CMidi\CMidiControl.h">
-      <Filter>CMidi</Filter>
-    </ClInclude>
-    <ClInclude Include="CMidi\CMidiDevice.h">
-      <Filter>CMidi</Filter>
-    </ClInclude>
-    <ClInclude Include="CMidi\CMidiDriverID.h">
-      <Filter>CMidi</Filter>
-    </ClInclude>
-    <ClInclude Include="CMidi\CMidiEndpoint.h">
-      <Filter>CMidi</Filter>
-    </ClInclude>
-    <ClInclude Include="CMidi\CMidiMessage.h">
-      <Filter>CMidi</Filter>
     </ClInclude>
     <ClInclude Include="[Pb]Audio\pba_dsp_waveforms.h">
       <Filter>Header Files</Filter>
@@ -93,6 +69,15 @@
     <ClInclude Include="[Pb]Audio\PbAudioDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\xnz\xnz_wav_codec.h">
+      <Filter>xnz</Filter>
+    </ClInclude>
+    <ClInclude Include="[Pb]Audio\cr_file.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xnz\xnz_aif_codec.h">
+      <Filter>xnz</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="[Pb]Audio\PbAudioAPI.c">
@@ -106,24 +91,6 @@
     </ClCompile>
     <ClCompile Include="[Pb]Audio\PbAudioExt.c">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CMidi\CMEventQueue.c">
-      <Filter>CMidi</Filter>
-    </ClCompile>
-    <ClCompile Include="CMidi\CMidi.c">
-      <Filter>CMidi</Filter>
-    </ClCompile>
-    <ClCompile Include="CMidi\CMidiControl.c">
-      <Filter>CMidi</Filter>
-    </ClCompile>
-    <ClCompile Include="CMidi\CMidiDevice.c">
-      <Filter>CMidi</Filter>
-    </ClCompile>
-    <ClCompile Include="CMidi\CMidiDriverID.c">
-      <Filter>CMidi</Filter>
-    </ClCompile>
-    <ClCompile Include="CMidi\CMidiEndpoint.c">
-      <Filter>CMidi</Filter>
     </ClCompile>
     <ClCompile Include="[Pb]Audio\pba_event_queue.c">
       <Filter>Source Files</Filter>

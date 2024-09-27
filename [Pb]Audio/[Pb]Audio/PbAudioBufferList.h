@@ -86,10 +86,10 @@ AudioBufferList *AEAudioBufferListCreateWithContentsOfFile(NSString * filePath, 
 //Schedule to Audio Buffer List
 
 
-PB_AUDIO_API PB_AUDIO_INLINE void PBABufferListSilenceWithFormat(const PBABufferList *bufferList, PBAStreamFormat audioFormat, uint32_t offset, uint32_t length);
+PB_AUDIO_API PB_AUDIO_INLINE void PBABufferListSilenceWithFormat(const PBABufferList *bufferList, PBAStreamFormat* audioFormat, uint32_t offset, uint32_t length);
 
 //List silence to default engine format
-PB_AUDIO_API PB_AUDIO_INLINE void PBABufferListSilence(const PBABufferList *bufferList, uint32_t offset, uint32_t length);
+//PB_AUDIO_API PB_AUDIO_INLINE void PBABufferListSilence(const PBABufferList *bufferList, uint32_t offset, uint32_t length);
 
 
 #endif /* pbaudio_buffer_h */

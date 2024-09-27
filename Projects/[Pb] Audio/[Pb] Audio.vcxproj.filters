@@ -47,5 +47,8 @@
     <ClInclude Include="Vanilla\EntryPoint\PbAudioApplication.h">
       <Filter>Vanilla\EntryPoint</Filter>
     </ClInclude>
+    <ClInclude Include="CustomNotificationClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

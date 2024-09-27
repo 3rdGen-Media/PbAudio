@@ -182,6 +182,7 @@ char *CMFullEndpointName(MIDIEndpointRef endpoint, char* cmname, CMDriverID *dri
 char* CMFullEndpointName(MIDIEndpointRef endpoint, char* cmname, CMDriverID* driverID)
 {
     assert(1 == 0);
+    return NULL;
 }
 
 #endif

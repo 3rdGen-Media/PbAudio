@@ -9,6 +9,12 @@
 
 #include "PbAudioAppInterface.h"
 
+#ifdef USE_CPP_RUNLOOP
+#include "../Vanilla/EntryPoint/PbAudioApplication.h"
+//#include "../CustomNotificationClient.h"
+//CMMNotificationClient g_notificationClient;// = new (std::nothrow) CMMNotificationClient();
+#endif
+
 #pragma mark -- [Pb]Audio Stream Output Pass
 
 #include "../ToneGenerator.h"
@@ -17,19 +23,20 @@
 SamplePlayer  samplePlayer  = {0};
 ToneGenerator toneGenerator = {0};
 
+
 #ifdef __APPLE__
-PBAStreamOutputPass TestOutputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp)
+PBAStreamOutputPass TestOutputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* stream)
 #else
-void CALLBACK TestOutputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp)
+void CALLBACK TestOutputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, struct PBAStreamContext* stream)
 #endif
 {
     ToneGeneratorRenderPass(ioData, frames, timestamp, &toneGenerator, NULL, 0);
 };
 
 #ifdef __APPLE__
-PBAStreamOutputPass SamplerOutputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp)
+PBAStreamOutputPass SamplerOutputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* stream)
 #else
-void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp)
+void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, struct PBAStreamContext* stream)
 #endif
 {
     //local trigger event iterator/cache
@@ -37,9 +44,7 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
     CMTriggerMessage* triggerEvent = NULL;
     CMTriggerMessage  triggerEvents[MAX_TRIGGER_EVENTS];
 
-    // Clearing the output buffer is critical for DSP routines unless such routines inherently overwrite the buffer
-    PBABufferListSilence(ioData, 0, frames);
-
+    
 #ifdef CR_TARGET_WIN32
     //...
 #else
@@ -79,8 +84,13 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
     }
     
 #endif
-        
-    SamplePlayerRenderPass(ioData, frames, timestamp, &samplePlayer, triggerEvent, 1);
+
+    //Outputpass pipeline can be configured w/ custom buffer routing schemes by modifying renderpass input/output here...
+    
+    //A renderpass has a source resource format (SRV) and a target format (RTV)
+    //The source format/buffer and target format/buffer can be the same 
+    //However, if they differ then the renderpass needs to handle conversion
+    SamplePlayerRenderPass(ioData, frames, timestamp, stream->target, &samplePlayer, triggerEvent, 1);
 };
 
 PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID] = {0};
@@ -88,9 +98,14 @@ PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID] = {0};
 
 #pragma mark -- CMidi Device Messages
 
-#ifdef __APPLE__
+#ifdef __BLOCKS__
 MIDINotifyBlock CMidiNotifyBlock = ^void(const MIDINotification *msg)
+#else
+void CMidiNotifyBlock(const MIDINotification* msg)
+#endif
 {
+
+#ifdef __APPLE__
     //for debugging, trace change notifications:
     const char *descr[] = {
         "undefined (0)",
@@ -136,12 +151,19 @@ MIDINotifyBlock CMidiNotifyBlock = ^void(const MIDINotification *msg)
     }
     */
 
+#else
+    assert(1 == 0);
+#endif
+
     return;
 
 };
 
-
+#ifdef __BLOCKS__
 MIDIReceiveBlock CMidiReceiveBlock = ^void(const MIDIEventList *evtlist, void * __nullable srcConnRefCon)
+#else
+void CMidiReceiveBlock(const MIDIEventList * evtlist, void* srcConnRefCon)
+#endif
 {
     //OSStatus cmError;
 #ifdef MIDI_DEBUG
@@ -160,6 +182,8 @@ MIDIReceiveBlock CMidiReceiveBlock = ^void(const MIDIEventList *evtlist, void * 
     //assert(MCUDevice);
     //assert(ThruConnection);
         
+
+#ifdef __APPLE__
     //MIDIEventListForEachEvent
     if (evtlist->numPackets > 0) //&& msgQueue)
     {
@@ -225,11 +249,11 @@ MIDIReceiveBlock CMidiReceiveBlock = ^void(const MIDIEventList *evtlist, void * 
             packet = MIDIEventPacketNext(packet);
         }
     }
-};
-
 #else
 
 #endif
+
+};
 
 
 
@@ -477,7 +501,12 @@ int StartPlatformEventLoop(int argc, const char * argv[])
 
 #if defined(_WIN32) //Vanilla Run Loop
 
-    /*
+#ifdef USE_CPP_RUNLOOP
+
+    DemoApp app(&CMidi); app.Initialize(); app.RunMessageLoop();
+
+#else //Windowless Runloop
+
     MSG msg;
     //int exitStatus;
     bool appIsRunning = true;
@@ -489,68 +518,49 @@ int StartPlatformEventLoop(int argc, const char * argv[])
         //filter for events we would like to be notified of in the message queue, much like a kqueue or [NSApplication nextEventWith:]
         //Use GetMessage to wait until the message arrives, or PeekMessage to return immediately
         //if(PeekMessage(&msg, NULL, CR_PLATFORM_EVENT_MSG_LOOP_QUIT, CR_PLATFORM_EVENT_MSG_LOOP_QUIT, PM_REMOVE))
-        if(GetMessage(&msg, NULL, 0, 0) && msg.message != WM_QUIT)  //run the event loop until it spits out error or quit
+        if (GetMessage(&msg, NULL, 0, 0) && msg.message != WM_QUIT)  //run the event loop until it spits out error or quit
         {
-			//pass on the messages to the __main_event_queue for processing
-			//TranslateMessage(&msg);
-			DispatchMessage(&msg);
+            //pass on the messages to the __main_event_queue for processing
+            //TranslateMessage(&msg);
+            DispatchMessage(&msg);
             memset(&msg, 0, sizeof(MSG));
         }
     }
-    */
 
-    DemoApp app;
+#endif
 
-    if (SUCCEEDED(app.Initialize()))
-    {
-        app.RunMessageLoop();
-    }
-    else assert(1 == 0);
+    //TO DO: PBAudio + CMidi Cleanup();
 
-
-    //TO DO: Cleanup();
-    
+    //i feel like there was a reason i'm returning 0 on Win32 but -1 below...
     return 0;
+
 #elif defined(__APPLE__) //Cocoa Run Loop
 
 #if TARGET_OS_OSX
     atexit(&ExitHandler);
     NSApplicationMain(argc, argv);       //Cocoa Application Event Loop
 #else //#if TARGET_OS_IOS || TARGET_OS_TVOS
-
-    // Create an @autoreleasepool, using the old-stye API.
-    // Note that while NSAutoreleasePool IS deprecated, it still exists
-    // in the APIs for a reason, and we leverage that here. In a perfect
-    // world we wouldn't have to worry about this, but, remember, this is C.
     
-    id (*objc_ClassSelector)(Class class, SEL _cmd) = (void*)objc_msgSend;//objc_msgSend(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc")), sel_registerName("init"))
-    id (*objc_InstanceSelector)(id self, SEL _cmd) = (void*)objc_msgSend;//objc_msgSend(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc")), sel_registerName("init"))
-    //id (*objc_init)(id self, SEL _cmd) = (void*)objc_msgSend;//objc_msgSend(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc")), sel_registerName("init"))
+    id (*objc_ClassSelector)(Class class, SEL _cmd) = (void*)objc_msgSend;
+    id (*objc_InstanceSelector)(id self, SEL _cmd) = (void*)objc_msgSend;
 
-    //id (*objc_msgSendCreateAutoreleasePool)(id self, SEL _cmd, SEL _cmd2) = (void*)objc_msgSend;//objc_msgSend(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc")), sel_registerName("init"))
-    //id (*crObjc_msgSend)(id self) = (void*)objc_msgSend;
-
+    //create autorelease pool
     id autoreleasePool = objc_InstanceSelector(objc_ClassSelector(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc")), sel_registerName("init"));
     //pre 10.15
     //id autoreleasePool = objc_msgSend(objc_msgSend(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc")), sel_registerName("init"));
 
-    // Get a reference to the file's URL
-    CFStringRef cfAppClassName = CFStringCreateWithCString(kCFAllocatorDefault, CocoaAppClassName, CFStringGetSystemEncoding());
+    CFStringRef cfAppClassName         = CFStringCreateWithCString(kCFAllocatorDefault, CocoaAppClassName, CFStringGetSystemEncoding());
     CFStringRef cfAppDelegateClassName = CFStringCreateWithCString(kCFAllocatorDefault, CocoaAppDelegateClassName, CFStringGetSystemEncoding());
-    // Notice the use of CFSTR here. We cannot use an objective-c string
-    // literal @"someStr", as that would be using objective-c, obviously.
+
+    //UIApplication Runloop
     UIApplicationMain(argc, (char* _Nullable *)argv, (id)cfAppClassName, (id)cfAppDelegateClassName);
+
+    //Release CFResources
     CFRelease( cfAppClassName );
     CFRelease( cfAppDelegateClassName );
     
+    //Drain autorelease pool
     objc_InstanceSelector(autoreleasePool, sel_registerName("drain"));
-    
-    //OMG, objc_msgSend defintion has changed as of OSX 10.15 Catalina.  FUCK YOU APPLE!!!
-    //((id (*)(id, SEL, void*))objc_msgSend)(objc_msgSend(objc_getClass("CRMetalInterface"), sel_registerName("sharedInstance")), sel_getUid("displayLoop:"), view);
-    //void* (*objc_msgSendSharedInstance)(Class, SEL) = (void*)objc_msgSend;
-    //id cmiSharedInstance = objc_msgSendSharedInstance(objc_getClass("CRMetalInterface"), sel_registerName("sharedInstance"));
-    //void* (*objc_msgSendDisplayLoop)(void*, SEL, void*) = (void*)objc_msgSend;
-    //return objc_msgSendDisplayLoop(objc_msgSend(objc_getClass("CRMetalInterface"), sel_registerName("sharedInstance")), sel_getUid("displayLoop:"), view);
 
 #endif
 #endif
@@ -595,17 +605,22 @@ void PBAudioInit(void)
     PBAudio.Init(&PBAudio.OutputStreams[0], NULL, kAudioObjectUnknown, SamplerOutputPass);
     
     //Load some audio from disk while converting to the desired format
-    const char * audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/Unknown Artist/Unknown Album/Print#45.1.aif";//Assets/DecadesMix\0";
-    const char * audioFileExt = "aif\0";
-    
+    //const char * audioFileURL = "../../assets/Audio/WAV/Test/16_44k_PerfectTest.wav";
+    //const char * audioFileExt = "wav\0";
+
+    const char* audioFileURL = "../../assets/Audio/AIF/Print#45.aif";// Print#45.aif";
+    const char* audioFileExt = "aif\0";
+
     //const char * audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/ArticulationLayers/65 Drum Samples/56442_Surfjira_Snare_HeadShot_Hard.wav";
     //const char * audioFileExt = "wav\0";
         
     ToneGeneratorInit(&toneGenerator, 440.f, PBAudio.OutputStreams[0].currentSampleRate);           //Initialize a 32-bit floating point sine wave buffer
-    SamplePlayerInit(&samplePlayer, audioFileURL, audioFileExt, PBAudio.OutputStreams[0].format);   //Read an audio file from disk to formatted buffer for playback
+    SamplePlayerInit(&samplePlayer, audioFileURL, audioFileExt, &PBAudio.OutputStreams[0].format);   //Read an audio file from disk to formatted buffer for playback
     
     OutputPass[TestOutputPassID]    = TestOutputPass;
     OutputPass[SamplerOutputPassID] = SamplerOutputPass;
+
+    //PBAudioRegisterDeviceListeners(&g_notificationClient, NULL);
     
 }
 
@@ -675,35 +690,80 @@ static void* CRRunLoop(void* opaqueQueue)
 }
 
 //must return void* in order to use with GCD dispatch_async_f
+#ifdef __APPLE__
 static void* PBAudioEventLoop(void* opaqueQueue)
+#else
+static unsigned PBAudioEventLoop(void* opaqueQueue)
+#endif
 {
     fprintf(stdout, "\nPBAudioEventLoop");
 
-#ifdef CR_TARGET_WIN32
-    //Currently does nothing
-#elif defined(__APPLE__)
-    int eventQueue = (int)opaqueQueue;
+    //Get input event queue
+    PBAKernelQueueType eventQueue = (PBAKernelQueueType)opaqueQueue;
+
+    //If no queue was provided as input parameter, use the current thread's queue
+    //When there is no IOCP thread pool, the thread handle associated with the thread id is used to access the msg queue
+    //TO DO: make get current thread id xplatform
+    //PBAudio.eventQueue.kq = eventQueue ? eventQueue : (PBAKernelQueueType)GetCurrentThreadId();
+
+    fprintf(stdout, "PBAudioEventLoop::PBAudio.eventThreadID = %p\n", (PBAKernelQueueType)PBAudio.eventThreadID);
+    fprintf(stdout, "PBAudioEventLoop::PBAudio.eventQueue.kq = %p\n", (PBAKernelQueueType)PBAudio.eventQueue.kq);
+
+    CMUniversalMessage* message = {0}; //this is like the udata on kev
+    CMMessageType messageType;
+
     while (1)
     {
+        /*
+        //Next look for events scheduled to queue of type cr_control_event
+        while (PeekMessage(&msg, (HWND)-1, PBA_EVENT_UMP_CONTROL, PBA_EVENT_UMP_CONTROL, PM_REMOVE))// && n < cr_control_event_type_max)
+        {
+            //cache control events + values pulled from the queue
+            //int condition = (msg.wParam >= cr_control_event_type_max); //cr_control_event_type vs cr_button_event_type
+            message = (CMUniversalMessage*)(msg.lParam); //src event memory
+
+            //frame_event = condition ? &button_event_frame.events[nButtonEvents++] : &control_event_frame.events[msg.wParam]; //dst event memory
+            //*frame_event = *controlEvent;                                                                          //copy src to dst
+
+            memset(&msg, 0, sizeof(MSG));
+            //nControlEvents++; // += !condition;
+        }
+        //nControlEvents -= nButtonEvents;
+        */
+
+#ifdef _WIN32
+        pba_platform_event_msg msg = { 0 }; //this is like kev
+        memset(&msg, 0, sizeof(MSG));
+
+        //idle until we receive a UMP control event
+        BOOL success = GetMessage(&msg, (HWND)-1, PBA_EVENT_UMP_CONTROL, PBA_EVENT_UMP_CONTROL); /* && msg.message != WM_QUIT*/  //run the event loop until it spits out error or quit
+        message = (CMUniversalMessage*)(msg.lParam); //src event memory
+        messageType = (CMMessageType)msg.wParam;
+
+
+#elif defined(__APPLE__)
+
         struct kevent kev;
-        CMMessageType kev_type;
         
         //SYSEX: [F7, manufacturer id, channel id, device id, command id, param id, param value, F7]
         
         //idle until we receive kevent from our kqueue
-        kev_type = (CMMessageType)pba_event_queue_wait_with_timeout(eventQueue, &kev, EVFILT_USER, CMMessageTypeTimeout, CMMessageTypeUnknownF, CMMessageTypeUtility, CMMessageTypeData128, UINT_MAX);
+        messageType = (CMMessageType)pba_event_queue_wait_with_timeout(PBAudio.eventQueue.kq, &kev, EVFILT_USER, CMMessageTypeTimeout, CMMessageTypeUnknownF, CMMessageTypeUtility, CMMessageTypeData128, UINT_MAX);
         CMUniversalMessage * message = (CMUniversalMessage*)kev.udata;
+#endif
 
-        switch( kev_type )
+        switch(messageType)
         {
             case (CMMessageTypeSystem):
             {
-                fprintf(stdout, "\nCMMessageTypeSystem (status = %u)", message->system.status);
+                fprintf(stdout, "CMMessageTypeSystem (status = %u)\n", message->system.status);
 
                 if( message->group == pba_midi_input_connection)
                 {
-                        if( message->system.status == CMStatusStart) CMCreateInputConnection(message->system.deviceSelect);
-                   else if( message->system.status == CMStatusStop)  CMDeleteInputConnection(message->system.deviceSelect);
+                    fprintf(stdout, "PBAudioEventLoop(pba_midi_input_connection)::uniqueID = \n\n%S\n\n", (wchar_t*)message->system.uniqueID);
+
+                        if( message->system.status == CMStatusStart) CMidi.CreateInputConnection(message->system.uniqueID);
+                   else if( message->system.status == CMStatusStop)  CMidi.DeleteInputConnection(message->system.uniqueID);
 
                         break;
                 }
@@ -734,10 +794,10 @@ static void* PBAudioEventLoop(void* opaqueQueue)
             default:
                 assert(1==0);
         }
-    }
-#endif
 
-    return NULL;
+    }
+
+    return 0;
 }
 
 
@@ -782,23 +842,30 @@ void StartAudioMessageEventLoop(void)
      _beginthreadex(NULL, 0, (_beginthreadex_proc_type)PBAudio.Start, &PBAudio.OutputStreams[0], 0, &(PBAudio.OutputStreams[0].audioThreadID));
 #endif
 
+     /***
+      * PBAudioEventLoop responsibilities include:
+      *
+      *      --Receiving events from the NSApplication run loop and/or external process and forwarding them to the appropriate PBAudio thread/queue as necessary
+      *      --Sending events and notifications back to Cocoa/Vanilla if needed
+      *      --Managing the PBAudio C-Land 'Engine' State
+      ***/
+
+      //Standalone Engine Process Option: Launch Event Loop on Current Thread that will serve as the Main Event Loop in [Pb]Audio C-Land
+      //PBAudioEventLoop((void*)PBAudio.eventQueue.kq);
 
 #ifdef CR_TARGET_WIN32
 
-    //Standalone Engine Process Option: Launch Event Loop on Current Thread that will serve as the Main Event Loop in [Pb]Audio C-Land
-    //PBAudioEventLoop((void*)PBAudio.eventQueue.kq);
-
     //Shared Application + Engine Process Option:  Launch a single thread that that will serve as the Main Event Loop in [Pb]Audio C-Land
-    //_beginthreadex(NULL, 0, pbaudio_stream_render, &_PBAMasterStream, 0, &(_PBAMasterStream.renderThreadID));
-    //PBAudio.eventQueue.kq = PBAudio.eventThreadID; //When there is no IOCP thread pool, the thread handle itself is used to access the msg queue associated with the thread
-     
+    _beginthreadex(NULL, 0, PBAudioEventLoop, (void*)PBAudio.eventQueue.kq, 0, &(PBAudio.eventThreadID));
+    PBAudio.eventQueue.kq = (PBAKernelQueueType)PBAudio.eventThreadID; //When there is no IOCP thread pool, the thread handle associated with the thread id is used to access the msg queue
+    
+    fprintf(stdout, "StartAudioMessageEventLoop::PBAudio.eventThreadID = %d\n", (pba_platform_thread_id)PBAudio.eventThreadID);
+    fprintf(stdout, "StartAudioMessageEventLoop::PBAudio.eventQueue.kq = %d\n", (pba_platform_thread_id)PBAudio.eventQueue.kq);
+
     //Thread Pool Option:  Launch a concurrent [IOCP] thread pool that will serve as the Main Event Loop in [Pb]Audio C - Land
 
 #elif defined(__APPLE__)
-    
-    //Standalone Engine Process Option:  Launch Event Loop on Current Thread that will serve as the Main Event Loop in [Pb]Audio C-Land
-    //PBAudioEventLoop((void*)PBAudio.eventQueue.kq);
-    
+        
     //Shared Application + Engine Process Option:  Launch a pthread that that will serve as the Main Event Loop in [Pb]Audio C-Land
     pthread_attr_t attr;
     struct sched_param sched_param;
@@ -812,15 +879,7 @@ void StartAudioMessageEventLoop(void)
     //pthread_mutex_init(&_mutex, NULL); //locks are for losers
     //pthread_setname_np("com.3rdgen.pbaudio.event-loop");
 
-    /***
-     *  Thread Pool Option:  Launch a concurrent thread pool that will serve as the Main Event Loop in [Pb]Audio C-Land
-     *
-     *  Its responsibilities include:
-     *
-     *      --Receiving events from the NSApplication run loop and forwarding them to the appropriate crgc_view window event thread/queue as necessary
-     *      --Sending events and notifications back to Cocoa if needed
-     *      --Managing the Core Render C-Land Application State
-     ***/
+    //Thread Pool Option:  Launch a concurrent thread pool that will serve as the Main Event Loop in [Pb]Audio C-Land
     /*
      dispatch_queue_attr_t attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT, QOS_CLASS_USER_INTERACTIVE, 0);
      dispatch_queue_t queue     = dispatch_queue_create(kPBAMainEventQueue, attr);
@@ -835,7 +894,7 @@ void StartAudioMessageEventLoop(void)
     
 #endif   
 
-//*** CMidi ***//
+    //*** CMidi ***//
 
 #if defined(__APPLE__)
     //register kevents [for Midi Note On Types] that can be queued to trigger audio on the real-time audio thread
@@ -851,8 +910,8 @@ void StartAudioMessageEventLoop(void)
     
 #endif
 
-    CMidi.init(CM_CLIENT_OWNER_ID, CMidiNotifyBlock, CMidiReceiveBlock, NULL);
-
+    //Load functions from DLL + initialize a CMidi client
+    CMidi.Init(CM_CLIENT_OWNER_ID, CMidiNotifyBlock, CMidiReceiveBlock, NULL);
 }
  
 int main(int argc, const char * argv[]) {

@@ -280,7 +280,7 @@ static const char* WESTERN_NOTE_NAMES[95] =
 #define THREADPROC WINAPI   //What does this do again?
 
 #ifdef _DEBUG
-#include <vld.h> 
+//#include <vld.h> 
 #endif
 
 
@@ -406,7 +406,7 @@ typedef HANDLE        cm_kernel_queue_event;
 typedef struct kevent cm_kernel_queue_event;
 #endif
 
-CM_PLATFORM_EXTERN cm_kernel_queue_id CMTriggerEventQueue; //a global kqueue singleton for the main Core Midi Event Loop to IPC with real-time audio threads
+//CM_PLATFORM_EXTERN cm_kernel_queue_id CMTriggerEventQueue; //a global kqueue singleton for the main Core Midi Event Loop to IPC with real-time audio threads
 
 
 //END FREQUENCY DEFINITIONS

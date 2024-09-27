@@ -18,7 +18,8 @@
 
 #pragma mark -- [Pb]Audio Dependencies
 
-//#include "CMidi/CMidi.h"          //CMidi is included with [Pb]Audio
+#define MIDI_DEBUG
+#include <CMidi/CMidi.h>          
 #include <[Pb]Audio/[Pb]Audio.h>
 
 #pragma mark -- Core Render Dependencies
@@ -137,7 +138,7 @@ extern PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID];
 #import "PbAudioApplication.h"
 #import "PbAudioAppDelegate.h"
 #elif defined(WIN32)
-#include "../Vanilla/EntryPoint/PbAudioApplication.h"
+#define USE_CPP_RUNLOOP
 #endif
 
 

@@ -9,7 +9,13 @@
 #ifndef pbaudio_format_h
 #define pbaudio_format_h
 
-#include "pba_error.h"
+//#include "pba_error.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*!
  * The audio description used throughout TAAE
  *
@@ -24,26 +30,66 @@
 typedef AudioStreamBasicDescription PBAStreamFormat;
 typedef AudioComponentDescription	PBAComponentDescription;
 #elif defined(_WIN32)
+
+#include <tchar.h>
+
+#include <mmsystem.h>
+#include <mmreg.h>
+
+#include <ks.h>           //  KS.H must be included before KSMEDIA.H
+#include <ksmedia.h>      //  define KSDATAFORMAT_SUBTYPE_PCM and KSDATAFORMAT_SUBTYPE_IEEE_FLOAT
+
+//these includes solve linker error with PKEY_AudioEngine_DeviceFormat  
+//https://stackoverflow.com/questions/9773822/how-to-fix-a-linker-error-with-pkey-device-friendlyname
+#include <setupapi.h>  
+#include <initguid.h>     // Put this in to get rid of linker errors.  
+#include <devpkey.h>      // Property keys defined here are now defined inline. 
+
+//Media Foundation
+#include <mmdeviceapi.h>    
 #include <mfapi.h>
-#include <mmdeviceapi.h>
 #include <mfidl.h>
 #include <mfreadwrite.h>
 
+#include <functiondiscoverykeys_devpkey.h>  //PKEY_AudioEngine_DeviceFormat
+
+#pragma comment(lib, "ksuser.lib")          //link KSDATAFORMAT_SUBTYPE_PCM and KSDATAFORMAT_SUBTYPE_IEEE_FLOAT
+
+//#pragma comment(lib, "uuid.lib")
 #pragma comment(lib, "mfreadwrite.lib")
 #pragma comment(lib, "mfplat.lib")
 #pragma comment(lib, "mfuuid.lib")
 //#pragma comment(lib, "mfapi.lib")
 
+
 #pragma comment(lib, "avrt.lib")
 
-typedef WAVEFORMATEX PBAStreamFormat;
+typedef union PBAStreamFormat
+{
+    //WAVEFORMATEXTENSIBLE          extendedFormat;
+    WAVEFORMATEXTENSIBLE_IEC61937 extendedFormat;
+    struct
+    {
+        WORD    wFormatTag;        /* format type */
+        WORD    nChannels;         /* number of channels (i.e. mono, stereo...) */
+        DWORD   nSamplesPerSec;    /* sample rate */
+        DWORD   nAvgBytesPerSec;   /* for buffer estimation */
+        WORD    nBlockAlign;       /* block size of data */
+        WORD    wBitsPerSample;    /* Number of bits per sample of mono data */
+        WORD    cbSize;            /* The count in bytes of the size of extra information (after cbSize) */
+    };
+}PBAStreamFormat;
+
 #endif
+
+typedef  PBAStreamFormat* PBAStreamFormatRef;
+
 //By default on Darwin platforms, we will request a 32-bit floating point non-interleaved linear PCM stereo Format
 //On WIN32 all formats are interleaved by default?
 PB_AUDIO_EXTERN PBAStreamFormat const _audioFormat;
 
 
-static PBAStreamFormat PBAStreamFormatWithChannelsAndRate(int channels, double rate)
+static PB_AUDIO_INLINE PBAStreamFormat PBAStreamFormatWithChannelsAndRate(int channels, double rate)
 {
 	PBAStreamFormat description = _audioFormat;
 #ifdef __APPLE__
@@ -56,8 +102,20 @@ static PBAStreamFormat PBAStreamFormatWithChannelsAndRate(int channels, double r
 	return description;
 }
 
+typedef enum PBAStreamFormatSampleType
+{
+    //SampleType8BitPCM_Interleaved,
+	SampleType16BitPCM_Interleaved,
+    SampleType24BitPCM_Interleaved,
+    SampleType32BitPCM_Interleaved,
+    SampleType32BitFloat_Interleaved,
+	SampleTypeUnknown
 
+}PBAStreamFormatSampleType;
 
+typedef PBAStreamFormatSampleType PBASampleType; //Shorthand Alias
+
+PB_AUDIO_API PB_AUDIO_INLINE PBASampleType PBAStreamFormatGetType(PBAStreamFormat* format);
 
 
 //AEChannelSet AEChannelSetDefault = {0, 1};
@@ -78,5 +136,64 @@ static AudioComponentDescription PBAudioComponentDescriptionMake(OSType manufact
 #endif
 
 PB_AUDIO_API PB_AUDIO_INLINE void PBAStreamFormatPrint(PBAStreamFormat * format);
+
+#pragma mark -- Format Conversion Routines
+
+//define an abstract buffer conversion function
+typedef void (*PBATransformFunc) (void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
+
+//16 bit interleaved source conversions
+//PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s16(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_s16i_s24i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
+//PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s24_padded(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_s16i_f32i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
+
+//16 bit source conversions
+//PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s16(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+//PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s24(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+//PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s24_padded(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+//PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_f32(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+
+//24 bit interleaved source conversions
+//PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s16(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_s24i_s24i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
+//PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s24_padded(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_s24i_f32i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
+
+//32 bit interleaved signed int source conversions
+//PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s16(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+//PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f24i_s24i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
+//PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s24_padded(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_s32i_f32i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
+
+
+//32 bit float source conversions
+//PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s16(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+//PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f24i_s24i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
+//PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s24_padded(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_f32i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
+
+
+//build a map of n source format indices to n output format indices
+//PBAConvertFunc PbAudioConvert[SampleTypeUnknown][SampleTypeUnknown];
+static PBATransformFunc pb_audio_transform[SampleTypeUnknown][SampleTypeUnknown] =
+{
+    //16 bit interleaved source conversions
+    {NULL, pba_transform_s16i_s24i, NULL, pba_transform_s16i_f32i},
+
+    //24 bit interleaved source conversions
+    {NULL, pba_transform_s24i_s24i, NULL, pba_transform_s24i_f32i},
+
+    //32 bit interleaved source conversions
+    {NULL, NULL, NULL, pba_transform_s32i_f32i},
+
+    //32 bit interleaved source conversions
+    {NULL, NULL, NULL, pba_transform_f32i_f32i},
+
+};
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* pbaudio_format_h */

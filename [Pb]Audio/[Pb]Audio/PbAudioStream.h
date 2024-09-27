@@ -39,20 +39,20 @@ typedef AudioBufferList PBABufferList;
 #define __clsid(x) (REFIID)(&_CLSID_ ## x)
 
 
+static const IID _IID_IUnknown              = { 0x00000000, 0x0000, 0x0000, { 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 }};
+
 //For CoCreateInstance to obtain Device Enumerator
-static const IID _IID_IMMDeviceEnumerator = { 0xa95664d2, 0x9614, 0x4f35, { 0xa7, 0x46, 0xde, 0x8d, 0xb6, 0x36, 0x17, 0xe6 } };
-//A95664D2-9614-4F35-A746-DE8DB63617E6
-static const IID _CLSID_MMDeviceEnumerator = { 0xbcde0395, 0xe52f, 0x467c, {0x8e, 0x3d, 0xc4, 0x57, 0x92, 0x91, 0x69, 0x2E }};
+static const IID _IID_IMMDeviceEnumerator   = { 0xa95664d2, 0x9614, 0x4f35, { 0xa7, 0x46, 0xde, 0x8d, 0xb6, 0x36, 0x17, 0xe6 }};
+static const IID _CLSID_MMDeviceEnumerator  = { 0xbcde0395, 0xe52f, 0x467c, { 0x8e, 0x3d, 0xc4, 0x57, 0x92, 0x91, 0x69, 0x2E }};
+static const IID _IID_IMMNotificationClient = { 0x7991eec9, 0x7e89, 0x4d85, { 0x83, 0x90, 0x6c, 0x70, 0x3c, 0xec, 0x60, 0xc0 }};
 
 //For AudioClient and RenderClient
-//1CB9AD4C-DBFA-4c32-B178-C2F568A703B2
-static const IID _IID_IAudioClient = { 0x1cb9ad4c, 0xdbfa, 0x4c32, { 0xb1,0x78,0xc2,0xf5,0x68,0xa7,0x03,0xb2 } };
-static const IID _IID_IAudioClient2 = { 0x726778cd, 0xf60a, 0x4eda,{ 0x82,0xde,0xe4,0x76,0x10,0xcd,0x78,0xaa } };
-//7ED4EE07-8E67-4CD4-8C1A-2B7A5987AD42
-static const IID _IID_IAudioClient3 = { 0x7ed4ee07, 0x8e67, 0x4cd4,{ 0x8c,0x1a,0x2b,0x7a,0x59,0x87,0xad,0x42 } };
+static const IID _IID_IAudioClient          = { 0x1cb9ad4c, 0xdbfa, 0x4c32, { 0xb1, 0x78, 0xc2, 0xf5, 0x68, 0xa7, 0x03, 0xb2 }};
+static const IID _IID_IAudioClient2         = { 0x726778cd, 0xf60a, 0x4eda, { 0x82, 0xde, 0xe4, 0x76, 0x10, 0xcd, 0x78, 0xaa }};
+static const IID _IID_IAudioClient3         = { 0x7ed4ee07, 0x8e67, 0x4cd4, { 0x8c, 0x1a, 0x2b, 0x7a, 0x59, 0x87, 0xad, 0x42 }};
 
 //F294ACFC-3146-4483-A7BF-ADDCA7C260E2
-static const IID _IID_IAudioRenderClient = { 0xF294ACFC, 0x3146, 0x4483,{ 0xa7,0xbf,0xad,0xdc,0xa7,0xc2,0x60,0xe2 } };
+static const IID _IID_IAudioRenderClient    = { 0xF294ACFC, 0x3146, 0x4483, { 0xa7, 0xbf, 0xad, 0xdc, 0xa7, 0xc2, 0x60, 0xe2 }};
 
 #endif
 
@@ -77,14 +77,16 @@ static const IID _IID_IAudioRenderClient = { 0xF294ACFC, 0x3146, 0x4483,{ 0xa7,0
  * @param timestamp The corresponding timestamp
  */
 
+struct PBAStreamContext; //fwd
+
 #ifdef __APPLE__
 PB_AUDIO_EXTERN const CFStringRef kPBAStreamFormatChangedNotification;     //Format was changed as a Result of UpdateStream
 PB_AUDIO_EXTERN const CFStringRef kPBAStreamSampleRateChangedNotification; //Sample Rate Was Changed As a Result of UpdateStream
 PB_AUDIO_EXTERN const CFStringRef kPBASampleRateChangedNotification;       //Sample Rate Was Changed As a Result of DeviceSetlRate
 
-typedef void (^PBAStreamOutputPass)(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp);
+typedef void (^PBAStreamOutputPass)(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* stream);
 #else
-typedef void (*PBAStreamOutputPass)(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp);
+typedef void (*PBAStreamOutputPass)(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, struct PBAStreamContext* stream);
 #endif
 
 #ifdef __APPLE__
@@ -126,29 +128,50 @@ typedef struct {
 */
 
 
+#define IAUDIOCLIENT3
+
+#ifdef IAUDIOCLIENT3
+#define IAUDIOCLIENT IAudioClient3
+#else
+#define IAUDIOCLIENT IAudioClient2
+#endif
+
+typedef enum PBADriverMode
+{
+    PBA_DRIVER_SHARED     = AUDCLNT_SHAREMODE_SHARED,
+    PBA_DRIVER_EXCLUSIVE  = AUDCLNT_SHAREMODE_EXCLUSIVE,
+    //PBA_DRIVER_VENDOR,
+    PBA_NUM_DRIVER_MODES
+}PBADriverMode;
 
 typedef struct PBAStreamContext
 {
 #ifdef _WIN32	
 
     IMMDevice			      *audioDevice;
-	IAudioClient2		      *audioClient;
-	IAudioRenderClient	      *renderClient;
+    IMMNotificationClient     *notifyClient;
+
+    IAUDIOCLIENT              *audioClient;
+    IAudioRenderClient	      *renderClient;
+
     AUDCLNT_SHAREMODE          shareMode;
 
     //For now we will only allow output to a single recognized hw device
-    HANDLE              hEvent;
-    unsigned int        audioThreadID;
+    HANDLE                     hEvent;
+    unsigned int               audioThreadID;
 
-	REFERENCE_TIME      devicePeriod;
-	UINT32	            bufferFrameCount;
+	REFERENCE_TIME             devicePeriod;
+	UINT32	                   bufferFrameCount;
 	
 #elif defined(__APPLE__)
     AudioUnit _Nullable        audioUnit;
     AudioDeviceID              audioDevice;
 #endif
 	
+
     PBAStreamFormat             format;
+    PBAStreamFormatSampleType   target;
+
     PBAStreamOutputPass         outputpass;
     PBATimeStamp                inputTimeStamp;
     

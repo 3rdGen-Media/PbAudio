@@ -20,7 +20,7 @@
 #define MIDI_CLOCK       0xf8
 #define MIDI_STATUS_MASK 0x80
 
-typedef int32_t CMTimestamp;
+typedef uint64_t CMTimestamp;
 typedef CMTimestamp (*CMTimeProcPtr)(void *time_info);
 typedef uint32_t CMMessage; /**< @brief see #PmEvent */
 
@@ -267,10 +267,11 @@ typedef struct CMUniversalMessage
         struct {
             CMSystemStatus status;  //!< determines which variant is active
             union {
-                uint8_t  timeCode;             //!< active when status is kMIDIStatusMTC
-                uint16_t songPositionPointer;  //!< active when status is kMIDIStatusSongPosPointer
-                uint8_t  songSelect;           //!< active when status is kMIDIStatusSongSelect
-                int32_t  deviceSelect;         //!< active when status is kMIDIStatusSongSelect
+                uint8_t    timeCode;             //!< active when status is kMIDIStatusMTC
+                uint16_t   songPositionPointer;  //!< active when status is kMIDIStatusSongPosPointer
+                uint8_t    songSelect;           //!< active when status is kMIDIStatusSongSelect
+                uint32_t   index;
+                uintptr_t  uniqueID;             //!< active when status is kMIDIStatusSongSelect
             };
         } system;   //!< active when type is kMIDIMessageTypeSystem
 

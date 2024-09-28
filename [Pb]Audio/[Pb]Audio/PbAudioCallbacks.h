@@ -42,8 +42,21 @@ static OSStatus PBAudioStreamSubmitBuffers(void *inRefCon, AudioUnitRenderAction
           
     //Use the render context callback to allow the client to fill the buffer with renderpasses
     __unsafe_unretained PBAStreamOutputPass outputpass = streamContext->outputpass;
-    if ( !streamContext->bypass && outputpass ) outputpass(ioData, inNumberFrames, &timestamp);
-    else *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
+    //outputpass(ioData, inNumberFrames, &timestamp, streamContext);
+    
+    // Clearing the output buffer is critical for DSP routines unless such routines inherently overwrite the buffer at all times
+    // WARNING:  Errant format changes upon stream reconfiguration (eg changing buffer size) can crash by writing incorrect # of bytes
+    PBABufferListSilenceWithFormat(ioData, &streamContext->format, 0, inNumberFrames);
+    
+    //Run Renderpass Pipeline
+    outputpass(ioData, inNumberFrames, &timestamp, streamContext);
+    
+    //if ( !streamContext->bypass && outputpass )
+    //{
+        //Run Renderpass Pipeline
+    //    outputpass(ioData, inNumberFrames, &timestamp, streamContext);
+    //}
+    //else *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
     
 #ifdef PBA_DEBUG
         PBAStreamReportRenderTime(streamContext, &_audioReport, PBASecondsFromHostTicks(PBACurrentTimeInHostTicks() - start), (double)inNumberFrames / streamContext->currentSampleRate);

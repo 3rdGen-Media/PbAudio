@@ -90,9 +90,9 @@
         }
         
     } assert(sourceIndex<CMClient.numSources);
-    
+
     //Create CoreMidi soft thru connection via CMidi
-    CMConnection* inputconnection = CMCreateInputConnectionAtIndex([extendedInputID cStringUsingEncoding:NSUTF8StringEncoding], endpoint, sourceIndex);// params);
+    CMConnection* inputconnection = CMCreateInputConnectionAtIndex([extendedInputID cStringUsingEncoding:NSUTF8StringEncoding], endpoint, sourceIndex, CMClient.numInputConnections);// params);
     assert(inputconnection);
     
     //Create a CMSoftThruConnection DOM object wrapping the CMConnection

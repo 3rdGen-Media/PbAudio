@@ -355,7 +355,7 @@ OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * f
     //Register PBAudio Private CoreAudio [Device] Object Observers
     //Notifications will be redistributed to clients via PbAudio so that
     //'Client Application' Processes can remain in sync with Master PbAudio 'Mix Engine' State
-    PBAudioRegisterDeviceListeners(streamContext);
+    PBAudioRegisterDeviceListeners(NULL, streamContext);
     
 #endif
         
@@ -810,10 +810,16 @@ OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioD
             return result;
         }
 
+        AudioFormatFlags flags = streamContext->format.mFormatFlags;
+        
         //Changing the device will result in an update to the audio unit stream format
         //self.hasSetInitialStreamFormat = NO;
         PBAudioStreamUpdateFormat(streamContext, 0);
         //streamContext->isDefault = false;
+        
+        //HACK: After setting the buffer size on the device, the audio unit seems to forget its buffer was interleaved...
+        streamContext->format.mFormatFlags = flags;
+        streamContext->target = PBAStreamFormatGetType(&streamContext->format); //enumerate a sample packing protocol for the given format
         
         if ( wasRunning ) PBAudioStreamStart(streamContext);
     }

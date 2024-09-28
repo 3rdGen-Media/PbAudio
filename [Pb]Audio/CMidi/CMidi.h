@@ -124,7 +124,7 @@ namespace WinRT
 //__decspec doesn't exist in C89, __declspec is MSVC specific
 #ifndef CMIDI_DECLSPEC
 #ifdef _WIN32
-#define CMIDI_DECLSPEC __declspec
+#define CMIDI_DECLSPEC __declspec ()
 #else
 #define CMIDI_DECLSPEC
 #endif
@@ -207,6 +207,7 @@ typedef GUID   MIDIThruConnectionRef;
 
 #endif
 
+#ifndef __APPLE__
 typedef struct MIDIThruConnectionEndpoint
 {
     MIDIEndpointRef endpointRef;
@@ -224,6 +225,7 @@ typedef struct MIDIThruConnectionParams
     uint8_t                    lowVelocity, highVelocity;
 
 }MIDIThruConnectionParams;
+#endif
 
 /*
 //A Device is just a collection of displays + controls
@@ -259,10 +261,16 @@ typedef struct CMConnection
     int64_t                  eventToken;
 }CMConnection;
 
+#ifdef __APPLE__
+#define CMConnectionEmpty 0
+#else
+#define CMConnectionEmpty {0}
+#endif
+
 //Forward Declare Private Client Context Definition
 struct CMClientContext;
 
-/*
+#ifdef __APPLE__
 typedef struct CMClientContext
 {
     MIDIClientRef client;             // Client handle to the MIDI server 
@@ -297,7 +305,7 @@ typedef struct CMClientContext
     uint8_t       activeDevice;
     //char        isIAC[MAX_IAC_NUM + 1];           
 }CMClientContext;
-*/
+#endif
 
 #ifndef _CMIDI_BUILD_DLL
 extern struct CMClientContext CMClient; //expose internal memory directly for static libs
@@ -377,15 +385,15 @@ CMIDI_API CMIDI_INLINE OSStatus CMClientCreate(const char * clientID, MIDINotify
 //#pragma mark -- CTConnection API Method Function Pointer Definitions
 //typedef int (*CTConnectFunc)(struct CTTarget * service, CTConnectionClosure callback);
 typedef OSStatus       (*CMidiClientCreateFunc)  (const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock);
-typedef OSStatus       (*CMidiUpdateCountFunc)       (void);
-typedef CMSource*      (*CMidiSourceFunc)            (int srcIndex);
-typedef CMDestination* (*CMidiDestinationFunc)       (int dstIndex);
+typedef ItemCount      (*CMidiUpdateCountFunc)       (void);
+typedef const CMSource*      (*CMidiSourceFunc)            (int srcIndex);
+typedef const CMDestination* (*CMidiDestinationFunc)       (int dstIndex);
 
 typedef CMConnection*  (*CMidiCreateConnectionFunc)   (uintptr_t uniqueID);
 typedef OSStatus       (*CMidiDeleteConnectionFunc)   (uintptr_t uniqueID);
 
 //#pragma mark -- Global ReqlClientDriver Object
-CMIDI_DECLSPEC () typedef struct CMClientDriver
+CMIDI_DECLSPEC typedef struct CMClientDriver
 {
     //The Client Driver Object can create Reql Connections
     CMidiClientCreateFunc             Init;
@@ -414,11 +422,10 @@ CMIDI_DECLSPEC () typedef struct CMClientDriver
 static OSStatus cmidi_ext_load(CMClientDriver* client);
 static OSStatus cmidi_ext_load_init(const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock);
 
-#ifndef _WIN32 //TO DO: Provide an appropriate way to optionally expose static lib function population
-static const CMClientDriver CMidi = { 0 };// { CMClientCreate };
+#ifdef __APPLE__ //TO DO: Provide an appropriate way to optionally expose static lib function population
+static const CMClientDriver CMidi = { CMClientCreate, CMUpdateInputDevices, CMUpdateOutputDevices, CMGetSource, CMGetDestination, CMCreateInputConnection, NULL, CMDeleteInputConnection, NULL };
 #else
 static CMClientDriver CMidi = { cmidi_ext_load_init };// { CMClientCreate };
-#endif
 
 #include <stdio.h>
 #include <tchar.h>
@@ -459,17 +466,23 @@ static OSStatus cmidi_ext_load(CMClientDriver* client)
     return ret;
 }
 
+#endif
+
 static OSStatus cmidi_ext_load_init(const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock)
 {
+    OSStatus ret = 0;
+#ifdef __APPLE__
+    //CMidi.Init = CMClientCreate;
+#else
     //Load CMidi API functions from DLL
-    OSStatus ret = cmidi_ext_load(&CMidi);
-
+    ret = cmidi_ext_load(&CMidi);
+#endif
+    
     //Call the Init function loaded from dll
     CMidi.Init(clientID, midiNotifyBlock, midiReceiveBlock, proxyReceiveBlock);
 
     return ret;
 }
-
 
 
 

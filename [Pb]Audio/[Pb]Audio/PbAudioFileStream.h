@@ -11,9 +11,14 @@
 
 #ifdef XNZ_AUDIO
 //#include <xnz/xnz.h>
+#include <xnz/cr_file.h>
 #include <xnz/xnz_aif_codec.h>
 #include <xnz/xnz_wav_codec.h>
+
+#ifndef __APPLE__
 typedef CRFile* ExtAudioFileRef;
+#endif
+
 #else
 
 #ifdef __APPLE__

@@ -94,6 +94,7 @@ void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRa
 
             // Update the stream format
             asbd = _audioFormat;
+            //asbd.mFormatFlags = streamContext->format.mFormatFlags;
             asbd.mChannelsPerFrame = streamContext->nOutputChannels;
             asbd.mSampleRate = streamContext->currentSampleRate;
             PBACheckOSStatus(AudioUnitSetProperty(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof(asbd)), "AudioUnitSetProperty(kAudioUnitProperty_StreamFormat)");
@@ -151,6 +152,8 @@ void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRa
         }
     }
         
+    streamContext->target = PBAStreamFormatGetType(&streamContext->format); //enumerate a sample packing protocol for the given format
+
     PBAStreamFormatPrint(&(streamContext->format));
 
     if ( hasChanges ) 

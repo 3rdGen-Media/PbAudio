@@ -84,15 +84,17 @@ PB_AUDIO_EXTERN const CFStringRef kPBAStreamFormatChangedNotification;     //For
 PB_AUDIO_EXTERN const CFStringRef kPBAStreamSampleRateChangedNotification; //Sample Rate Was Changed As a Result of UpdateStream
 PB_AUDIO_EXTERN const CFStringRef kPBASampleRateChangedNotification;       //Sample Rate Was Changed As a Result of DeviceSetlRate
 
-typedef void (^PBAStreamOutputPass)(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* stream);
+typedef void (^PBAStreamOutputPass)(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* _Nonnull stream);
 #else
 typedef void (*PBAStreamOutputPass)(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, struct PBAStreamContext* stream);
 #endif
 
-#ifdef __APPLE__
-typedef void (^PBARenderPass)(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, void* _Nullable source, void* _Nullable events, UInt32 nEvents);
+#ifdef __BLOCKS__
+typedef void (^PBARenderPass)(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp,
+                              PBAStreamFormatSampleType target, void* _Nullable source, void* _Nullable events, UInt32 nEvents);
 #else
-typedef void (*PBARenderPass)(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp, void* source, void* events, uint32_t nEvents);
+typedef void (*PBARenderPass)(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp,
+                              PBAStreamFormatSampleType target, void* source, void* events, uint32_t nEvents);
 #endif
 
 //Render Context
@@ -134,6 +136,11 @@ typedef struct {
 #define IAUDIOCLIENT IAudioClient3
 #else
 #define IAUDIOCLIENT IAudioClient2
+#endif
+
+#ifndef AUDCLNT_SHAREMODE_SHARED
+#define AUDCLNT_SHAREMODE_SHARED 0
+#define AUDCLNT_SHAREMODE_EXCLUSIVE 0
 #endif
 
 typedef enum PBADriverMode

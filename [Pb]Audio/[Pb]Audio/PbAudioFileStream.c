@@ -10,8 +10,10 @@
 
 #include <math.h>
 
-#include <propvarutil.h>  // PropVariantToInt64 
+#ifdef _WIN32
+#include <propvarutil.h>  // PropVariantToInt64
 #pragma comment(lib, "propsys.lib")
+#endif
 
 
 PB_AUDIO_API PB_AUDIO_INLINE void xng_load_wav_samples(PBAFileRef wav)
@@ -61,7 +63,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamClose(ExtAudioFileRef inputAu
 
 #ifdef __APPLE__
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, const char * fileExt, PBAStreamFormat converterFormat, PBAFileRef inputAudioFileRef)//PBAStreamContext * streamContext, PBAStreamLatencyReport * report, double renderTime, double bufferDuration);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, const char * fileExt, PBAStreamFormatRef converterFormat, PBAFileRef inputAudioFileRef)//PBAStreamContext * streamContext, PBAStreamLatencyReport * report, double renderTime, double bufferDuration);
 {
     //for streaming audio files from disk
     //PBAStreamFormat     inputFileFormat;
@@ -80,8 +82,6 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, co
     
     //[self initAudioFileStreamProperties];
 
-    
-    
     
     char buffer[1024] = "\0";
     // Open input audio file
@@ -128,6 +128,8 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, co
     printf("\nbundlePath = %s\n", path);
     */
     
+#ifndef XNZ_AUDIO
+
     strcat(buffer, fileURL );
     
     
@@ -318,17 +320,103 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, co
     //CFRelease(cfFileString);
     
     CFRelease(fileStringRef);
+#else
+    if (strcmp(fileExt, "aif") == 0 || strcmp(fileExt, "AIF") == 0   ||    //load aiff
+        strcmp(fileExt, "aiff") == 0 || strcmp(fileExt, "AIFF") == 0 ||    //load aiff
+        strcmp(fileExt, "aifc") == 0 || strcmp(fileExt, "AIFC") == 0)      //load aiff
+    {
+        //printf("\nLoading PNG:    %s\n", filepath);
+        xnz_aif_open(&inputAudioFileRef->aif, fileURL);
 
+        //record source format
+        //memcpy(&inputAudioFileRef->sourceFormat, ((char*)inputAudioFileRef->aif.fmt) + sizeof(xnz_wav_chunk), inputAudioFileRef->aif.fmt->chunkSize);
+        
+        
+        double sampleRate = xnz_read_float80(inputAudioFileRef->aif.comm.sampleRate);// xnz_be32toh(*(uint32_t*)inputAudioFileRef->aif.comm.sampleRate);
+
+        inputAudioFileRef->sourceFormat.mFormatID          = kAudioFormatLinearPCM;//inputAudioFileRef->aif.comm.nChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM;
+        inputAudioFileRef->sourceFormat.mChannelsPerFrame  = inputAudioFileRef->aif.comm.nChannels;
+        inputAudioFileRef->sourceFormat.mSampleRate        = (Float64)sampleRate;
+        inputAudioFileRef->sourceFormat.mBytesPerFrame     = inputAudioFileRef->aif.comm.nChannels * (inputAudioFileRef->aif.comm.sampleSize / 8);
+        inputAudioFileRef->sourceFormat.mBitsPerChannel    = inputAudioFileRef->aif.comm.sampleSize;
+
+        //inputAudioFileRef->sourceFormat.nAvgBytesPerSec = inputAudioFileRef->sourceFormat.nSamplesPerSec * (inputAudioFileRef->aif.comm.sampleSize);// *inputAudioFileRef->sourceFormat.nChannels;
+
+        //copy source format to conversion format
+        memcpy(&inputAudioFileRef->conversionFormat, &inputAudioFileRef->sourceFormat, sizeof(PBAStreamFormat));
+        
+        inputAudioFileRef->type = PBAStreamFormatGetType(&inputAudioFileRef->sourceFormat); //enumerate a sample packing protocol for the given format
+
+        //calculate frame count
+        inputAudioFileRef->numFrames = inputAudioFileRef->aif.comm.nSampleFrames;// / inputAudioFileRef->aif.ssnd->nBlockAlign;
+
+        //point at samples buffer
+        //inputAudioFileRef->samples[0] = inputAudioFileRef->aif.samples;
+
+        inputAudioFileRef->form = XNG_AUDIO_FORM_AIF;
+
+    }
+    else if (strcmp(fileExt, "wav") == 0 || strcmp(fileExt, "WAV") == 0)    //load aiff
+    {
+        xnz_wav_open(&inputAudioFileRef->wav, fileURL);
+
+        
+        //record source format
+        //memcpy(&inputAudioFileRef->sourceFormat, ((char*)inputAudioFileRef->wav.fmt) + sizeof(xnz_wav_chunk), inputAudioFileRef->wav.fmt->chunkSize);
+        
+        inputAudioFileRef->sourceFormat.mFormatID          = kAudioFormatLinearPCM;//inputAudioFileRef->aif.comm.nChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM;
+        inputAudioFileRef->sourceFormat.mChannelsPerFrame  = inputAudioFileRef->wav.fmt->nChannels;
+        inputAudioFileRef->sourceFormat.mSampleRate        = (Float64)inputAudioFileRef->wav.fmt->nSamplesPerSec;
+        inputAudioFileRef->sourceFormat.mBytesPerFrame     = inputAudioFileRef->wav.fmt->nChannels * (inputAudioFileRef->wav.fmt->wBitsPerSample / 8);
+        inputAudioFileRef->sourceFormat.mBitsPerChannel    = inputAudioFileRef->wav.fmt->wBitsPerSample;
+        
+        //copy source format to conversion format
+        memcpy(&inputAudioFileRef->conversionFormat, &inputAudioFileRef->sourceFormat, sizeof(PBAStreamFormat));
+
+        inputAudioFileRef->type = PBAStreamFormatGetType(&inputAudioFileRef->sourceFormat); //enumerate a sample packing protocol for the given format
+
+        //calculate frame count
+        inputAudioFileRef->numFrames = inputAudioFileRef->wav.data->chunkSize / inputAudioFileRef->wav.fmt->nBlockAlign;
+
+        //point at samples buffer
+        //inputAudioFileRef->samples[0] = inputAudioFileRef->wav.samples;
+
+        inputAudioFileRef->form = XNG_AUDIO_FORM_WAV;
+        
+    }
+#endif
+    
     return err;
 }
 
 
 
-PB_AUDIO_API PB_AUDIO_INLINE unsigned long long PBAFileStreamReadFrames(PBAFileRef audioFileRef, unsigned long long numFramesToRead, void ** sampleBuffers)
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamReadFrames(PBAFileRef audioFileRef, unsigned long long numFramesToRead, void ** sampleBuffers)
 {
 
-        int i = 0;
         OSStatus err = noErr;
+
+#ifdef XNZ_AUDIO
+    //if (sampleBuffers[0] != audioFileRef->samples[0])
+    //{
+        //TO DO:...
+        //assert(1 == 0);
+    
+        switch( audioFileRef->form )
+        {
+            case (XNG_AUDIO_FORM_AIF):
+                xnz_aif_read_samples(&audioFileRef->aif, numFramesToRead, sampleBuffers); break;
+
+            case (XNG_AUDIO_FORM_WAV):
+                xnz_wav_read_samples(&audioFileRef->wav, numFramesToRead, sampleBuffers); break;
+
+            default:
+                assert(1 == 0);
+        }
+        
+    //}
+#else
+        int i = 0;
 
         // BufferList to read from source file and write to dest file
         AudioBufferList conversionBuffer; conversionBuffer.mNumberBuffers = audioFileRef->conversionFormat.mChannelsPerFrame;
@@ -369,8 +457,9 @@ PB_AUDIO_API PB_AUDIO_INLINE unsigned long long PBAFileStreamReadFrames(PBAFileR
         {
         
         }
+#endif
         
-        return (unsigned long long)extAudioFrames;
+        return err;//1(unsigned long long)extAudioFrames;
 }
 
 #else

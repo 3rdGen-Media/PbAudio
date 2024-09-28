@@ -210,7 +210,7 @@ void pba_transform_s24i_s24i(void** srcBuffers, void** dstBuffers, uint64_t nBuf
 }
 
 
-//pack 24-bit int to 32-bit float
+//pack 24-bit interleaved int to 32-bit interleaved float
 //assumes samples are in host format endian order
 //assumes dstBuffers are interleaved stereo
 void pba_transform_s24i_f32i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
@@ -259,6 +259,55 @@ void pba_transform_s24i_f32i(void** srcBuffers, void** dstBuffers, uint64_t nBuf
     } 
 }
 
+//pack 24-bit interleaved int to 32-bit non-interleaved float
+//assumes samples are in host format endian order
+//assumes dstBuffers are non-interleaved stereo
+void pba_transform_s24i_f32(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
+{
+    char** sourceBuffers = (char**)srcBuffers;
+
+    //raw byte source buffer
+    char* samplesL = (sourceBuffers[0]);// + frameIndex*2]
+    //char* samplesR = (sourceBuffers[0]);// + frameIndex*2]
+
+    //dest
+    float* fBufferL = (float*)dstBuffers[0];
+    float* fBufferR = (float*)dstBuffers[1];
+
+    for (int i = 0; i < nFrames; i++)
+    {
+        int32_t iSampleL, iSampleR;
+        float   fSampleL, fSampleR;
+
+        //place 24 bit le signed integer in most significant bytes of a 32 bit le signed integer
+        unsigned char sourceSampleL[4] = { 0, samplesL[(i) * nBufferChannels * 3 + 0], samplesL[(i) * nBufferChannels * 3 + 1], samplesL[(i) * nBufferChannels * 3 + 2] };
+        unsigned char sourceSampleR[4] = { 0, samplesL[(((i)*nBufferChannels) + nBufferChannels - 1) * 3 + 0], samplesL[(((i)*nBufferChannels) + nBufferChannels - 1) * 3 + 1], samplesL[(((i)*nBufferChannels) + nBufferChannels - 1) * 3 + 2] };
+
+        memcpy(&iSampleL, sourceSampleL, 4);
+        memcpy(&iSampleR, sourceSampleR, 4);
+
+        //SO A
+        //iSample = sourceSample[3] << 24 | sourceSample[2] << 16 | sourceSample[1] << 8;
+        //fSample = (float)iSample / (float)(INT_MAX - 256);
+
+        //SO B
+        //iSample = ((sourceSample[3] << 24) | (sourceSample[2] << 16) | (sourceSample[1] << 8)) >> 8;
+        //fSample = ((float)iSample) / 8388607.0;
+
+        //Mine
+        //map 32-bit integer range [-2147483648, 2147483647] to 32-bit float [-1.0, 1.0]
+        fSampleL = ((float)iSampleL) / 2147483647.f;
+        fSampleR = ((float)iSampleR) / 2147483647.f;
+
+        //memcpy(&(byteBufferL[(i * nStreamChannels + 0) * 3]), sourceSample, 3);
+        //memcpy(&(byteBufferL[(i * nStreamChannels + 1) * 3]), sourceSample, 3);
+
+        fBufferL[i] = fSampleL;
+        fBufferR[i] = fSampleR;
+
+    }
+}
+
 
 PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_s32i_f32i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
 {
@@ -291,6 +340,7 @@ PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_s32i_f32i(void** srcBuffers, voi
 
 PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_f32i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
 {
+    uint64_t i = 0;
     //raw byte source buffer
     float* samplesL = (float*)(srcBuffers[0]);// + frameIndex*2]
     //char* samplesR = (sourceBuffers[0]);// + frameIndex*2]
@@ -299,7 +349,7 @@ PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_f32i(void** srcBuffers, voi
     float* fBufferL = (float*)dstBuffers[0];
     //float* fBufferR = (float*)dstBuffers[1];
 
-    for (int i = 0; i < nFrames; i++)
+    for (i = 0; i < nFrames; i++)
     {
         int32_t iSampleL, iSampleR;
         float   fSampleL, fSampleR;
@@ -314,8 +364,25 @@ PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_f32i(void** srcBuffers, voi
 
 }
 
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32_f32(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
+{
+    uint64_t channel;
+    for(channel = 0; channel < nBufferChannels; channel++)
+    {
+        //source
+        float* samplesL = (float*)(srcBuffers[channel]);// + frameIndex*2]
+
+        //dest
+        float* fBufferL = (float*)dstBuffers[channel];
+        
+        memcpy(fBufferL, samplesL, nFrames * sizeof(float));
+    }
+}
+
+
 PB_AUDIO_API PB_AUDIO_INLINE PBASampleType PBAStreamFormatGetType(PBAStreamFormat *format)
 {
+#ifdef _WIN32
     if ( (format->wFormatTag == WAVE_FORMAT_PCM) ||
        ( (format->wFormatTag == WAVE_FORMAT_EXTENSIBLE) && memcmp(&((WAVEFORMATEXTENSIBLE *)format)->SubFormat, &KSDATAFORMAT_SUBTYPE_PCM, sizeof(GUID)) == 0 ) )
     {
@@ -328,7 +395,24 @@ PB_AUDIO_API PB_AUDIO_INLINE PBASampleType PBAStreamFormatGetType(PBAStreamForma
     {
         return 	SampleType32BitFloat_Interleaved;
     }
+#elif defined(__APPLE__)
+    if ( format->mFormatID == kAudioFormatLinearPCM )
+    {
+        AudioFormatFlags isFloat          = (format->mFormatFlags & kAudioFormatFlagIsFloat) / kAudioFormatFlagIsFloat;
+        AudioFormatFlags isNonInterleaved = ((format->mFormatFlags & kAudioFormatFlagIsNonInterleaved) / kAudioFormatFlagIsNonInterleaved);
+        
+        if (format->mBitsPerChannel == 32)
+        {
+            if( isFloat) return SampleType32BitFloat_Interleaved + (isNonInterleaved * 4);
+            else         return SampleType32BitPCM_Interleaved   + (isNonInterleaved * 4);
+        }
+        if (format->mBitsPerChannel == 24) return SampleType24BitPCM_Interleaved + (isNonInterleaved * 4);
+        if (format->mBitsPerChannel == 16) return SampleType16BitPCM_Interleaved + (isNonInterleaved * 4);
+    }
 
+    
+#endif
+    
     return SampleTypeUnknown;
 }
 

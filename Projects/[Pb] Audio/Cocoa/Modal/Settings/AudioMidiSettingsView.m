@@ -771,7 +771,7 @@
         message->type                    = CMMessageTypeSystem;
         message->group                   = pba_midi_input_connection;
         message->system.status           = enabled ? CMStatusStart : CMStatusStop;
-        message->system.deviceSelect     = CMClient.sources[index].uniqueID;
+        message->system.uniqueID         = CMClient.sources[index].uniqueID;
             
         /*
         //TO DO:  introduce some error checking to this function pipeline

@@ -348,7 +348,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\nmkdir -p ../include/CMidi/;\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\ncp -rvf ./CMidi/\\CMEndian.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiControl.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDevice.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDriverID.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiEndpoint.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiMessage.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMEventQueue.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidi.h ../include/CMidi/\n\ncp -rvf ./[Pb]Audio/\\pba_target_os.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_event_queue.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_time.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_dsp_waveforms.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_format.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_error.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioDevice.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioByteUtils.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFileStream.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioRenderPass.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
+			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\nmkdir -p ../include/CMidi/;\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\ncp -rvf ./CMidi/\\CMEndian.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiControl.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDevice.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDriverID.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiEndpoint.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiMessage.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMEventQueue.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidi.h ../include/CMidi/\n\ncp -rvf ./[Pb]Audio/\\cr_file ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_target_os.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_event_queue.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_time.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_dsp_waveforms.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_format.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_error.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioDevice.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioByteUtils.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFileStream.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioRenderPass.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -516,6 +516,7 @@
 				DEVELOPMENT_TEAM = ECP6D49SS3;
 				EXECUTABLE_PREFIX = lib;
 				GCC_C_LANGUAGE_STANDARD = gnu89;
+				HEADER_SEARCH_PATHS = ../include;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -528,6 +529,7 @@
 				DEVELOPMENT_TEAM = ECP6D49SS3;
 				EXECUTABLE_PREFIX = lib;
 				GCC_C_LANGUAGE_STANDARD = gnu89;
+				HEADER_SEARCH_PATHS = ../include;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};

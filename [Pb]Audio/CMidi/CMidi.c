@@ -135,17 +135,20 @@ typedef struct CMConnection
 
 #endif
 
+#endif
+
+#ifndef __APPLE__
 typedef struct CMClientContext
 {
     union
     {
-        MIDIClientRef client;  
-        MIDIClientRef session; 
+        MIDIClientRef client;
+        MIDIClientRef session;
     };
 
-    MIDIPortRef   inPort;             
-    MIDIPortRef   outPort;            
-    MIDIPortRef   proxyPort;          
+    MIDIPortRef   inPort;
+    MIDIPortRef   outPort;
+    MIDIPortRef   proxyPort;
 
     //CoreMIDI
     ItemCount numDevices;
@@ -172,7 +175,7 @@ typedef struct CMClientContext
     CMDeviceDescription  hardwareDevices[CM_MAX_SOFT_CONNECTIONS];
     
     uint8_t       activeDevice;
-    //char        isIAC[MAX_IAC_NUM + 1];           
+    //char        isIAC[MAX_IAC_NUM + 1];
 
 #ifdef __cplusplus
     //CMClientContext(MIDIClientRef& midiSession) { session = midiSession; };
@@ -183,8 +186,9 @@ typedef struct CMClientContext
 #endif
 
 }CMClientContext;
+#endif
 
-
+#ifdef _WIN32
 // Wire up an event handler to receive the message. There is a single event handler type, but the
 // MidiMessageReceivedEventArgs class provides the different ways to access the data
 // Your event handlers should return quickly as they are called synchronously.
@@ -264,7 +268,7 @@ struct CMClientContext CMClient = {0};
 OSStatus CMDeleteThruConnection(const char * thruID)
 {
     OSStatus cmError = 0;
-#ifdef __APPLLE__
+#ifdef __APPLE__
     CFDataRef data;
     
     CFStringRef cfThruID = CFStringCreateWithCString(CFAllocatorGetDefault(), thruID, kCFStringEncodingUTF8);
@@ -345,16 +349,17 @@ OSStatus CMDeleteInputConnection(uintptr_t UniqueID)
     OSStatus cmError    = 0;
     int connectionIndex = 0;
     
+
+    //Update the List of Input Devices before looking for Device UniqueID
+#ifdef __APPLE__
+    CMUpdateInputDevices();
+#else
     wchar_t inputIDKey[256];// = "\0"; //used for copy and as DOM key
     wchar_t* inputID = (wchar_t*)UniqueID; size_t  inputLen = wcslen(inputID);
     //fprintf(stdout, "CMDeleteInputConnection::Input: \n\n%S\n", (wchar_t*)inputID);
 
     //create a copy of the uniqueID prior to overwriting CMSource memory with CMUpdateInputDevices
     wcscpy((wchar_t*)inputIDKey, inputID);
-
-    //Update the List of Input Devices before looking for Device UniqueID
-#ifdef __APPLE__
-    CMUpdateInputDevices();
 #endif
 
     //Get an input endpoint to populate
@@ -809,7 +814,7 @@ CMConnection* CMCreateSoftThruConnectionAtIndex(const char * thruID, MIDIThruCon
     */
     
     //Store the softThruConnection in CMidi internal data structures
-    CMClient.softThruConnections[thruIndex].connection = {0};//thruConnection;
+    CMClient.softThruConnections[thruIndex].connection = CMConnectionEmpty; //{0}; //thruConnection;
     CMClient.softThruConnections[thruIndex].source = CMClient.sources[sourceID];
     CMClient.softThruConnections[thruIndex].destination = CMClient.destinations[destID];
     strcpy(CMClient.softThruConnections[thruIndex].name, thruID);//, strlen(thruID));
@@ -885,7 +890,7 @@ CMConnection* CMCreateProxyConnectionAtIndex(const char * thruID, MIDIThruConnec
     */
     
     //Store the softThruConnection in CMidi internal data structures
-    CMClient.proxyConnections[thruIndex].connection = {0};//thruConnection;
+    CMClient.proxyConnections[thruIndex].connection = CMConnectionEmpty; //{0};//thruConnection;
     CMClient.proxyConnections[thruIndex].source = CMClient.sources[sourceID];
     CMClient.proxyConnections[thruIndex].destination = CMClient.destinations[destID];
     strcpy(CMClient.proxyConnections[thruIndex].name, thruID);//, strlen(thruID));
@@ -988,12 +993,15 @@ CMConnection* CMCreateInputConnection(uintptr_t uniqueID)//MIDIThruConnectionEnd
 {
     int sourceIndex      =   0;
     char inputIDKey[256] = "\0"; //used for copy and as DOM key
+
+#ifndef __APPLE__
     wchar_t* inputID = (wchar_t*)uniqueID; size_t  inputLen = wcslen(inputID);
     fprintf(stdout, "CMCreateInputConnection::Input: \n\n%S\n", (wchar_t*)inputID);
 
     //create a copy of the uniqueID prior to overwriting CMSource memory with CMUpdateInputDevices
     wcscpy((wchar_t*)inputIDKey, inputID);
-
+#endif
+    
     //Update the List of Input Devices before looking for Device UniqueID
     CMUpdateInputDevices();
 
@@ -1800,16 +1808,16 @@ CMIDI_API CMIDI_INLINE OSStatus CMClientCreate(const char * clientID, MIDINotify
     fprintf(stderr, "# Midi Devices = %lu\n", CMClient.numDevices);
     //if (CMClient.numDevices <= 0) { assert( 1==0); return cmError; }
 
-    OutputDebugString(L"CMClientCreate::4\n");
+    //OutputDebugString(L"CMClientCreate::4\n");
 
     CMUpdateInputDevices();
 
-    OutputDebugString(L"CMClientCreate::5\n");
+    //OutputDebugString(L"CMClientCreate::5\n");
 
     CMUpdateOutputDevices();
     //CMUpdateThruConnections();
     
-    OutputDebugString(L"CMClientCreate::6\n");
+    //OutputDebugString(L"CMClientCreate::6\n");
 
     if( midiReceiveBlock )
     {

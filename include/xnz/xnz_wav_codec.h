@@ -1,8 +1,10 @@
 #ifndef _XNZ_WAV_CODEC_H_
 #define _XNZ_WAV_CODEC_H_
 
-#include <[Pb]Audio/[Pb]Audio/cr_file.h> //CRFile
+#include "cr_file.h" //CRFile
 //#include "stdint.h"         //uint types
+
+//#include <xnz/xnz.h>
 
 #ifdef __cplusplus
 extern "C" {

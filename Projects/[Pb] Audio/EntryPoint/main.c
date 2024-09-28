@@ -30,7 +30,7 @@ PBAStreamOutputPass TestOutputPass = ^(AudioBufferList * _Nonnull ioData, UInt32
 void CALLBACK TestOutputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, struct PBAStreamContext* stream)
 #endif
 {
-    ToneGeneratorRenderPass(ioData, frames, timestamp, &toneGenerator, NULL, 0);
+    ToneGeneratorRenderPass(ioData, frames, timestamp, stream->target, &toneGenerator, NULL, 0);
 };
 
 #ifdef __APPLE__
@@ -608,14 +608,14 @@ void PBAudioInit(void)
     //const char * audioFileURL = "../../assets/Audio/WAV/Test/16_44k_PerfectTest.wav";
     //const char * audioFileExt = "wav\0";
 
-    const char* audioFileURL = "../../assets/Audio/AIF/Print#45.aif";// Print#45.aif";
+    const char* audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/Unknown Artist/Unknown Album/Print#45.aif";// Print#45.aif";
     const char* audioFileExt = "aif\0";
 
     //const char * audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/ArticulationLayers/65 Drum Samples/56442_Surfjira_Snare_HeadShot_Hard.wav";
     //const char * audioFileExt = "wav\0";
         
     ToneGeneratorInit(&toneGenerator, 440.f, PBAudio.OutputStreams[0].currentSampleRate);           //Initialize a 32-bit floating point sine wave buffer
-    SamplePlayerInit(&samplePlayer, audioFileURL, audioFileExt, &PBAudio.OutputStreams[0].format);   //Read an audio file from disk to formatted buffer for playback
+    SamplePlayerInit(&samplePlayer, audioFileURL, audioFileExt, &PBAudio.OutputStreams[0].format);  //Read an audio file from disk to formatted buffer for playback
     
     OutputPass[TestOutputPassID]    = TestOutputPass;
     OutputPass[SamplerOutputPassID] = SamplerOutputPass;
@@ -760,8 +760,11 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
 
                 if( message->group == pba_midi_input_connection)
                 {
+#ifdef _WIN32
                     fprintf(stdout, "PBAudioEventLoop(pba_midi_input_connection)::uniqueID = \n\n%S\n\n", (wchar_t*)message->system.uniqueID);
-
+#else
+                    fprintf(stdout, "PBAudioEventLoop(pba_midi_input_connection)::uniqueID = %d\n\n", message->system.uniqueID);
+#endif
                         if( message->system.status == CMStatusStart) CMidi.CreateInputConnection(message->system.uniqueID);
                    else if( message->system.status == CMStatusStop)  CMidi.DeleteInputConnection(message->system.uniqueID);
 

@@ -406,7 +406,7 @@ typedef HANDLE        cm_kernel_queue_event;
 typedef struct kevent cm_kernel_queue_event;
 #endif
 
-//CM_PLATFORM_EXTERN cm_kernel_queue_id CMTriggerEventQueue; //a global kqueue singleton for the main Core Midi Event Loop to IPC with real-time audio threads
+CM_PLATFORM_EXTERN cm_kernel_queue_id CMTriggerEventQueue; //a global kqueue singleton for the main Core Midi Event Loop to IPC with real-time audio threads
 
 
 //END FREQUENCY DEFINITIONS

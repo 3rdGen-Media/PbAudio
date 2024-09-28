@@ -1,7 +1,7 @@
 #ifndef _XNZ_AIF_CODEC_H_
 #define _XNZ_AIF_CODEC_H_
 
-#include <[Pb]Audio/[Pb]Audio/cr_file.h> //CRFile
+#include "cr_file.h" //CRFile
 //#include "stdint.h"         //uint types
 
 #include <xnz/xnz.h>
@@ -62,6 +62,13 @@ extern "C" {
 #define XNZ_AIF_PACK_ATTRIBUTE __attribute__ ((packed))
 #endif
 #endif
+
+#ifndef MAKEFOURCC
+    #define MAKEFOURCC(ch0, ch1, ch2, ch3)                \
+    ((uint32_t)(uint8_t)(ch0) | ((uint32_t)(uint8_t)(ch1) << 8) | \
+     ((uint32_t)(uint8_t)(ch2) << 16) | ((uint32_t)(uint8_t)(ch3) << 24))
+#endif /* defined(MAKEFOURCC) */
+
 
 typedef unsigned long long uint64;
 
@@ -885,17 +892,17 @@ XNZ_AIF_API XNZ_AIF_INLINE void xnz_aif_parse_chunks(XNZ_AIF_ARCHIVE* archive)
     assert(bytesRead - sizeof(XNZ_AIF_FORM) - padBytes == formChunkSize - 4);
 }
 
-XNZ_AIF_API XNZ_AIF_INLINE void xnz_aif_open(XNZ_AIF_ARCHIVE* archive, char* wavFilePath)
+XNZ_AIF_API XNZ_AIF_INLINE void xnz_aif_open(XNZ_AIF_ARCHIVE* archive, char* aifFilePath)
 {
 
-    if (wavFilePath)
+    if (aifFilePath)
     {
         //1 OPEN THE GBL OR GLTF FILE FOR READING AND GET FILESIZE USING LSEEK
-        archive->file.fd = cr_file_open(wavFilePath);
+        archive->file.fd = cr_file_open(aifFilePath);
         archive->file.size = cr_file_size(archive->file.fd);
-        archive->file.path = wavFilePath;
+        archive->file.path = aifFilePath;
 
-        fprintf(stderr, "\nxnz_aif_open::WAV File Size =  %lu bytes\n", archive->file.size);
+        fprintf(stderr, "\nxnz_aif_open::AIF File Size =  %lu bytes\n", archive->file.size);
 
         //2 MAP THE FILE TO BUFFER FOR READING
 #ifndef _WIN32
@@ -959,6 +966,9 @@ XNZ_AIF_API XNZ_AIF_INLINE void xnz_aif_open(XNZ_AIF_ARCHIVE* archive, char* wav
 
 XNZ_AIF_API XNZ_AIF_INLINE void xnz_aif_read_samples(XNZ_AIF_ARCHIVE* archive, unsigned long long numFramesToRead, void** sampleBuffers)
 {
+    int channel = 0;
+    int frame = 0;
+
     switch (archive->comm.sampleSize)
     {
         case (16):
@@ -970,9 +980,9 @@ XNZ_AIF_API XNZ_AIF_INLINE void xnz_aif_read_samples(XNZ_AIF_ARCHIVE* archive, u
             //dest
             int16_t* hostBuffer = (int16_t*)sampleBuffers[0];
 
-            for (int channel = 0; channel < archive->comm.nChannels; channel++)
+            for (channel = 0; channel < archive->comm.nChannels; channel++)
             {
-                for (int frame = 0; frame < archive->comm.nSampleFrames; frame++)
+                for (frame = 0; frame < archive->comm.nSampleFrames; frame++)
                 {
                     hostBuffer[frame * archive->comm.nChannels + channel] = xnz_be16toh(shortSamplesL[frame * archive->comm.nChannels + channel]);
 
@@ -991,9 +1001,9 @@ XNZ_AIF_API XNZ_AIF_INLINE void xnz_aif_read_samples(XNZ_AIF_ARCHIVE* archive, u
             //dest
             char* hostBuffer = (char*)sampleBuffers[0];
 
-            for (int channel = 0; channel < archive->comm.nChannels; channel++)
+            for (channel = 0; channel < archive->comm.nChannels; channel++)
             {
-                for (int frame = 0; frame < archive->comm.nSampleFrames; frame++)
+                for (frame = 0; frame < archive->comm.nSampleFrames; frame++)
                 {
                     uint64_t i = (frame * archive->comm.nChannels + channel) * 3;
                     //memcpy(&hostBuffer[i], &sourceSamples[i], 3);
@@ -1016,9 +1026,9 @@ XNZ_AIF_API XNZ_AIF_INLINE void xnz_aif_read_samples(XNZ_AIF_ARCHIVE* archive, u
             //dest
             int32_t* hostBuffer = (int32_t*)sampleBuffers[0];
 
-            for (int channel = 0; channel < archive->comm.nChannels; channel++)
+            for (channel = 0; channel < archive->comm.nChannels; channel++)
             {
-                for (int frame = 0; frame < archive->comm.nSampleFrames; frame++)
+                for (frame = 0; frame < archive->comm.nSampleFrames; frame++)
                 {
                     uint64_t i = (frame * archive->comm.nChannels + channel);// *4;
                     hostBuffer[i] = xnz_be32toh(intSamples[i]);

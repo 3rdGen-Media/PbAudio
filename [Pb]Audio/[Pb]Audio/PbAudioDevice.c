@@ -605,8 +605,15 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice d
     OSStatus status = 0;
 #ifdef __APPLE__
     //for each stream
-    volatile bool wasRunning = false;
+    volatile bool wasRunning  = false;
+    //volatile bool wasBypassed = false;
+
     PBAStreamContext * streamContext = &PBAudio.OutputStreams[0];
+    //PBAudioStreamSetBypass(streamContext, true);
+    
+    uint32_t mBytesPerFrame  = streamContext->format.mBytesPerFrame;
+    uint32_t mBitsPerChannel = streamContext->format.mBitsPerChannel;
+
     if( streamContext->audioDevice == deviceID && streamContext->audioUnit && streamContext->running)
     {
         PBAudioStreamStop(streamContext); wasRunning = true;
@@ -628,9 +635,26 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice d
 
     if( streamContext->audioDevice == deviceID && streamContext->audioUnit )
     {
+        AudioFormatFlags flags = streamContext->format.mFormatFlags;
         PBAudioStreamUpdateFormat(streamContext, streamContext->currentSampleRate);
+        
+        //HACK: After setting the buffer size on the device, the audio unit seems to forget its buffer was non-interleaved...
+        streamContext->format.mFormatFlags = flags;
+        
+        //Similarly, mBytesPerFrame changed from 4 to 8 (it should have always been 8) so it is unreliable ... use bitsPerChannel insteasd
+        //assert(streamContext->format.mBytesPerFrame  == mBytesPerFrame);
+        assert(streamContext->format.mBitsPerChannel == mBitsPerChannel);
+        
+        streamContext->target = PBAStreamFormatGetType(&streamContext->format); //enumerate a sample packing protocol for the given format
+
+
+
         if ( wasRunning ) PBAudioStreamStart(streamContext);
+
     }
+    
+    //PBAudioStreamSetBypass(streamContext, wasBypassed);
+
 #else
 
 #endif

@@ -180,11 +180,24 @@ typedef HRESULT OSStatus;
 //Block Parameters
 typedef void* MIDINotification;
 
-typedef struct MIDIEventList
+typedef enum MIDIProtocolID 
 {
-    CMTimestamp timestamp; //The event packet timestamp.
+    kMIDIProtocol_1_0 = 1,
+    kMIDIProtocol_2_0 = 2,
+} MIDIProtocolID;
+
+typedef struct MIDIEventPacket
+{
+    CMTimestamp timeStamp; //The event packet timestamp.
     uint32_t    wordCount; //The number of valid MIDI 32 - bit words in this event packet.
     uint32_t    words[64]; //A variable - length stream of native - endian 32 - bit Universal MIDI Packets(UMP).
+}MIDIEventPacket;
+
+typedef struct MIDIEventList
+{
+    MIDIProtocolID  protocol; //The MIDI protocol variant of the events in the list.
+    uint32_t        numPackets;
+    MIDIEventPacket packet[1];
 }MIDIEventList;
 
 

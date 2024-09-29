@@ -15,7 +15,6 @@
 #endif
 #endif
 
-
 #ifdef __BLOCKS__
 PBARenderPass SamplePlayerRenderPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, //Required
                                          PBAStreamFormatSampleType  target, void* source,  void* events, uint32_t nEvents)            //Extended
@@ -24,11 +23,9 @@ void        SamplePlayerRenderPass      (struct PBABufferList*     ioData, uint3
                                         PBAStreamFormatSampleType target, void*    source, void* events, uint32_t nEvents)            //Extended
 #endif
 {
-    //UINT64 playbackSampleOffset = 0;
     uint32_t samplesToCopy = 0;
     uint32_t remainingSamples =0;
-    uint32_t bufferIndex = 0;
-    uint32_t frameIndex = 0;
+    //uint32_t frameIndex = 0;
 
 //#ifdef DEBUG
 //        uint64_t start = PBACurrentTimeInHostTicks();

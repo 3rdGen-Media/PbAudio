@@ -94,10 +94,16 @@ typedef uintptr_t  pba_platform_event_msg;
 #ifndef WM_APP
 #define WM_APP 0x8000
 #endif
-#define PBA_EVENT_MSG_BASE_ID WM_APP
-#define PBA_EVENT_MSG_LOOP_QUIT                     PBA_EVENT_MSG_BASE_ID + 1
+#define PBA_EVENT_MSG_BASE_ID                       WM_APP
 
-#define PBA_EVENT_UMP_CONTROL                       PBA_EVENT_MSG_LOOP_QUIT + 1 // HID Event
+//System Run Loop Messages
+#define PBA_EVENT_MSG_LOOP_QUIT                     PBA_EVENT_MSG_BASE_ID   + 1
+
+//Real-Time Audio Thread Messages
+#define PBA_EVENT_NOTE_TRIGGER                      PBA_EVENT_MSG_LOOP_QUIT + 1 // HID Event
+
+//Application Run Loop Messages
+#define PBA_EVENT_UMP_CONTROL                       PBA_EVENT_NOTE_TRIGGER  + 1 // HID Event
 
 
 //#define PBA_EVENT_MSG_BASE_ID                       CR_PLATFORM_EVENT_MSG_LOOP_QUIT + 1

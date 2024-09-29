@@ -1344,7 +1344,7 @@ void DemoApp::CreateMidiInputFilterView()
     int srcIndex = 0;
     for (int i = 0; i < numSources; i++)
     {
-        CMSource* source = m_midi->Source(i);
+        const CMSource* source = m_midi->Source(i);
         CreateColItem(midiInputFilterView, (wchar_t*)source->name, false);
 
     }

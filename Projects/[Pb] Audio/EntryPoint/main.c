@@ -1,28 +1,32 @@
 //
-//  main.m
+//  main.c
 //  [Pb] Audio
 //
 //  Created by Joe Moulton on 6/28/20.
 //  Copyright © 2020 3rdGen Multimedia. All rights reserved.
 //
 
-
 #include "PbAudioAppInterface.h"
 
+//[Pb]Audio + CMidi Notifications
+#include "../CustomNotificationClient.h"
+
+//Window Runloop
 #ifdef USE_CPP_RUNLOOP
 #include "../Vanilla/EntryPoint/PbAudioApplication.h"
-//#include "../CustomNotificationClient.h"
 //CMMNotificationClient g_notificationClient;// = new (std::nothrow) CMMNotificationClient();
 #endif
 
-#pragma mark -- [Pb]Audio Stream Output Pass
-
+//[Pb]Audio Renderpass(es)
 #include "../ToneGenerator.h"
 #include "../SamplePlayer.h"
 
 SamplePlayer  samplePlayer  = {0};
 ToneGenerator toneGenerator = {0};
 
+#pragma mark -- [Pb]Audio Stream OutputPass Callbacks
+
+PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID] = {0};
 
 #ifdef __APPLE__
 PBAStreamOutputPass TestOutputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* stream)
@@ -39,14 +43,52 @@ PBAStreamOutputPass SamplerOutputPass = ^(AudioBufferList * _Nonnull ioData, UIn
 void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, struct PBAStreamContext* stream)
 #endif
 {
+    pba_platform_event_msg msg = {0}; //this is like kev
+
     //local trigger event iterator/cache
     int nTriggerEvents = 0;
     CMTriggerMessage* triggerEvent = NULL;
     CMTriggerMessage  triggerEvents[MAX_TRIGGER_EVENTS];
-
     
+    //Thread Queue Message Processing
 #ifdef CR_TARGET_WIN32
-    //...
+    // NOTE: it is imperative that PeekMessage() is used rather than GetMessage() when on background render thread
+    // listen to the queue in case this thread received a message from the event queue on another thread
+    //listen after command buffer has been passed to opengl for the current frame, if we read before this causes dropped frames on resize
+    //but it also means events won't be processed until the following frame, which in most cases is generally ok
+    //passing NULL for second parameter ensures that messages for the platform window AND non-window thread messages will be processed
+    //maximum of 10000 messages per queue
+
+    //First look for messages in the range of PBA_XXX_EVENT_MSG Type
+    //if (PeekMessage(&msg, -1, CR_PLATFORM_WINDOW_EVENT_MSG_PAUSE, CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE, PM_REMOVE))
+    //{
+    //    crgc_view_handle_render_thead_message(view, msg.message, msg.wParam, msg.lParam);
+    //    memset(&msg, 0, sizeof(MSG));
+    //}
+
+    //Next look for events scheduled to queue of type CMTriggerMessage
+    while (PeekMessage(&msg, (HWND)-1, PBA_EVENT_NOTE_TRIGGER, PBA_EVENT_NOTE_TRIGGER, PM_REMOVE))// && n < cr_control_event_type_max)
+    {
+        //cache trigger events + values pulled from the queue
+        //int condition = (msg.wParam >= cr_control_event_type_max); //cr_control_event_type vs cr_button_event_type
+        triggerEvent = (CMTriggerMessage*)(msg.lParam);              //src event memory
+        
+        //TO DO: cache the event in the note:articulation map
+        //trigger_event_frame.events[kev[i].ident] = *controlEvent;  //cache previous events of type
+                
+        //TO DO: count # of trigger events for each articulation
+                
+        //Unpack/Process the Triggered Note
+        uint8_t note     = CMNoteNumberFromEventWord(triggerEvent->word);
+        uint8_t velocity = CMNoteVelocityFromEventWord(triggerEvent->word);
+        fprintf(stdout, "\nTrigger Event (%llu) Note = %u (%u)\n", msg.wParam, note, velocity);
+
+        memset(&msg, 0, sizeof(MSG));
+        nTriggerEvents++; // += !condition;
+    }
+
+    //nControlEvents -= nButtonEvents;
+
 #else
     struct kevent kev[MAX_TRIGGER_EVENTS];
         
@@ -88,15 +130,15 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
     //Outputpass pipeline can be configured w/ custom buffer routing schemes by modifying renderpass input/output here...
     
     //A renderpass has a source resource format (SRV) and a target format (RTV)
-    //The source format/buffer and target format/buffer can be the same 
-    //However, if they differ then the renderpass needs to handle conversion
+    //The source format/buffer and target format/buffer can be the same or different
+    //Resolve happens internally to the renderpass with a lookup into pb_audio_transforms
+
     SamplePlayerRenderPass(ioData, frames, timestamp, stream->target, &samplePlayer, triggerEvent, 1);
 };
 
-PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID] = {0};
 
 
-#pragma mark -- CMidi Device Messages
+#pragma mark -- CMidi API Callbacks
 
 #ifdef __BLOCKS__
 MIDINotifyBlock CMidiNotifyBlock = ^void(const MIDINotification *msg)
@@ -165,12 +207,13 @@ MIDIReceiveBlock CMidiReceiveBlock = ^void(const MIDIEventList *evtlist, void * 
 void CMidiReceiveBlock(const MIDIEventList * evtlist, void* srcConnRefCon)
 #endif
 {
-    //OSStatus cmError;
 #ifdef MIDI_DEBUG
     fprintf(stdout, "\nCMidiReceiveBlock\n");
 #endif
     
-    CMConnection* connection = (CMConnection*)srcConnRefCon;
+    //TO DO:  Win32 still needs to pass CMConnection interally via CMidi lambda
+    CMConnection* connection = (CMConnection*)srcConnRefCon; //assert(connection);
+
     //NSString* sourceEndpointUniqueIDKey = [NSString stringWithFormat:@"%d", connection->source.uniqueID];// sourceEndpointUniqueID];
     
     //Find the DOM of the device determined by the sourcedEndpointUniqueID
@@ -182,39 +225,34 @@ void CMidiReceiveBlock(const MIDIEventList * evtlist, void* srcConnRefCon)
     //assert(MCUDevice);
     //assert(ThruConnection);
         
-
-#ifdef __APPLE__
-    //MIDIEventListForEachEvent
-    if (evtlist->numPackets > 0) //&& msgQueue)
+    if (evtlist->numPackets > 0) //when would numPackets ever be less than 1?
     {
         const MIDIEventPacket * packet = &evtlist->packet[0];
         for (int i = 0; i < evtlist->numPackets; ++i)
-        {
-            
+        {   
             for (int wordIndex = 0; wordIndex < packet->wordCount; ++wordIndex)
             {
                 // Shift the message by 28 bits to get the message type nibble.
-                MIDIMessageType messageType = packet->words[wordIndex] >> 28;
+                CMMessageType messageType = (CMMessageType)(packet->words[wordIndex] >> 28);
                 
                 //To get only the status nibble, shift by 20 bits (the start position of the status)
                 //and then perform an AND operation to clear the message type and group nibbles.
-                MIDICVStatus status = (packet->words[wordIndex] >> 20) & 0x00f;
+                CMMessageCVStatus status = (CMMessageCVStatus)((packet->words[wordIndex] >> 20) & 0x00f);
                 
 #ifdef MIDI_DEBUG
-                //Log Message for Debugging
                 //NSMutableString * hexString = [NSMutableString string];
                 //for(int wordIndex = 0; wordIndex<packet->wordCount; wordIndex++) [hexString appendString:[NSString stringWithFormat:@"%08x,", packet->words[wordIndex]]];
-
                 fprintf(stdout, "\n------------------------------------");
                 fprintf(stdout, "\nUniversal MIDI Packet nBytes:  %d", packet->wordCount);
                 fprintf(stdout, "\nData:  ");
                 /*for(int wordIndex = 0; wordIndex<packet->wordCount; wordIndex++)*/ fprintf(stdout, "%08x,", packet->words[wordIndex]);
                 fprintf(stdout, "\n");
                 fprintf(stdout, "\nMessageType:  %d = %s (%s)", messageType, CMStringForMIDIMessageType(messageType), CMStringForMIDICVStatus(status));
-                fprintf(stdout, "\nEndpoint ID:  %d\n", connection->source.uniqueID);
+                fprintf(stdout, "\nEndpoint ID:  %lld\n", connection->source.uniqueID);
 #endif
                 
-                //process MIDI Event packets on input port manually
+                //process MIDI Event packets on input port:
+                
                 //unpack event and queue commands for midi note audio source modules
                 if (messageType == CMMessageTypeChannelVoice1 || messageType == CMMessageTypeChannelVoice2)
                 {
@@ -234,231 +272,50 @@ void CMidiReceiveBlock(const MIDIEventList * evtlist, void* srcConnRefCon)
                         triggerMessage->cursor.offset     = 0;
                         triggerMessage->word              = packet->words[wordIndex];
                         
+#ifdef _WIN32
+                        //Unlike kqueue which can be globally subscribed to by a single anonymous consumer
+                        //Win32 needs to Queue Messages directly to a Thread, IOCP Port, or Broadcast Type
+                        //  1.  IOCP Ports are going to force the thread to wait... no good
+                        //  2.  I don't understand how custom broadcast messages work yet
+                        //  3.  A given thread's queue can be produced to/consumed from with PostThreadMessage/PeekMessage API
+                        //PostThreadMessage(eventQueue, CR_SCENE_CONTROL_EVENT, sceneEvent->type, sceneEvent);
+                        PostThreadMessage((DWORD)PBAudio.OutputStreams[0].audioThreadID, PBA_EVENT_NOTE_TRIGGER, triggerMessage->timestamp, (LPARAM)triggerMessage);
+#else
                         struct kevent kev;
                         EV_SET(&kev, note, EVFILT_USER, 0, NOTE_TRIGGER, 0, triggerMessage);
                         kevent(CMTriggerEventQueue, &kev, 1, NULL, 0, NULL);
-                        
+#endif                        
                         //fprintf(stdout, "\nTrigger Note = %u (%u)\n", note, velocity);
-                        
                     }
-                    //MidiNote *note = [[MidiNote alloc] initWithPacket:packet];
                     
                 }
             }
             
+#ifdef __APPLE__
             packet = MIDIEventPacketNext(packet);
+#else
+            assert(evtlist->numPackets == 1);
+#endif
         }
     }
-#else
 
-#endif
 
 };
 
 
-
-#ifdef __APPLE__
-
-#pragma mark -- CFNotification Center Notifications
-
-void mainWindowChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo) {
-    
-    fprintf(stdout, "\nMain Window Changed!\n");
-    
-    CFShow(CFSTR("Received notification (dictionary): ")); CFShow(name);
-    assert(object);
-    assert(userInfo);
-    // print out user info
-    const void * keys; const void * values;
-    CFDictionaryGetKeysAndValues(userInfo, &keys, &values);
-    for (int i = 0; i < CFDictionaryGetCount(userInfo); i++) {
-        const char * keyStr = CFStringGetCStringPtr((CFStringRef)&keys[i],   CFStringGetSystemEncoding());
-        const char * valStr = CFStringGetCStringPtr((CFStringRef)&values[i], CFStringGetSystemEncoding());
-        fprintf(stdout, "\t\t \"%s\" = \"%s\"\n", keyStr, valStr);
-    }
-    
-}
-
-void NSApplicationDidBecomeActiveNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
-{
-    fprintf(stdout, "\nNSApplicationDidBecomeActiveNotificationCallback\n");
-}
-
-void NSApplicationDidResignActiveNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
-{
-    fprintf(stdout, "\nNSApplicationDidResignActiveNotificationCallback\n");
-}
-
-#pragma mark -- PBAudioDevice Notification Observer Callbacks
-
-static void PBAudioDeviceDefaultOutputChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
-{
-    AudioDeviceID outputDeviceID; PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &outputDeviceID);
-    
-    assert(userInfo);
-
-    PBAStreamContext * DeviceStream = (PBAStreamContext*)CFDictionaryGetValue(userInfo, CFSTR("DeviceStream"));     assert(DeviceStream);
-    //CFNumberRef        DeviceRef    =       (CFNumberRef)CFDictionaryGetValue(userInfo, CFSTR("OutputDeviceID")); assert(DeviceRef);
-    //BOOL success = CFNumberGetValue( DeviceRef, kCFNumberSInt32Type, &outputDeviceID); assert(success);
-    
-    fprintf(stdout, "\nPBAudioDeviceDefaultOutputChangedNotificationCallback (AudioDeviceID: %u)\n", outputDeviceID);
- 
-    //Check if the current stream is using the default device
-    //If it is then we have discretion here to redirect the audio to the new default
-    if ( DeviceStream->respectDefault )
-    {
-        // Replace audio device with updated system default device
-        //weakSelf.audioDevice = weakSelf.outputEnabled ? AEAudioDevice.defaultOutputAudioDevice : AEAudioDevice.defaultInputAudioDevice;
-        PBAudio.SetOutputDevice(DeviceStream, outputDeviceID); //This will stop and restart the audio unit attached to the stream context
-    }
-    
-}
-
-static void PBAudioStreamFormatChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
-{
-    AudioDeviceID outputDeviceID; PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &outputDeviceID);
-    
-    assert(userInfo);
-
-    PBAStreamContext * DeviceStream = (PBAStreamContext*)CFDictionaryGetValue(userInfo, CFSTR("DeviceStream"));     assert(DeviceStream);
-    //CFNumberRef        DeviceRef    =       (CFNumberRef)CFDictionaryGetValue(userInfo, CFSTR("OutputDeviceID")); assert(DeviceRef);
-    //BOOL success = CFNumberGetValue( DeviceRef, kCFNumberSInt32Type, &outputDeviceID); assert(success);
-    
-    fprintf(stdout, "\nPBAudioStreamFormatChangedNotificationCallback (AudioDeviceID: %u)\n", outputDeviceID);
- 
-}
-
-static void PBAudioStreamSampleRateChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
-{
-    assert(userInfo);
-
-    PBAStreamContext * DeviceStream = (PBAStreamContext*)CFDictionaryGetValue(userInfo, CFSTR("DeviceStream"));     assert(DeviceStream);
-    //CFNumberRef        DeviceRef    =       (CFNumberRef)CFDictionaryGetValue(userInfo, CFSTR("OutputDeviceID")); assert(DeviceRef);
-    //BOOL success = CFNumberGetValue( DeviceRef, kCFNumberSInt32Type, &outputDeviceID); assert(success);
-    
-    fprintf(stdout, "\nPBAudioStreamSampleRateChangedNotificationCallback (Sample Rate: %lu)\n", (unsigned int)DeviceStream->currentSampleRate);
- 
-    //Modify Application State Based on Notification Here:
-    ToneGeneratorSetFrequency(&toneGenerator, toneGenerator.freq, DeviceStream->currentSampleRate);
-    
-    //TO DO:  Reload audio files from source with conversion to new sample rate format
-}
-
-
-static void PBAudioDevicesAvailableChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
-{
-    
-    fprintf(stdout, "\nPBAudioDevicesAvailableChangedNotificationCallback\n");
-    
-    /*
-    [NSNotificationCenter.defaultCenter addObserverForName:AEAudioDeviceAvailableDevicesChangedNotification object:nil queue:nil usingBlock:^(NSNotification * note) {
-        NSArray <AEAudioDevice *> * availableDevices = AEAudioDevice.availableAudioDevices;
-        if ( ![availableDevices containsObject:weakSelf.audioDevice] ) {
-            // Replace audio device with new default if device disappears
-            weakSelf.audioDevice = weakSelf.outputEnabled ? AEAudioDevice.defaultOutputAudioDevice : AEAudioDevice.defaultInputAudioDevice;
-        }
-    }];
-    */
-}
-
-static void CMidiSourcesAvailableChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
-{
-    fprintf(stdout, "\nCMidiSourcesAvailableChangedNotificationCallback\n");
-}
-
-static void CMidiDestinationsAvailableChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
-{
-    fprintf(stdout, "\nCMidiDestinationsAvailableChangedNotificationCallback\n");
-}
-
-
-static void RegisterNotificationObservers(void)
-{
-    CFNotificationCenterRef center = CFNotificationCenterGetLocalCenter();
-    assert(center);
-    
-    // add an observer
-    CFNotificationCenterAddObserver(center, NULL, NSApplicationDidBecomeActiveNotificationCallback,
-                                    CFSTR("NSApplicationDidBecomeActiveNotification"), NULL,
-                                    CFNotificationSuspensionBehaviorDeliverImmediately);
-    
-    CFNotificationCenterAddObserver(center, NULL, NSApplicationDidResignActiveNotificationCallback,
-                                    CFSTR("NSApplicationDidResignActiveNotification"), NULL,
-                                    CFNotificationSuspensionBehaviorDeliverImmediately);
-    
-    CFNotificationCenterAddObserver(center, NULL, mainWindowChangedNotificationCallback,
-                                    CFSTR("CGWindowDidBecomeMainNotification"), NULL,
-                                    CFNotificationSuspensionBehaviorDeliverImmediately);
-    
-    //[Pb]Audio Device Notifications
-    
-    //__weak typeof(self) weakSelf = self;
-    //self.defaultDeviceObserverToken =
-    CFNotificationCenterAddObserver(center, NULL, PBAudioDeviceDefaultOutputChangedNotificationCallback,
-                                    CFSTR("PBADeviceDefaultOutputDeviceChangedNotification"), //_PBAMasterStream->outputEnabled ? kPBADeviceDefaultOutputChangedNotification : kPBADeviceDefaultInputChangedNotification,
-                                    NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
-    
-
-    //[Pb]Audio Stream Config Notifications
-
-    //self.deviceAvailabilityObserverToken =
-    CFNotificationCenterAddObserver(center, NULL, PBAudioDevicesAvailableChangedNotificationCallback,
-                                    CFSTR("PBADeviceAvailableDevicesChangedNotification"),
-                                    NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
-    
-    CFNotificationCenterAddObserver(center, NULL, PBAudioStreamSampleRateChangedNotificationCallback,
-                                    CFSTR("PBAudioStreamSampleRateChangedNotification"),
-                                    NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
-    
-    
-    //CMidi Device Config Notifications
-
-    CFNotificationCenterAddObserver(center, NULL, CMidiSourcesAvailableChangedNotificationCallback,
-                                    CFSTR("CMidiSourcesAvailableChangedNotification"),
-                                    NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
-
-    CFNotificationCenterAddObserver(center, NULL, CMidiDestinationsAvailableChangedNotificationCallback,
-                                    CFSTR("CMidiDestinationsAvailableChangedNotification"),
-                                    NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
-
-    
-    /*
-     // post a notification
-     CFDictionaryKeyCallBacks keyCallbacks = {0, NULL, NULL, CFCopyDescription, CFEqual, NULL};
-     CFDictionaryValueCallBacks valueCallbacks  = {0, NULL, NULL, CFCopyDescription, CFEqual};
-     CFMutableDictionaryRef dictionary = CFDictionaryCreateMutable(kCFAllocatorDefault, 1,
-     &keyCallbacks, &valueCallbacks);
-     CFDictionaryAddValue(dictionary, CFSTR("TestKey"), CFSTR("TestValue"));
-     CFNotificationCenterPostNotification(center, CFSTR("MyNotification"), NULL, dictionary, TRUE);
-     CFRelease(dictionary);
-     */
-    
-    // remove oberver
-    //CFNotificationCenterRemoveObserver(center, NULL, CFSTR("TestValue"), NULL);
-}
-
-#endif //__APPLE__
-
-
-
 void InitPlatform()
 {
-    //cr_appEventQueue = 0;
 #ifdef _WIN32
-    //cr_mainThread = GetCurrentThread();
-    //cr_mainThreadID = GetCurrentThreadId();
-    //WAVEFORMATEX desiredStreamFormat;// = NULL;        //stream buffer format
 
     HANDLE pID = 0;
     HANDLE threadID;
 
     //Elevate Process And Thread Priorities
     pID = (HANDLE)GetProcessId(GetCurrentProcess()); threadID = GetCurrentThread();
-    SetPriorityClass(pID, REALTIME_PRIORITY_CLASS);
-    //SetThreadPriority(threadID, THREAD_PRIORITY_TIME_CRITICAL);
+    SetPriorityClass(pID, REALTIME_PRIORITY_CLASS); //SetThreadPriority(threadID, THREAD_PRIORITY_TIME_CRITICAL);
     
 #elif defined(__APPLE__) && TARGET_OS_OSX
-     //Initialize kernel timing mechanisms for debugging
+    //Initialize kernel timing mechanisms for debugging
     //monotonicTimeNanos();
 
     //We can do some Cocoa initializations early, but don't need to
@@ -570,34 +427,28 @@ int StartPlatformEventLoop(int argc, const char * argv[])
 }
 
 
-
 void PBAudioInit(void)
 {
-    int i = 0;
-
     //Process and Thread Handles
     PBAStreamFormat desiredStreamFormat;
-#ifdef WIN32
-    
-    //Send the desired format to PBAInitStream if we wish to use an exclusive mode stream on Win32
-    //or a non-default format on Darwin platforms
-    desiredStreamFormat.wFormatTag      = WAVE_FORMAT_PCM;//((WAVEFORMATEXTENSIBLE*)pwfx)->SubFormat;
-    desiredStreamFormat.nChannels       = 2;//pwfx->nChannels;
-    desiredStreamFormat.nSamplesPerSec  = 48000;//pwfx->nSamplesPerSec;
-    desiredStreamFormat.nAvgBytesPerSec = 288000;//g_format.nSamplesPerSec * 8;//pwfx->nAvgBytesPerSec;
-    desiredStreamFormat.nBlockAlign     = 6;//pwfx->nBlockAlign;
-    desiredStreamFormat.wBitsPerSample  = 24;//pwfx->wBitsPerSample;
-    desiredStreamFormat.cbSize          = 0;
-#elif defined(__APPLE__)
-    //AudioStreamBasicDescription audioDescription;
     memset(&desiredStreamFormat, 0, sizeof(desiredStreamFormat));
+
+#ifdef defined(_WIN32)                     //WAVEFORMATEXTENSIBLE
+    desiredStreamFormat.wFormatTag         = WAVE_FORMAT_PCM;
+    desiredStreamFormat.nChannels          = 2;
+    desiredStreamFormat.nSamplesPerSec     = 48000;
+    desiredStreamFormat.nAvgBytesPerSec    = 288000;
+    desiredStreamFormat.nBlockAlign        = 6;
+    desiredStreamFormat.wBitsPerSample     = 24;
+    desiredStreamFormat.cbSize             = 0;
+#elif defined(__APPLE__)                   //AudioStreamBasicDescription 
     desiredStreamFormat.mFormatID          = kAudioFormatLinearPCM;
     desiredStreamFormat.mFormatFlags       = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked |kAudioFormatFlagIsNonInterleaved;
     desiredStreamFormat.mChannelsPerFrame  = 2;
     desiredStreamFormat.mBytesPerPacket    = sizeof(float);
     desiredStreamFormat.mFramesPerPacket   = 1;
     desiredStreamFormat.mBytesPerFrame     = sizeof(float);
-    desiredStreamFormat.mBitsPerChannel    = 8 * sizeof(float);
+    desiredStreamFormat.mBitsPerChannel    = sizeof(float) * 8;
     desiredStreamFormat.mSampleRate        = 48000;
 #endif
 
@@ -605,23 +456,26 @@ void PBAudioInit(void)
     PBAudio.Init(&PBAudio.OutputStreams[0], NULL, kAudioObjectUnknown, SamplerOutputPass);
     
     //Load some audio from disk while converting to the desired format
-    //const char * audioFileURL = "../../assets/Audio/WAV/Test/16_44k_PerfectTest.wav";
+    //const char * audioFileURL = "../../assets/Audio/WAV/Test/16_48k_PerfectTest.wav";
     //const char * audioFileExt = "wav\0";
 
-    const char* audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/Unknown Artist/Unknown Album/Print#45.aif";// Print#45.aif";
+    //"/Users/jmoulton/Music/iTunes/iTunes Media/Music/Unknown Artist/Unknown Album/Print#45.aif";
+    const char* audioFileURL = "../../assets/Audio/AIF/Print#45.aif"; 
     const char* audioFileExt = "aif\0";
 
     //const char * audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/ArticulationLayers/65 Drum Samples/56442_Surfjira_Snare_HeadShot_Hard.wav";
     //const char * audioFileExt = "wav\0";
-        
+    
+    //Initialize Renderpasses
     ToneGeneratorInit(&toneGenerator, 440.f, PBAudio.OutputStreams[0].currentSampleRate);           //Initialize a 32-bit floating point sine wave buffer
     SamplePlayerInit(&samplePlayer, audioFileURL, audioFileExt, &PBAudio.OutputStreams[0].format);  //Read an audio file from disk to formatted buffer for playback
     
+    //Cache Output Passes
     OutputPass[TestOutputPassID]    = TestOutputPass;
     OutputPass[SamplerOutputPassID] = SamplerOutputPass;
 
+    //Register custom "notification client" objects across threads/processes as needed
     //PBAudioRegisterDeviceListeners(&g_notificationClient, NULL);
-    
 }
 
 //must return void* in order to use with GCD dispatch_async_f
@@ -714,24 +568,8 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
 
     while (1)
     {
-        /*
-        //Next look for events scheduled to queue of type cr_control_event
-        while (PeekMessage(&msg, (HWND)-1, PBA_EVENT_UMP_CONTROL, PBA_EVENT_UMP_CONTROL, PM_REMOVE))// && n < cr_control_event_type_max)
-        {
-            //cache control events + values pulled from the queue
-            //int condition = (msg.wParam >= cr_control_event_type_max); //cr_control_event_type vs cr_button_event_type
-            message = (CMUniversalMessage*)(msg.lParam); //src event memory
-
-            //frame_event = condition ? &button_event_frame.events[nButtonEvents++] : &control_event_frame.events[msg.wParam]; //dst event memory
-            //*frame_event = *controlEvent;                                                                          //copy src to dst
-
-            memset(&msg, 0, sizeof(MSG));
-            //nControlEvents++; // += !condition;
-        }
-        //nControlEvents -= nButtonEvents;
-        */
-
 #ifdef _WIN32
+        
         pba_platform_event_msg msg = { 0 }; //this is like kev
         memset(&msg, 0, sizeof(MSG));
 
@@ -740,17 +578,16 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
         message = (CMUniversalMessage*)(msg.lParam); //src event memory
         messageType = (CMMessageType)msg.wParam;
 
-
 #elif defined(__APPLE__)
 
         struct kevent kev;
-        
-        //SYSEX: [F7, manufacturer id, channel id, device id, command id, param id, param value, F7]
         
         //idle until we receive kevent from our kqueue
         messageType = (CMMessageType)pba_event_queue_wait_with_timeout(PBAudio.eventQueue.kq, &kev, EVFILT_USER, CMMessageTypeTimeout, CMMessageTypeUnknownF, CMMessageTypeUtility, CMMessageTypeData128, UINT_MAX);
         CMUniversalMessage * message = (CMUniversalMessage*)kev.udata;
 #endif
+
+        //SYSEX: [F7, manufacturer id, channel id, device id, command id, param id, param value, F7]
 
         switch(messageType)
         {
@@ -770,6 +607,8 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
 
                         break;
                 }
+
+                break;
             }
                 
             case (CMMessageTypeData128):
@@ -792,6 +631,7 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
 
                 }
                     
+                break;
             }
                 
             default:
@@ -811,7 +651,7 @@ void StartAudioMessageEventLoop(void)
     //Create IOCP port/kqueue for [Pb]Audio Application<->Process IPC
     PBAudio.eventQueue = PBAKernelQueueCreate();
 
-    //It is not be strictly necessary to occur before but for posterity events are registered to the queue prior to initializing [Pb]Audio
+    //It is not strictly necessary to occur before but for posterity events are registered to the queue prior to initializing [Pb]Audio
 #ifdef __APPLE__
     uint64_t audioEvent;
 
@@ -963,7 +803,7 @@ int main(int argc, const char * argv[]) {
      *
      *  Option 5.1:  CoreFoundation CFNotificationCenter
      *
-     *  Despite managing all window related UI, we still rely on Cocoa to:
+     *  Despite managing all window related UI w/ CoreRender, we still rely on Cocoa to:
      *
      *  1.  load application info.pist and bundle resources,
      *  2.  Setup Application Notifications using NSNotification Center

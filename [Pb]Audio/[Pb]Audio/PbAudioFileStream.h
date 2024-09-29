@@ -67,7 +67,7 @@ typedef struct PBAFile
     PBAStreamFormat         conversionFormat;
     
     //TO DO:  Should this be arbitrary channel size?
-    void *                  samples[2]; // stereo buffer for unpacking audio file;
+    unsigned char *         samples[2]; // stereo buffer for unpacking audio file;
     uint64_t                numFrames;
 
     PBASampleType           type;       //enumerate a sample packing protocol for the given file format

@@ -139,8 +139,8 @@ typedef struct {
 #endif
 
 #ifndef AUDCLNT_SHAREMODE_SHARED
-#define AUDCLNT_SHAREMODE_SHARED 0
-#define AUDCLNT_SHAREMODE_EXCLUSIVE 0
+#define AUDCLNT_SHAREMODE_SHARED    0
+#define AUDCLNT_SHAREMODE_EXCLUSIVE 1
 #endif
 
 typedef enum PBADriverMode

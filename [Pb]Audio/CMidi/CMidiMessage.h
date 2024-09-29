@@ -471,7 +471,7 @@ typedef struct CMTriggerMessage
     //const MIDIEventPacket* packet;
     MIDITimeStamp        timestamp; /*UInt64*/
 #else
-    CMTimestamp          timeStamp;
+    CMTimestamp          timestamp;
 #endif
 
     CMTriggerCursor        cursor; //sample cursor value for rescheduling

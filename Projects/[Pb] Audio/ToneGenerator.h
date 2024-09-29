@@ -19,7 +19,7 @@ extern "C" {
 #ifdef __BLOCKS__
 PB_AUDIO_EXTERN PBARenderPass ToneGeneratorRenderPass;
 #else
-void CALLBACK ToneGeneratorRenderPass(struct PBABufferList* ioData,  uint32_t frames, const struct PBATimeStamp* timestamp, void* source, void* events, uint32_t nEvents);
+void CALLBACK ToneGeneratorRenderPass(struct PBABufferList* ioData,  uint32_t frames, const struct PBATimeStamp* timestamp, PBAStreamFormatSampleType target, void* source, void* events, uint32_t nEvents);
 #endif
 
 typedef struct ToneGeneratorParams

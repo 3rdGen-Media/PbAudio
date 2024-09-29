@@ -193,11 +193,10 @@ typedef struct CMClientContext
 // MidiMessageReceivedEventArgs class provides the different ways to access the data
 // Your event handlers should return quickly as they are called synchronously.
 
-auto UniversalMessagePacketHandler(CMClientContext* midiClient)
+auto UniversalMessagePacketHandler(CMClientContext* midiClient, CMConnection* connection)
 {
-    auto MessageReceivedHandler = [&, midiClient](foundation::IInspectable const& /*sender*/, MidiMessageReceivedEventArgs const& args)
-        {
-
+    auto MessageReceivedHandler = [&, midiClient, connection](foundation::IInspectable const& /*sender*/, MidiMessageReceivedEventArgs const& args)
+    {
             // there are several ways to get the message data from the arguments. If you want to use
             // strongly-typed UMP classes, then you may start with the GetUmp() method. The GetXXX calls 
             // are all generating something within the function, so you want to call them once and then
@@ -206,12 +205,12 @@ auto UniversalMessagePacketHandler(CMClientContext* midiClient)
             // passed in to the functions.
             auto ump = args.GetMessagePacket();
 
-            std::cout << std::endl;
-            std::cout << "Received UMP" << std::endl;
-            std::cout << "- Current Timestamp: " << std::dec << MidiClock::Now() << std::endl;
-            std::cout << "- UMP Timestamp:     " << std::dec << ump.Timestamp() << std::endl;
-            std::cout << "- UMP Msg Type:      0x" << std::hex << (uint32_t)ump.MessageType() << std::endl;
-            std::cout << "- UMP Packet Type:   0x" << std::hex << (uint32_t)ump.PacketType() << std::endl;
+            //std::cout << std::endl;
+            //std::cout << "Received UMP" << std::endl;
+            //std::cout << "- Current Timestamp: " << std::dec << MidiClock::Now() << std::endl;
+            //std::cout << "- UMP Timestamp:     " << std::dec << ump.Timestamp() << std::endl;
+            //std::cout << "- UMP Msg Type:      0x" << std::hex << (uint32_t)ump.MessageType() << std::endl;
+            //std::cout << "- UMP Packet Type:   0x" << std::hex << (uint32_t)ump.PacketType() << std::endl;
             
             //TO DO: this is causing an early return of lambda for ill formatted messages
             //std::cout << "- Message:           " << winrt::to_string(MidiMessageHelper::GetMessageDisplayNameFromFirstWord(args.PeekFirstWord())) << std::endl;
@@ -227,17 +226,15 @@ auto UniversalMessagePacketHandler(CMClientContext* midiClient)
                 std::cout << "- Word 0:            0x" << std::hex << ump32.Word0() << std::endl;
 
                 //Populate a MIDIEventList
-                MIDIEventList eventList = { ump32.Timestamp(), 1, ump32.Word0() };
+                MIDIEventPacket packet    = { ump32.Timestamp(), 1, ump32.Word0() };
+                MIDIEventList   eventList = { kMIDIProtocol_1_0, 1, packet        };
 
-                //TO DO: how to get the connection context to this lambda?
                 assert(midiClient); assert(midiClient->inPort);
-                midiClient->inPort(&eventList, NULL);
+                midiClient->inPort(&eventList, connection);
             }
 
-            std::cout << std::endl;
-
-
-        };
+            //std::cout << std::endl;
+    };
 
     return MessageReceivedHandler;
 }
@@ -968,7 +965,7 @@ CMConnection* CMCreateInputConnectionAtIndex(const char * inputID, CMSource* sou
     GUID        connectionGUID = reinterpret_cast<GUID&>(connectionID); //convert to abi w/out <unknwn.h>
 
     // the returned token is used to deregister the event later.
-    auto eventRevokeToken = endpointConnection.MessageReceived(UniversalMessagePacketHandler(&CMClient));
+    auto eventRevokeToken = endpointConnection.MessageReceived(UniversalMessagePacketHandler(&CMClient, &CMClient.inputConnections[inputIndex]));
     
     //Note: On Windows MIDI Services CMConnection.connection is the GUID of a MidiEndpointConnection reference
     CMClient.inputConnections[inputIndex].connection = connectionGUID; // *(void**)&endpointConnection;//thruConnection;

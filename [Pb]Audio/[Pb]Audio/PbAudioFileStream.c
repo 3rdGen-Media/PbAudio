@@ -615,6 +615,9 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char* fileURL, con
 
         inputAudioFileRef->sourceFormat.nAvgBytesPerSec = inputAudioFileRef->sourceFormat.nSamplesPerSec * (inputAudioFileRef->aif.comm.sampleSize);// *inputAudioFileRef->sourceFormat.nChannels;
 
+        //copy source format to conversion format
+        memcpy(&inputAudioFileRef->conversionFormat, &inputAudioFileRef->sourceFormat, sizeof(PBAStreamFormat));
+
         inputAudioFileRef->type = PBAStreamFormatGetType(&inputAudioFileRef->sourceFormat); //enumerate a sample packing protocol for the given format
 
         //calculate frame count

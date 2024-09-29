@@ -5,6 +5,189 @@
 //-----------------------------------------------------------
 
 #include "[Pb]Audio/[Pb]Audio.h"
+
+#ifdef __APPLE__
+
+#pragma mark -- CFNotification Center Notifications
+
+void mainWindowChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo) {
+    
+    fprintf(stdout, "\nMain Window Changed!\n");
+    
+    CFShow(CFSTR("Received notification (dictionary): ")); CFShow(name);
+    assert(object);
+    assert(userInfo);
+    // print out user info
+    const void * keys; const void * values;
+    CFDictionaryGetKeysAndValues(userInfo, &keys, &values);
+    for (int i = 0; i < CFDictionaryGetCount(userInfo); i++) {
+        const char * keyStr = CFStringGetCStringPtr((CFStringRef)&keys[i],   CFStringGetSystemEncoding());
+        const char * valStr = CFStringGetCStringPtr((CFStringRef)&values[i], CFStringGetSystemEncoding());
+        fprintf(stdout, "\t\t \"%s\" = \"%s\"\n", keyStr, valStr);
+    }
+    
+}
+
+void NSApplicationDidBecomeActiveNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
+{
+    fprintf(stdout, "\nNSApplicationDidBecomeActiveNotificationCallback\n");
+}
+
+void NSApplicationDidResignActiveNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
+{
+    fprintf(stdout, "\nNSApplicationDidResignActiveNotificationCallback\n");
+}
+
+#pragma mark -- PBAudioDevice Notification Observer Callbacks
+
+static void PBAudioDeviceDefaultOutputChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
+{
+    AudioDeviceID outputDeviceID; PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &outputDeviceID);
+    
+    assert(userInfo);
+
+    PBAStreamContext * DeviceStream = (PBAStreamContext*)CFDictionaryGetValue(userInfo, CFSTR("DeviceStream"));     assert(DeviceStream);
+    //CFNumberRef        DeviceRef    =       (CFNumberRef)CFDictionaryGetValue(userInfo, CFSTR("OutputDeviceID")); assert(DeviceRef);
+    //BOOL success = CFNumberGetValue( DeviceRef, kCFNumberSInt32Type, &outputDeviceID); assert(success);
+    
+    fprintf(stdout, "\nPBAudioDeviceDefaultOutputChangedNotificationCallback (AudioDeviceID: %u)\n", outputDeviceID);
+ 
+    //Check if the current stream is using the default device
+    //If it is then we have discretion here to redirect the audio to the new default
+    if ( DeviceStream->respectDefault )
+    {
+        // Replace audio device with updated system default device
+        //weakSelf.audioDevice = weakSelf.outputEnabled ? AEAudioDevice.defaultOutputAudioDevice : AEAudioDevice.defaultInputAudioDevice;
+        PBAudio.SetOutputDevice(DeviceStream, outputDeviceID); //This will stop and restart the audio unit attached to the stream context
+    }
+    
+}
+
+static void PBAudioStreamFormatChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
+{
+    AudioDeviceID outputDeviceID; PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &outputDeviceID);
+    
+    assert(userInfo);
+
+    PBAStreamContext * DeviceStream = (PBAStreamContext*)CFDictionaryGetValue(userInfo, CFSTR("DeviceStream"));     assert(DeviceStream);
+    //CFNumberRef        DeviceRef    =       (CFNumberRef)CFDictionaryGetValue(userInfo, CFSTR("OutputDeviceID")); assert(DeviceRef);
+    //BOOL success = CFNumberGetValue( DeviceRef, kCFNumberSInt32Type, &outputDeviceID); assert(success);
+    
+    fprintf(stdout, "\nPBAudioStreamFormatChangedNotificationCallback (AudioDeviceID: %u)\n", outputDeviceID);
+ 
+}
+
+static void PBAudioStreamSampleRateChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
+{
+    assert(userInfo);
+
+    PBAStreamContext * DeviceStream = (PBAStreamContext*)CFDictionaryGetValue(userInfo, CFSTR("DeviceStream"));     assert(DeviceStream);
+    //CFNumberRef        DeviceRef    =       (CFNumberRef)CFDictionaryGetValue(userInfo, CFSTR("OutputDeviceID")); assert(DeviceRef);
+    //BOOL success = CFNumberGetValue( DeviceRef, kCFNumberSInt32Type, &outputDeviceID); assert(success);
+    
+    fprintf(stdout, "\nPBAudioStreamSampleRateChangedNotificationCallback (Sample Rate: %lu)\n", (unsigned int)DeviceStream->currentSampleRate);
+ 
+    //Modify Application State Based on Notification Here:
+    ToneGeneratorSetFrequency(&toneGenerator, toneGenerator.freq, DeviceStream->currentSampleRate);
+    
+    //TO DO:  Reload audio files from source with conversion to new sample rate format
+}
+
+
+static void PBAudioDevicesAvailableChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
+{
+    
+    fprintf(stdout, "\nPBAudioDevicesAvailableChangedNotificationCallback\n");
+    
+    /*
+    [NSNotificationCenter.defaultCenter addObserverForName:AEAudioDeviceAvailableDevicesChangedNotification object:nil queue:nil usingBlock:^(NSNotification * note) {
+        NSArray <AEAudioDevice *> * availableDevices = AEAudioDevice.availableAudioDevices;
+        if ( ![availableDevices containsObject:weakSelf.audioDevice] ) {
+            // Replace audio device with new default if device disappears
+            weakSelf.audioDevice = weakSelf.outputEnabled ? AEAudioDevice.defaultOutputAudioDevice : AEAudioDevice.defaultInputAudioDevice;
+        }
+    }];
+    */
+}
+
+static void CMidiSourcesAvailableChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
+{
+    fprintf(stdout, "\nCMidiSourcesAvailableChangedNotificationCallback\n");
+}
+
+static void CMidiDestinationsAvailableChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
+{
+    fprintf(stdout, "\nCMidiDestinationsAvailableChangedNotificationCallback\n");
+}
+
+
+static void RegisterNotificationObservers(void)
+{
+    CFNotificationCenterRef center = CFNotificationCenterGetLocalCenter();
+    assert(center);
+    
+    // add an observer
+    CFNotificationCenterAddObserver(center, NULL, NSApplicationDidBecomeActiveNotificationCallback,
+                                    CFSTR("NSApplicationDidBecomeActiveNotification"), NULL,
+                                    CFNotificationSuspensionBehaviorDeliverImmediately);
+    
+    CFNotificationCenterAddObserver(center, NULL, NSApplicationDidResignActiveNotificationCallback,
+                                    CFSTR("NSApplicationDidResignActiveNotification"), NULL,
+                                    CFNotificationSuspensionBehaviorDeliverImmediately);
+    
+    CFNotificationCenterAddObserver(center, NULL, mainWindowChangedNotificationCallback,
+                                    CFSTR("CGWindowDidBecomeMainNotification"), NULL,
+                                    CFNotificationSuspensionBehaviorDeliverImmediately);
+    
+    //[Pb]Audio Device Notifications
+    
+    //__weak typeof(self) weakSelf = self;
+    //self.defaultDeviceObserverToken =
+    CFNotificationCenterAddObserver(center, NULL, PBAudioDeviceDefaultOutputChangedNotificationCallback,
+                                    CFSTR("PBADeviceDefaultOutputDeviceChangedNotification"), //_PBAMasterStream->outputEnabled ? kPBADeviceDefaultOutputChangedNotification : kPBADeviceDefaultInputChangedNotification,
+                                    NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+    
+
+    //[Pb]Audio Stream Config Notifications
+
+    //self.deviceAvailabilityObserverToken =
+    CFNotificationCenterAddObserver(center, NULL, PBAudioDevicesAvailableChangedNotificationCallback,
+                                    CFSTR("PBADeviceAvailableDevicesChangedNotification"),
+                                    NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+    
+    CFNotificationCenterAddObserver(center, NULL, PBAudioStreamSampleRateChangedNotificationCallback,
+                                    CFSTR("PBAudioStreamSampleRateChangedNotification"),
+                                    NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+    
+    
+    //CMidi Device Config Notifications
+
+    CFNotificationCenterAddObserver(center, NULL, CMidiSourcesAvailableChangedNotificationCallback,
+                                    CFSTR("CMidiSourcesAvailableChangedNotification"),
+                                    NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+
+    CFNotificationCenterAddObserver(center, NULL, CMidiDestinationsAvailableChangedNotificationCallback,
+                                    CFSTR("CMidiDestinationsAvailableChangedNotification"),
+                                    NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+
+    
+    /*
+     // post a notification
+     CFDictionaryKeyCallBacks keyCallbacks = {0, NULL, NULL, CFCopyDescription, CFEqual, NULL};
+     CFDictionaryValueCallBacks valueCallbacks  = {0, NULL, NULL, CFCopyDescription, CFEqual};
+     CFMutableDictionaryRef dictionary = CFDictionaryCreateMutable(kCFAllocatorDefault, 1,
+     &keyCallbacks, &valueCallbacks);
+     CFDictionaryAddValue(dictionary, CFSTR("TestKey"), CFSTR("TestValue"));
+     CFNotificationCenterPostNotification(center, CFSTR("MyNotification"), NULL, dictionary, TRUE);
+     CFRelease(dictionary);
+     */
+    
+    // remove oberver
+    //CFNotificationCenterRemoveObserver(center, NULL, CFSTR("TestValue"), NULL);
+}
+
+#elif defined(_WIN32) && defined(USE_CPP_RUNLOOP)
+
 #include "Functiondiscoverykeys_devpkey.h"
 
 #define SAFE_RELEASE(punk) if ((punk) != NULL) { (punk)->Release(); (punk) = NULL; }
@@ -216,5 +399,4 @@ HRESULT CMMNotificationClient::_PrintDeviceName(LPCWSTR pwstrId)
 }
 
 
-
-
+#endif //_WIN32

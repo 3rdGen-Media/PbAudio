@@ -236,7 +236,7 @@ OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * f
     
         AudioComponentDescription acd = {};
 #if TARGET_OS_IPHONE || TARGET_OS_TVOS
-        acd = AEAudioComponentDescriptionMake(kAudioUnitManufacturer_Apple, kAudioUnitType_Output, kAudioUnitSubType_RemoteIO);
+        acd = PBAudioComponentDescriptionMake(kAudioUnitManufacturer_Apple, kAudioUnitType_Output, kAudioUnitSubType_RemoteIO);
 #else
         acd = PBAudioComponentDescriptionMake(kAudioUnitManufacturer_Apple, kAudioUnitType_Output, kAudioUnitSubType_HALOutput);
 #endif
@@ -470,7 +470,7 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
 
     streamContext->outputLatency = objc_msgSendGetProperty(avSessionSharedInstance, sel_getUid("outputLatency"));//[AVAudioSession sharedInstance].outputLatency;
     streamContext->inputLatency = objc_msgSendGetProperty(avSessionSharedInstance, sel_getUid("inputLatency"));//[AVAudioSession sharedInstance].outputLatency;
-    streamContext->inputGain = 1.0;//_renderContext.inputGain;
+    //streamContext->inputGain = 1.0;//_renderContext.inputGain;
 #endif
     
     //TO DO: Check to see if the audio format changed after starting the audio session

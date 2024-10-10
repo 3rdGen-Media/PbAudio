@@ -210,12 +210,14 @@ static const GUID _IID_MF_LOW_LATENCY = { 0x9c27891a, 0xed7a, 0x40e1, {0x88, 0xe
 //#import <OpenGLES/OpenGLES.h>
 //#import <OpenGLES/EAGL.h>
 //#import <OpenGLES/EAGLIOSurface.h>
-#include <CoreVideo/CVOpenGLESTexture.h>
-#include <CoreVideo/CVOpenGLESTextureCache.h>
+
+//#include <CoreVideo/CVOpenGLESTexture.h>
+//#include <CoreVideo/CVOpenGLESTextureCache.h>
 
 //For convenience, include the OpenGL headers that will be needed
 //for a client to create this context
 //OpenGL ES 2
+
 #if !TARGET_OS_MACCATALYST
 #import <OpenGLES/ES1/gl.h>
 #import <OpenGLES/ES1/glext.h>

@@ -6,9 +6,10 @@
 //  Copyright © 2024 3rdGen Multimedia. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#include <TargetConditionals.h>
 
 #if TARGET_OS_OSX
+#import <Cocoa/Cocoa.h>
 #define CocoaTextField NSTextField
 #else
 #import <UIKit/UITextField.h>

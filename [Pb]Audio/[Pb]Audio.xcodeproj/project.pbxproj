@@ -7,6 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C710A1FF2CAF97AA0065E95D /* CMidi.c in Sources */ = {isa = PBXBuildFile; fileRef = C7A5363D2C8F241E002460E7 /* CMidi.c */; };
+		C710A2002CAF97AA0065E95D /* CMidiControl.c in Sources */ = {isa = PBXBuildFile; fileRef = C7A5363F2C8F241E002460E7 /* CMidiControl.c */; };
+		C710A2012CAF97AA0065E95D /* CMidiDevice.c in Sources */ = {isa = PBXBuildFile; fileRef = C7A536412C8F241E002460E7 /* CMidiDevice.c */; };
+		C710A2022CAF97AA0065E95D /* CMidiDriverID.c in Sources */ = {isa = PBXBuildFile; fileRef = C7A536432C8F241E002460E7 /* CMidiDriverID.c */; };
+		C710A2032CAF97AA0065E95D /* CMidiEndpoint.c in Sources */ = {isa = PBXBuildFile; fileRef = C7A536452C8F241E002460E7 /* CMidiEndpoint.c */; };
+		C710A2042CAF97AA0065E95D /* CMEventQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = C7B909772C99AEA10031B02E /* CMEventQueue.c */; };
+		C710A2052CAF97AA0065E95D /* pba_target_os.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E41DBB2C90279E0047DC69 /* pba_target_os.c */; };
+		C710A2062CAF97AA0065E95D /* pba_event_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E41DB72C90259D0047DC69 /* pba_event_queue.c */; };
+		C710A2072CAF97AA0065E95D /* PbAudioDevice.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E41DC32C9058530047DC69 /* PbAudioDevice.c */; };
+		C710A2082CAF97AA0065E95D /* PbAudioRenderPass.c in Sources */ = {isa = PBXBuildFile; fileRef = C7B909642C96423A0031B02E /* PbAudioRenderPass.c */; };
 		C74FE65025566A700027F864 /* PbAudioFileStream.h in Headers */ = {isa = PBXBuildFile; fileRef = C74FE64E25566A700027F864 /* PbAudioFileStream.h */; };
 		C74FE65125566A700027F864 /* PbAudioFileStream.c in Sources */ = {isa = PBXBuildFile; fileRef = C74FE64F25566A700027F864 /* PbAudioFileStream.c */; };
 		C74FE65B25567E3C0027F864 /* PbAudioFileStream.c in Sources */ = {isa = PBXBuildFile; fileRef = C74FE64F25566A700027F864 /* PbAudioFileStream.c */; };
@@ -331,7 +341,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\n\nmkdir -p ../include/CMidi/;\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\ncp -rvf ./CMidi/\\CMEndian.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiControl.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDevice.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDriverID.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiEndpoint.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiMessage.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMEventQueue.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidi.h ../include/CMidi/\n\ncp -rvf ./[Pb]Audio/\\pba_target_os.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_event_queue.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_time.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_dsp_waveforms.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_format.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_error.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\n\ncp -rvf ./[Pb]Audio/\\PbAudioByteUtils.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFileStream.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioRenderPass.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
+			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\nmkdir -p ../include/CMidi/;\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\ncp -rvf ./CMidi/\\CMEndian.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiControl.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDevice.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDriverID.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiEndpoint.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiMessage.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMEventQueue.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidi.h ../include/CMidi/\n\ncp -rvf ./[Pb]Audio/\\cr_file ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_target_os.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_event_queue.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_time.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_dsp_waveforms.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_format.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_error.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioDevice.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioByteUtils.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFileStream.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioRenderPass.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
 		};
 		C7AEB47F24A96E580081D08A /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -382,6 +392,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C710A1FF2CAF97AA0065E95D /* CMidi.c in Sources */,
+				C710A2002CAF97AA0065E95D /* CMidiControl.c in Sources */,
+				C710A2012CAF97AA0065E95D /* CMidiDevice.c in Sources */,
+				C710A2022CAF97AA0065E95D /* CMidiDriverID.c in Sources */,
+				C710A2032CAF97AA0065E95D /* CMidiEndpoint.c in Sources */,
+				C710A2042CAF97AA0065E95D /* CMEventQueue.c in Sources */,
+				C710A2052CAF97AA0065E95D /* pba_target_os.c in Sources */,
+				C710A2062CAF97AA0065E95D /* pba_event_queue.c in Sources */,
+				C710A2072CAF97AA0065E95D /* PbAudioDevice.c in Sources */,
+				C710A2082CAF97AA0065E95D /* PbAudioRenderPass.c in Sources */,
 				C74FE65B25567E3C0027F864 /* PbAudioFileStream.c in Sources */,
 				C784864224AFEC3F009522F0 /* PbAudioBufferList.c in Sources */,
 				C7AEB49824AD82840081D08A /* pba_error.c in Sources */,
@@ -540,6 +560,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = ECP6D49SS3;
+				HEADER_SEARCH_PATHS = ../include;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -554,6 +575,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = ECP6D49SS3;
+				HEADER_SEARCH_PATHS = ../include;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -101,11 +101,15 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioRegisterDeviceListeners(struct PBAD
 {
     OSStatus status = 0;
     
+#if TARGET_OS_OSX
     //Note:  The client streamContext passed to PbAudio.Init() is passed as Listener inClientData property0
     //TO DO: Error Checking?
     AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDefaultInputDevice,  kAudioObjectPropertyScopeGlobal}, PBAudioDeviceDefaultInputChanged,     context);
     AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyScopeGlobal}, PBAudioDeviceDefaultOutputChanged,    context);
     AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDevices,             kAudioObjectPropertyScopeGlobal}, PBAudioDeviceAvailableDevicesChanged, context);
+#else
+    
+#endif
     
     return status;
 }
@@ -185,6 +189,8 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDefaultDevice(AudioObjectPropertySe
     uint32_t size = sizeof(PBAudioDevice);
 
 #ifdef __APPLE__
+   
+#if TARGET_OS_OSX
     AudioObjectPropertyAddress addr = {selector, kAudioObjectPropertyScopeGlobal, 0};
     
     result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &addr, 0, NULL, &size, pDevice);
@@ -194,6 +200,10 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDefaultDevice(AudioObjectPropertySe
         fprintf(stderr, ", Unable to get default audio unit output device\n"); assert(1==0);
         //return nil;
     }
+#else
+    
+#endif
+
 #else
     //HRESULT hr = gEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, pDevice);
     result = CALL(GetDefaultAudioEndpoint, _PBADeviceEnumerator, eRender, eConsole, pDevice);
@@ -239,6 +249,8 @@ PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void)
     uint32_t deviceListSize = 0;
     uint32_t deviceCount    = 0;
 #ifdef __APPLE__
+
+#if TARGET_OS_OSX
     //Get the Size of the device list
     AudioObjectPropertyAddress deviceListAddr = {kAudioHardwarePropertyDevices, kAudioObjectPropertyScopeGlobal};
     result = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &deviceListAddr, 0, NULL, &deviceListSize);
@@ -261,6 +273,8 @@ PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void)
         //return nil;
         assert(1==0);
     }
+#endif
+
 #else
 
     IMMDeviceCollection* deviceCollection = NULL;
@@ -331,6 +345,8 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceName(PBAudioDevice deviceID, 
 {
     OSStatus result;
 #ifdef __APPLE__
+    
+#if TARGET_OS_OSX
     AudioObjectPropertyAddress propertyAddress = {
             kAudioDevicePropertyDeviceName,
             kAudioObjectPropertyScopeOutput,
@@ -346,6 +362,9 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceName(PBAudioDevice deviceID, 
         //fprintf(stderr, "device name get error");
         assert(1==0);
     }
+#endif
+    
+
 #else
 
     LPWSTR* pwszID         = NULL;
@@ -427,7 +446,7 @@ PB_AUDIO_API PB_AUDIO_INLINE int PBAudioDeviceChannelCount(PBAudioDevice deviceI
     //AudioBufferList (with the buffer pointers set to NULL) which describes
     //the list of streams and the number of channels in each stream
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && TARGET_OS_OSX
     int i = 0; UInt32 propertySize = 0;
     AudioObjectPropertyAddress scPropertyAddress = {kAudioDevicePropertyStreamConfiguration, scope, kAudioObjectPropertyElementMain};
     
@@ -460,7 +479,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRate(PBAudioDevi
 {
     OSStatus status = 0;
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && TARGET_OS_OSX
     UInt32 propertySize = sizeof(Float64);
     AudioObjectPropertyAddress srPropertyAddress = {kAudioDevicePropertyNominalSampleRate, scope, kAudioObjectPropertyElementMain};
     status = AudioObjectGetPropertyData(deviceID, &srPropertyAddress, 0, nil, &propertySize, sampleRate);
@@ -483,7 +502,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRate(PBAudioDevi
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRateCount(PBAudioDevice deviceID, AudioObjectPropertyScope scope, int * nSampleRates)
 {
     OSStatus result = 0;
-#ifdef __APPLE__
+#if defined(__APPLE__) && TARGET_OS_OSX
     UInt32 srListSize = 0;
     AudioObjectPropertyAddress srPropertyAddress = {kAudioDevicePropertyAvailableNominalSampleRates, scope, kAudioObjectPropertyElementMain};
 
@@ -511,7 +530,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRateCount(PBAudi
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetSampleRate(PBAudioDevice deviceID, AudioObjectPropertyScope scope, double sampleRate)
 {
     OSStatus status = 0;
-#ifdef __APPLE__
+#if defined(__APPLE__) && TARGET_OS_OSX
     //Note: Explicitly stopping and starting the stream does not seem to be necessary for sample rate and buffer size changes
     //      and results in additonal warnings 'HALB_IOThread.cpp:326    HALB_IOThread::_Start: there already is a thread'
     volatile bool wasRunning = false;
@@ -562,7 +581,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSizeRange(PBAudioDevice
 {
     OSStatus theError = 0;
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && TARGET_OS_OSX
     AudioObjectPropertyAddress theAddress = { kAudioDevicePropertyBufferFrameSizeRange, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMain };
  
     AudioValueRange theRange = { 0, 0 };
@@ -584,7 +603,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSizeRange(PBAudioDevice
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSize(PBAudioDevice inDeviceID, uint32_t* bufferSize)
 {
     OSStatus theError = 0;
-#ifdef __APPLE__
+#if defined(__APPLE__) && TARGET_OS_OSX
     AudioObjectPropertyAddress theAddress = { kAudioDevicePropertyBufferFrameSize, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMain };
  
     UInt32 frameSize = 0;
@@ -603,7 +622,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSize(PBAudioDevice inDe
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice deviceID, uint32_t bufferSize)
 {
     OSStatus status = 0;
-#ifdef __APPLE__
+#if defined(__APPLE__) && TARGET_OS_OSX
     //for each stream
     volatile bool wasRunning  = false;
     //volatile bool wasBypassed = false;

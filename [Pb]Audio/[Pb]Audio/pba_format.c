@@ -165,6 +165,44 @@ void pba_transform_s16i_f32i(void** srcBuffers, void** dstBuffers, uint64_t nBuf
     return;
 }
 
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_s16i_f32(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
+{
+    int16_t ** shortBuffers = (int16_t**)srcBuffers;
+ 
+    //source
+    int16_t* shortSamplesL = shortBuffers[0];// (player->sourceAudioFile.samples[0]);
+    //int16_t* shortSamplesR = (int16_t*)(player->sourceAudioFile.samples[1]);
+
+    //dest
+    float* fBufferL = (float*)dstBuffers[0];
+    float* fBufferR = dstBuffers[1] ? (float*)dstBuffers[1] : fBufferL;
+
+    for (int32_t i = 0; i < nFrames; i++)
+    {
+        //target sample vars
+        float    fSampleL, fSampleR;
+
+        //source stream indices per channel
+        uint64_t iL = (((i) * nBufferChannels) + 0);
+        uint64_t iR = (((i) * nBufferChannels) + nBufferChannels-1);
+
+        //get source samples for current frame
+        int16_t iSampleL = shortSamplesL[iL];
+        int16_t iSampleR = shortSamplesL[iR];
+
+        //convert to target sample range
+        fSampleL = ((float)iSampleL) / 32768.f;
+        fSampleR = ((float)iSampleR) / 32768.f;
+
+        //place sample in output stream
+        fBufferL[i] = fSampleL;
+        fBufferR[i] = fSampleR;
+
+    }
+
+    return;
+    
+}
 
 void pba_transform_s24i_s24i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
 {
@@ -272,7 +310,7 @@ void pba_transform_s24i_f32(void** srcBuffers, void** dstBuffers, uint64_t nBuff
 
     //dest
     float* fBufferL = (float*)dstBuffers[0];
-    float* fBufferR = (float*)dstBuffers[1];
+    float* fBufferR = dstBuffers[1] ? (float*)dstBuffers[1] : fBufferL;
 
     for (int i = 0; i < nFrames; i++)
     {
@@ -361,6 +399,32 @@ PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_f32i(void** srcBuffers, voi
         fBufferL[i * 2]     = fSampleL;
         fBufferL[i * 2 + 1] = fSampleR;
     } 
+
+}
+
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_f32(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
+{
+    uint64_t i = 0;
+    //raw byte source buffer
+    float* samplesL = (float*)(srcBuffers[0]);// + frameIndex*2]
+    //char* samplesR = (sourceBuffers[0]);// + frameIndex*2]
+
+    //dest
+    float* fBufferL = (float*)dstBuffers[0];
+    float* fBufferR = dstBuffers[1] ? (float*)dstBuffers[1] : fBufferL;
+
+    for (i = 0; i < nFrames; i++)
+    {
+        //int32_t iSampleL, iSampleR;
+        float   fSampleL, fSampleR;
+
+        //place 24 bit le signed integer in most significant bytes of a 32 bit le signed integer
+        fSampleL = samplesL[i * nBufferChannels];
+        fSampleR = samplesL[(((i)*nBufferChannels) + nBufferChannels - 1)];
+
+        fBufferL[i] = fSampleL;
+        fBufferR[i] = fSampleR;
+    }
 
 }
 

@@ -508,6 +508,24 @@ typedef struct xnz_bitstream // 44 or 56 bytes
 
 }xnz_bitstream;
 
+static unsigned char rbyte(unsigned char b)
+{
+   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+   b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+   b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+   return b;
+}
+
+static uint32_t rbytes(uint32_t u)
+{
+    uint32_t b4 = (uint32_t)rbyte( (unsigned char)(u>>24) );
+    uint32_t b3 = (uint32_t)rbyte( (unsigned char)(u>>16) );
+    uint32_t b2 = (uint32_t)rbyte( (unsigned char)(u>>8) );
+    uint32_t b1 = (uint32_t)rbyte( (unsigned char)(u>>0) );
+
+    return ( (b4<<24) | (b3<<16) | (b2<<8) | b1);
+}
+
 //prefetch up to 4 bytes from the src buffer
 /* V1
 #define xnz_bitstream_prefetch(_bs) \
@@ -529,6 +547,12 @@ else if ( nbytes < _bs->capacity + 2) _bs->prefetch = (*(_bs->pointer + 0)) | (*
 else if ( nbytes < _bs->capacity + 1) _bs->prefetch = (*(_bs->pointer + 0)) | (*(_bs->pointer + 1) << 8); \
 else if ( nbytes < _bs->capacity + 0) _bs->prefetch = (*(_bs->pointer + 0));
 
+#define xnz_bitstream_prefetch_reverse(_bs) \
+ uint32_t nbytes = (uint32_t)(_bs->pointer - _bs->buffer); \
+     if ( nbytes < _bs->capacity + 3) _bs->prefetch = (rbyte(*(_bs->pointer + 0))) | (rbyte(*(_bs->pointer + 1)) << 8) | (rbyte(*(_bs->pointer + 2)) << 16) | (rbyte(*(_bs->pointer + 3)) << 24); \
+else if ( nbytes < _bs->capacity + 2) _bs->prefetch = (rbyte(*(_bs->pointer + 0))) | (rbyte(*(_bs->pointer + 1)) << 8) | (rbyte(*(_bs->pointer + 2)) << 16); \
+else if ( nbytes < _bs->capacity + 1) _bs->prefetch = (rbyte(*(_bs->pointer + 0))) | (rbyte(*(_bs->pointer + 1)) << 8); \
+else if ( nbytes < _bs->capacity + 0) _bs->prefetch = (rbyte(*(_bs->pointer + 0)));
 
 /* V3
 #define xnz_bitstream_prefetch(_bs) \
@@ -571,6 +595,28 @@ else if ( nbytes < _bs->capacity + 0) memcpy(&_bs->prefetch, _bs->pointer, 1);
         _bs->offset -= 32; \
         _bs->pointer += 4; \
         xnz_bitstream_prefetch(_bs); \
+        if (_bs->offset) { \
+            _bs->mask = ((1 << _bs->offset) - 1); \
+            _bs->accumulator |= ((_bs->prefetch) & _bs->mask) << (32 - ((_bs->offset+32) - _nbits)); \
+            _bs->prefetch >>= _bs->offset; \
+        } \
+    }
+
+#define xnz_bitstream_shift_reverse(_bs, _nbits) \
+    _bs->accumulator <<= _nbits; \
+    _bs->position += _nbits; \
+    _bs->offset   += _nbits; \
+    if (_bs->offset < 32) { \
+        _bs->mask = ((1 << _nbits) - 1); \
+        _bs->accumulator |= ((_bs->prefetch) & _bs->mask); \
+        _bs->prefetch >>= _nbits; \
+    } else { \
+        _bs->mask = ((1 << (32 - (_bs->offset - _nbits))) - 1); \
+        _bs->accumulator |= ((_bs->prefetch) & _bs->mask); \
+        _bs->prefetch >>= (32 - (_bs->offset - _nbits)); \
+        _bs->offset -= 32; \
+        _bs->pointer += 4; \
+        xnz_bitstream_prefetch_reverse(_bs); \
         if (_bs->offset) { \
             _bs->mask = ((1 << _bs->offset) - 1); \
             _bs->accumulator |= ((_bs->prefetch) & _bs->mask) << (32 - ((_bs->offset+32) - _nbits)); \
@@ -674,7 +720,7 @@ static void xnz_bitstream_attach(xnz_bitstream* bs, uint8_t* buffer, uint32_t ca
 
 }
 
-static uint8_t xnz_bitstream_read_bit(xnz_bitstream* bs)
+static uint32_t xnz_bitstream_read_bit(xnz_bitstream* bs)
 {
 #if XNZ_BITSTREAM_QUEUE
     if (bs->position >= bs->length && bs->next_buffer)
@@ -693,8 +739,32 @@ static uint8_t xnz_bitstream_read_bit(xnz_bitstream* bs)
 
     //read bit by shifiting from prefetch into accumulation register
     xnz_bitstream_shift(bs, 1);
-    return (uint8_t)(bs->accumulator & (uint32_t)0x01);
+    return (uint32_t)(bs->accumulator & (uint32_t)0x00000001);
 }
+
+static uint32_t xnz_bitstream_read_octet_bits(xnz_bitstream* bs, uint32_t nbits)
+{
+#if XNZ_BITSTREAM_QUEUE
+    if (bs->position >= bs->length && bs->next_buffer)
+    {
+        //reattach
+        assert(bs->next_capacity > 0);
+        xnz_bitstream_attach(bs, bs->next_buffer, bs->next_capacity);
+    }
+#endif
+
+#ifdef XNZ_BITSTREAM_DEBUG
+    assert(nbits <= 32); //Ensure we aren't asking for more bits than accumulation register can handle
+    assert(bs->position < bs->length); //never read beyond max bits in current stream chunk of bits
+    //this conditional is necessary because of negative reattach offset for automatic prefetech (i suppose i could just add 4 to the assert statement)
+    if (bs->pointer > bs->buffer) assert(((uint32_t)(bs->pointer - bs->buffer)) <= bs->capacity + 4);
+#endif
+
+    //read bits by shifting from prefetch into accumulation register
+    xnz_bitstream_shift_reverse(bs, nbits);
+    return (bs->accumulator & (uint32_t)((1 << nbits) - 1));
+}
+
 
 static uint32_t xnz_bitstream_read_bits(xnz_bitstream* bs, uint32_t nbits)
 {
@@ -714,10 +784,35 @@ static uint32_t xnz_bitstream_read_bits(xnz_bitstream* bs, uint32_t nbits)
     if (bs->pointer > bs->buffer) assert(((uint32_t)(bs->pointer - bs->buffer)) <= bs->capacity + 4);
 #endif
 
-    //read bits by shifiting from prefetch into accumulation register
+    //read bits by shifting from prefetch into accumulation register
     xnz_bitstream_shift(bs, nbits);
-    return (bs->accumulator & ((1 << nbits) - 1));
+    return (bs->accumulator & (uint32_t)((1 << nbits) - 1));
 }
+
+
+static uint32_t xnz_bitstream_skip_read_bits(xnz_bitstream* bs, uint32_t skipbits, uint32_t nbits)
+{
+#if XNZ_BITSTREAM_QUEUE
+    if (bs->position >= bs->length && bs->next_buffer)
+    {
+        //reattach
+        assert(bs->next_capacity > 0);
+        xnz_bitstream_attach(bs, bs->next_buffer, bs->next_capacity);
+    }
+#endif
+
+#ifdef XNZ_BITSTREAM_DEBUG
+    assert(nbits <= 32); //Ensure we aren't asking for more bits than accumulation register can handle
+    assert(bs->position < bs->length); //never read beyond max bits in current stream chunk of bits
+    //this conditional is necessary because of negative reattach offset for automatic prefetech (i suppose i could just add 4 to the assert statement)
+    if (bs->pointer > bs->buffer) assert(((uint32_t)(bs->pointer - bs->buffer)) <= bs->capacity + 4);
+#endif
+
+    //read bits by shifting from prefetch into accumulation register
+    xnz_bitstream_shift(bs, (skipbits+nbits));
+    return (bs->accumulator & (uint32_t)((1 << nbits) - 1));
+}
+
 
 /***
 *  xnz.h

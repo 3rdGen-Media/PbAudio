@@ -27,6 +27,22 @@
 //#include <CoreFoundation/CoreFoundation.h>           //Core Foundation
 
 typedef AudioBufferList PBABufferList;
+typedef UInt32          AudioObjectID;
+typedef UInt32          AudioDeviceID;
+typedef UInt32          AudioObjectPropertySelector;
+typedef UInt32          AudioObjectPropertyScope;
+typedef UInt32          AudioObjectPropertyAddress;
+
+#define kAudioObjectPropertyScopeGlobal 0
+
+#define kAudioObjectSystemObject 0
+#define kAudioObjectUnknown 0
+
+
+#define kAudioHardwarePropertyDevices             0
+#define kAudioHardwarePropertyDefaultInputDevice  0
+#define kAudioHardwarePropertyDefaultOutputDevice 0
+
 #else // OSX
 
 #endif

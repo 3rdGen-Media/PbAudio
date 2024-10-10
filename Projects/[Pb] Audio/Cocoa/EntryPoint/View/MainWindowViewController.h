@@ -24,7 +24,7 @@
 
 @interface MainWindowViewController : CocoaViewController
 
--(id)initWithView:(NSView*)view;
+-(id)initWithView:(CocoaView*)view;
 -(id)initWithWindow:(CocoaWindow*)window;
 //-(void)removeSubviews;
 

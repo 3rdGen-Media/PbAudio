@@ -33,7 +33,7 @@ void        SamplePlayerRenderPass      (struct PBABufferList*     ioData, uint3
           
         SamplePlayer * player = (SamplePlayer*)source;
     
-        int32_t nSourceChannels = player->sourceAudioFile.conversionFormat.mChannelsPerFrame;
+        int32_t nSourceChannels = player->sourceAudioFile.conversionFormat.mChannelsPerFrame > 2 ? 2 : player->sourceAudioFile.conversionFormat.mChannelsPerFrame;
         //int32_t nStreamChannels = 2;// player->sourceAudioFile.sourceFormat.nChannels;
 
         int32_t nSourceSampleBytes = player->sourceAudioFile.conversionFormat.mBytesPerFrame / nSourceChannels;
@@ -164,14 +164,14 @@ void SamplePlayerInit(SamplePlayer* player, const char * audioFileURL, const cha
 #ifdef __APPLE__ //Conversion when reading from file is currently only implemented on Apple
     int nSourceBuffers       = 1; //player->sourceAudioFile.sourceFormat.mChannelsPerFrame;
     int nInterleavedChannels = player->sourceAudioFile.sourceFormat.mChannelsPerFrame; //1;
-    if (converterFormat) nSourceBuffers = converterFormat->mChannelsPerFrame;
+    if (converterFormat) nSourceBuffers = converterFormat->mChannelsPerFrame > 2 ? 2 : converterFormat->mChannelsPerFrame;
 #else
     int nSourceBuffers       = 1;
     int nInterleavedChannels = player->sourceAudioFile.sourceFormat.mChannelsPerFrame;
 #endif
 
 //#ifndef XNZ_AUDIO
-    int nFramesPerBuffer = player->sourceAudioFile.numFrames * nInterleavedChannels;
+    uint64_t nFramesPerBuffer = player->sourceAudioFile.numFrames * nInterleavedChannels;
 
     //create conversion buffers
     void ** conversionBuffers = NULL; if( converterFormat ) conversionBuffers = (float**)malloc( converterFormat->mChannelsPerFrame * sizeof(float*));

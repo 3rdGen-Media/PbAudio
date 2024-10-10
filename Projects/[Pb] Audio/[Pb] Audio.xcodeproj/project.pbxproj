@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C710A2092CAF9A530065E95D /* MainWindowViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5358B2C8F1FD0002460E7 /* MainWindowViewController.m */; };
 		C74FE657255679300027F864 /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = C74FE656255679300027F864 /* Assets */; };
 		C74FE658255679300027F864 /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = C74FE656255679300027F864 /* Assets */; };
 		C753E10F24A9510000A4A3B4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C753E10E24A9510000A4A3B4 /* Assets.xcassets */; };
@@ -19,93 +20,51 @@
 		C7A535882C8F1F96002460E7 /* PbAudioApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535842C8F1F96002460E7 /* PbAudioApplication.m */; };
 		C7A535892C8F1F96002460E7 /* PbAudioApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535842C8F1F96002460E7 /* PbAudioApplication.m */; };
 		C7A5358D2C8F1FD0002460E7 /* MainWindowViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5358B2C8F1FD0002460E7 /* MainWindowViewController.m */; };
-		C7A5358E2C8F1FD0002460E7 /* MainWindowViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5358B2C8F1FD0002460E7 /* MainWindowViewController.m */; };
 		C7A535B72C8F201A002460E7 /* CustomButtonView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535902C8F201A002460E7 /* CustomButtonView.m */; };
-		C7A535B82C8F201A002460E7 /* CustomButtonView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535902C8F201A002460E7 /* CustomButtonView.m */; };
 		C7A535B92C8F201A002460E7 /* NSTextFieldButton.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535922C8F201A002460E7 /* NSTextFieldButton.m */; };
-		C7A535BA2C8F201A002460E7 /* NSTextFieldButton.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535922C8F201A002460E7 /* NSTextFieldButton.m */; };
 		C7A535BB2C8F201A002460E7 /* RSMaskedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535942C8F201A002460E7 /* RSMaskedLabel.m */; };
-		C7A535BC2C8F201A002460E7 /* RSMaskedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535942C8F201A002460E7 /* RSMaskedLabel.m */; };
 		C7A535BD2C8F201A002460E7 /* NSCheckboxView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535972C8F201A002460E7 /* NSCheckboxView.m */; };
-		C7A535BE2C8F201A002460E7 /* NSCheckboxView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535972C8F201A002460E7 /* NSCheckboxView.m */; };
 		C7A535BF2C8F201A002460E7 /* CustomIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5359A2C8F201A002460E7 /* CustomIndicatorView.m */; };
-		C7A535C02C8F201A002460E7 /* CustomIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5359A2C8F201A002460E7 /* CustomIndicatorView.m */; };
 		C7A535C12C8F201A002460E7 /* NSView+Blur.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5359C2C8F201A002460E7 /* NSView+Blur.m */; };
-		C7A535C22C8F201A002460E7 /* NSView+Blur.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5359C2C8F201A002460E7 /* NSView+Blur.m */; };
 		C7A535C32C8F201A002460E7 /* NSData+Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5359F2C8F201A002460E7 /* NSData+Ext.m */; };
-		C7A535C42C8F201A002460E7 /* NSData+Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5359F2C8F201A002460E7 /* NSData+Ext.m */; };
 		C7A535C72C8F201A002460E7 /* NSDate+Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535A32C8F201A002460E7 /* NSDate+Ext.m */; };
-		C7A535C82C8F201A002460E7 /* NSDate+Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535A32C8F201A002460E7 /* NSDate+Ext.m */; };
 		C7A535C92C8F201A002460E7 /* NSObject+JSON.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535A52C8F201A002460E7 /* NSObject+JSON.m */; };
-		C7A535CA2C8F201A002460E7 /* NSObject+JSON.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535A52C8F201A002460E7 /* NSObject+JSON.m */; };
 		C7A535CB2C8F201A002460E7 /* NSString+Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535A72C8F201A002460E7 /* NSString+Ext.m */; };
-		C7A535CC2C8F201A002460E7 /* NSString+Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535A72C8F201A002460E7 /* NSString+Ext.m */; };
 		C7A535CD2C8F201A002460E7 /* ButtonTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535AA2C8F201A002460E7 /* ButtonTableViewCell.m */; };
-		C7A535CE2C8F201A002460E7 /* ButtonTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535AA2C8F201A002460E7 /* ButtonTableViewCell.m */; };
 		C7A535CF2C8F201A002460E7 /* NSTaggedTableColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535AD2C8F201A002460E7 /* NSTaggedTableColumn.m */; };
-		C7A535D02C8F201A002460E7 /* NSTaggedTableColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535AD2C8F201A002460E7 /* NSTaggedTableColumn.m */; };
 		C7A535D12C8F201A002460E7 /* CMThruTableRow.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535B02C8F201A002460E7 /* CMThruTableRow.m */; };
-		C7A535D22C8F201A002460E7 /* CMThruTableRow.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535B02C8F201A002460E7 /* CMThruTableRow.m */; };
 		C7A535D32C8F201A002460E7 /* CMTextFieldCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535B42C8F201A002460E7 /* CMTextFieldCell.m */; };
-		C7A535D42C8F201A002460E7 /* CMTextFieldCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535B42C8F201A002460E7 /* CMTextFieldCell.m */; };
 		C7A535F82C8F234B002460E7 /* ControlManagerView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535D62C8F234B002460E7 /* ControlManagerView.m */; };
-		C7A535F92C8F234B002460E7 /* ControlManagerView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535D62C8F234B002460E7 /* ControlManagerView.m */; };
 		C7A535FA2C8F234B002460E7 /* ControlMappingView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535D82C8F234B002460E7 /* ControlMappingView.m */; };
-		C7A535FB2C8F234B002460E7 /* ControlMappingView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535D82C8F234B002460E7 /* ControlMappingView.m */; };
 		C7A535FC2C8F234B002460E7 /* DeviceGroupView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535DB2C8F234B002460E7 /* DeviceGroupView.m */; };
-		C7A535FD2C8F234B002460E7 /* DeviceGroupView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535DB2C8F234B002460E7 /* DeviceGroupView.m */; };
 		C7A535FE2C8F234B002460E7 /* DeviceManagerView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535DD2C8F234B002460E7 /* DeviceManagerView.m */; };
-		C7A535FF2C8F234B002460E7 /* DeviceManagerView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535DD2C8F234B002460E7 /* DeviceManagerView.m */; };
 		C7A536002C8F234B002460E7 /* DeviceViewItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535DF2C8F234B002460E7 /* DeviceViewItem.m */; };
-		C7A536012C8F234B002460E7 /* DeviceViewItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535DF2C8F234B002460E7 /* DeviceViewItem.m */; };
 		C7A536022C8F234B002460E7 /* DVIView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535E12C8F234B002460E7 /* DVIView.m */; };
-		C7A536032C8F234B002460E7 /* DVIView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535E12C8F234B002460E7 /* DVIView.m */; };
 		C7A536042C8F234B002460E7 /* HighlightImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535E32C8F234B002460E7 /* HighlightImageView.m */; };
-		C7A536052C8F234B002460E7 /* HighlightImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535E32C8F234B002460E7 /* HighlightImageView.m */; };
 		C7A536062C8F234B002460E7 /* DisplayManagerView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535E62C8F234B002460E7 /* DisplayManagerView.m */; };
-		C7A536072C8F234B002460E7 /* DisplayManagerView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535E62C8F234B002460E7 /* DisplayManagerView.m */; };
 		C7A536082C8F234B002460E7 /* DisplayMappingView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535E82C8F234B002460E7 /* DisplayMappingView.m */; };
-		C7A536092C8F234B002460E7 /* DisplayMappingView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535E82C8F234B002460E7 /* DisplayMappingView.m */; };
 		C7A5360A2C8F234B002460E7 /* CMProxyModalView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535EB2C8F234B002460E7 /* CMProxyModalView.m */; };
-		C7A5360B2C8F234B002460E7 /* CMProxyModalView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535EB2C8F234B002460E7 /* CMProxyModalView.m */; };
 		C7A5360C2C8F234B002460E7 /* ProxyManagerView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535ED2C8F234B002460E7 /* ProxyManagerView.m */; };
-		C7A5360D2C8F234B002460E7 /* ProxyManagerView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535ED2C8F234B002460E7 /* ProxyManagerView.m */; };
 		C7A5360E2C8F234B002460E7 /* CMScrollListView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535F02C8F234B002460E7 /* CMScrollListView.m */; };
-		C7A5360F2C8F234B002460E7 /* CMScrollListView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535F02C8F234B002460E7 /* CMScrollListView.m */; };
 		C7A536102C8F234B002460E7 /* RadioModalView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535F22C8F234B002460E7 /* RadioModalView.m */; };
-		C7A536112C8F234B002460E7 /* RadioModalView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535F22C8F234B002460E7 /* RadioModalView.m */; };
 		C7A536122C8F234B002460E7 /* SettingsModalViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535F42C8F234B002460E7 /* SettingsModalViewController.m */; };
-		C7A536132C8F234B002460E7 /* SettingsModalViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535F42C8F234B002460E7 /* SettingsModalViewController.m */; };
 		C7A536142C8F234B002460E7 /* SizeToFitView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535F62C8F234B002460E7 /* SizeToFitView.m */; };
-		C7A536152C8F234B002460E7 /* SizeToFitView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A535F62C8F234B002460E7 /* SizeToFitView.m */; };
 		C7A536632C8F2615002460E7 /* NSDocumentObjectModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536562C8F2615002460E7 /* NSDocumentObjectModel.m */; };
-		C7A536642C8F2615002460E7 /* NSDocumentObjectModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536562C8F2615002460E7 /* NSDocumentObjectModel.m */; };
 		C7A536652C8F2615002460E7 /* CMDOM.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536592C8F2615002460E7 /* CMDOM.m */; };
-		C7A536662C8F2615002460E7 /* CMDOM.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536592C8F2615002460E7 /* CMDOM.m */; };
 		C7A536672C8F2615002460E7 /* CMHardwareDevice.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5365B2C8F2615002460E7 /* CMHardwareDevice.m */; };
-		C7A536682C8F2615002460E7 /* CMHardwareDevice.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5365B2C8F2615002460E7 /* CMHardwareDevice.m */; };
 		C7A536692C8F2615002460E7 /* CMProxyConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5365D2C8F2615002460E7 /* CMProxyConnection.m */; };
-		C7A5366A2C8F2615002460E7 /* CMProxyConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5365D2C8F2615002460E7 /* CMProxyConnection.m */; };
 		C7A5366B2C8F2615002460E7 /* CMSoftThruConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5365F2C8F2615002460E7 /* CMSoftThruConnection.m */; };
-		C7A5366C2C8F2615002460E7 /* CMSoftThruConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5365F2C8F2615002460E7 /* CMSoftThruConnection.m */; };
 		C7A5366D2C8F2615002460E7 /* CMThruConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536612C8F2615002460E7 /* CMThruConnection.m */; };
-		C7A5366E2C8F2615002460E7 /* CMThruConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536612C8F2615002460E7 /* CMThruConnection.m */; };
 		C7A5367C2C8F2D76002460E7 /* CMLogoView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536712C8F2D76002460E7 /* CMLogoView.m */; };
-		C7A5367D2C8F2D76002460E7 /* CMLogoView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536712C8F2D76002460E7 /* CMLogoView.m */; };
 		C7A5367E2C8F2D76002460E7 /* CocoaImage+Logo.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536732C8F2D76002460E7 /* CocoaImage+Logo.m */; };
-		C7A5367F2C8F2D76002460E7 /* CocoaImage+Logo.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536732C8F2D76002460E7 /* CocoaImage+Logo.m */; };
 		C7A536802C8F2D76002460E7 /* NSColor+3rdGen.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536752C8F2D76002460E7 /* NSColor+3rdGen.m */; };
-		C7A536812C8F2D76002460E7 /* NSColor+3rdGen.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536752C8F2D76002460E7 /* NSColor+3rdGen.m */; };
 		C7A536822C8F2D76002460E7 /* PbAudioPopupMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536782C8F2D76002460E7 /* PbAudioPopupMenu.m */; };
-		C7A536832C8F2D76002460E7 /* PbAudioPopupMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A536782C8F2D76002460E7 /* PbAudioPopupMenu.m */; };
 		C7A536842C8F2D76002460E7 /* PbAudioAppMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5367A2C8F2D76002460E7 /* PbAudioAppMenu.m */; };
-		C7A536852C8F2D76002460E7 /* PbAudioAppMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = C7A5367A2C8F2D76002460E7 /* PbAudioAppMenu.m */; };
 		C7AEB48424A96EB50081D08A /* lib[Pb]AudioiOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C7AEB48324A96EB50081D08A /* lib[Pb]AudioiOS.a */; };
 		C7AEB48824A972D10081D08A /* lib[Pb]Audio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C7AEB48724A972D10081D08A /* lib[Pb]Audio.a */; };
 		C7B909612C9641CE0031B02E /* SamplePlayer.c in Sources */ = {isa = PBXBuildFile; fileRef = C7B909602C9641CE0031B02E /* SamplePlayer.c */; };
 		C7B909622C9641CE0031B02E /* SamplePlayer.c in Sources */ = {isa = PBXBuildFile; fileRef = C7B909602C9641CE0031B02E /* SamplePlayer.c */; };
 		C7B909692C9742A30031B02E /* CMInputConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = C7B909682C9742A30031B02E /* CMInputConnection.m */; };
-		C7B9096A2C9742A30031B02E /* CMInputConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = C7B909682C9742A30031B02E /* CMInputConnection.m */; };
 		C7E04F0D2C94372100FC9EC2 /* ToneGenerator.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E04F0C2C94372100FC9EC2 /* ToneGenerator.c */; };
 		C7E04F0E2C94372100FC9EC2 /* ToneGenerator.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E04F0C2C94372100FC9EC2 /* ToneGenerator.c */; };
 		C7E41DC12C9039A10047DC69 /* AudioMidiSettingsView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7E41DC02C9039A10047DC69 /* AudioMidiSettingsView.m */; };
@@ -735,53 +694,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C7A535CE2C8F201A002460E7 /* ButtonTableViewCell.m in Sources */,
-				C7A535BC2C8F201A002460E7 /* RSMaskedLabel.m in Sources */,
-				C7A535FD2C8F234B002460E7 /* DeviceGroupView.m in Sources */,
-				C7A536662C8F2615002460E7 /* CMDOM.m in Sources */,
-				C7A5358E2C8F1FD0002460E7 /* MainWindowViewController.m in Sources */,
-				C7A5360D2C8F234B002460E7 /* ProxyManagerView.m in Sources */,
-				C7A535C82C8F201A002460E7 /* NSDate+Ext.m in Sources */,
-				C7A535BE2C8F201A002460E7 /* NSCheckboxView.m in Sources */,
-				C7A536032C8F234B002460E7 /* DVIView.m in Sources */,
-				C7A536812C8F2D76002460E7 /* NSColor+3rdGen.m in Sources */,
-				C7A5360B2C8F234B002460E7 /* CMProxyModalView.m in Sources */,
-				C7A536852C8F2D76002460E7 /* PbAudioAppMenu.m in Sources */,
-				C7A536072C8F234B002460E7 /* DisplayManagerView.m in Sources */,
-				C7A536682C8F2615002460E7 /* CMHardwareDevice.m in Sources */,
-				C7A5367F2C8F2D76002460E7 /* CocoaImage+Logo.m in Sources */,
-				C7A536832C8F2D76002460E7 /* PbAudioPopupMenu.m in Sources */,
-				C7A536112C8F234B002460E7 /* RadioModalView.m in Sources */,
-				C7A5367D2C8F2D76002460E7 /* CMLogoView.m in Sources */,
+				C710A2092CAF9A530065E95D /* MainWindowViewController.m in Sources */,
 				C753E13C24A954AF00A4A3B4 /* main.c in Sources */,
-				C7A5366A2C8F2615002460E7 /* CMProxyConnection.m in Sources */,
-				C7A536052C8F234B002460E7 /* HighlightImageView.m in Sources */,
-				C7A536152C8F234B002460E7 /* SizeToFitView.m in Sources */,
-				C7A535D02C8F201A002460E7 /* NSTaggedTableColumn.m in Sources */,
-				C7A535BA2C8F201A002460E7 /* NSTextFieldButton.m in Sources */,
-				C7A535D42C8F201A002460E7 /* CMTextFieldCell.m in Sources */,
-				C7B9096A2C9742A30031B02E /* CMInputConnection.m in Sources */,
-				C7A535C42C8F201A002460E7 /* NSData+Ext.m in Sources */,
-				C7A5366E2C8F2615002460E7 /* CMThruConnection.m in Sources */,
 				C7B909622C9641CE0031B02E /* SamplePlayer.c in Sources */,
 				C7E04F0E2C94372100FC9EC2 /* ToneGenerator.c in Sources */,
-				C7A535F92C8F234B002460E7 /* ControlManagerView.m in Sources */,
-				C7A536132C8F234B002460E7 /* SettingsModalViewController.m in Sources */,
 				C7A535892C8F1F96002460E7 /* PbAudioApplication.m in Sources */,
-				C7A5360F2C8F234B002460E7 /* CMScrollListView.m in Sources */,
-				C7A535FB2C8F234B002460E7 /* ControlMappingView.m in Sources */,
-				C7A536642C8F2615002460E7 /* NSDocumentObjectModel.m in Sources */,
-				C7A536012C8F234B002460E7 /* DeviceViewItem.m in Sources */,
-				C7A535CA2C8F201A002460E7 /* NSObject+JSON.m in Sources */,
 				C7A535872C8F1F96002460E7 /* PbAudioAppDelegate.m in Sources */,
-				C7A535B82C8F201A002460E7 /* CustomButtonView.m in Sources */,
-				C7A535CC2C8F201A002460E7 /* NSString+Ext.m in Sources */,
-				C7A536092C8F234B002460E7 /* DisplayMappingView.m in Sources */,
-				C7A535FF2C8F234B002460E7 /* DeviceManagerView.m in Sources */,
-				C7A535C22C8F201A002460E7 /* NSView+Blur.m in Sources */,
-				C7A535D22C8F201A002460E7 /* CMThruTableRow.m in Sources */,
-				C7A5366C2C8F2615002460E7 /* CMSoftThruConnection.m in Sources */,
-				C7A535C02C8F201A002460E7 /* CustomIndicatorView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -963,7 +881,7 @@
 				DEVELOPMENT_TEAM = ECP6D49SS3;
 				HEADER_SEARCH_PATHS = ../../include;
 				INFOPLIST_FILE = "[Pb] Audio iOS/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -986,7 +904,7 @@
 				DEVELOPMENT_TEAM = ECP6D49SS3;
 				HEADER_SEARCH_PATHS = ../../include;
 				INFOPLIST_FILE = "[Pb] Audio iOS/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

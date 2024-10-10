@@ -63,6 +63,13 @@ extern "C" {
 #endif
 #endif
 
+
+#define WAVE_FORMAT_PCM         0x0001
+#define WAVE_FORMAT_IEEE_FLOAT  0x0003
+#define WAVE_FORMAT_ALAW        0x0006
+#define WAVE_FORMAT_MULAW       0x0007
+#define WAVE_FORMAT_EXTENSIBLE  0x0007
+
 typedef struct WAV_SAMPLE
 {
     uint8_t  bytes[4];
@@ -483,6 +490,26 @@ XNZ_AIF_API XNZ_AIF_INLINE void xnz_wav_read_samples(XNZ_WAV_ARCHIVE* archive, u
             }
             break;
 
+        }
+            
+        case (32):
+        {
+            //int16_t** shortBuffers = (int16_t**)archive->samples;
+            char* sourceSamples = (char*)archive->samples;// shortBuffers[0];
+            //int16_t* shortSamplesR = (int16_t*)(player->sourceAudioFile.samples[1]);
+
+            //dest
+            char* hostBuffer = (char*)sampleBuffers[0];
+
+            for (int channel = 0; channel < archive->fmt->nChannels; channel++)
+            {
+                for (int frame = 0; frame < nSampleFrames; frame++)
+                {
+                    memcpy(&hostBuffer[(frame * archive->fmt->nChannels + channel) * 4], &sourceSamples[(frame * archive->fmt->nChannels + channel) * 4], 4);
+                }
+            }
+         
+            break;
         }
 
         default:

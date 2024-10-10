@@ -16,7 +16,7 @@ typedef struct PBAudioModule
 
 typedef struct SampleBuffer // 16 bytes
 {
-    float *     buffer;     //8 bytes
+    void *      buffer[2];  //8 bytes
     uint64_t    length;     //8 bytes, 1would this ever need to be larger than 4 bytes?
 }SampleBuffer;
 

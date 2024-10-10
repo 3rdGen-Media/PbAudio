@@ -102,10 +102,10 @@ extern PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID];
 
 #include <CoreServices/CoreServices.h>               //Core Services
 #include <CoreMIDI/MIDIServices.h>                   //Core Midi
-#include <CoreAudio/HostTime.h>                      //Core Audio
 #include <libkern/OSAtomic.h>                        //libkern
 
 #if TARGET_OS_OSX
+#include <CoreAudio/HostTime.h>                      //Core Audio
 #include <ApplicationServices/ApplicationServices.h> //Cocoa
 #endif
 #endif

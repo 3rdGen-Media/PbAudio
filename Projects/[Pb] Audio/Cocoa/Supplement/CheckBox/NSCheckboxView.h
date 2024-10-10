@@ -5,7 +5,14 @@
 //  Created by Joe Moulton on 12/31/22.
 //
 
+#include <TargetConditionals.h>
+
+#if TARGET_OS_OSX
 #import <Cocoa/Cocoa.h>
+#else
+
+#endif
+
 
 NS_ASSUME_NONNULL_BEGIN
 

@@ -11,7 +11,7 @@
 
 //#include <stdio.h>
 
-#ifdef __APPLE__
+#if defined( __APPLE__ ) && TARGET_OS_OSX
 #include <CoreAudio/AudioHardwareBase.h>
 #endif
 

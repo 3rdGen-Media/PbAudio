@@ -10,6 +10,11 @@
 #include <assert.h>
 
 #ifdef __APPLE__
+
+#if !TARGET_OS_OSX
+#include <Endian.h>
+#endif
+
 //
 // Code taken from http://developer.apple.com/qa/qa2004/qa1374.html
 //////////////////////////////////////

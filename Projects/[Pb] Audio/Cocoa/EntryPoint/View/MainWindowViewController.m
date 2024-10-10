@@ -19,7 +19,7 @@
     //[self addChildViewController:self.deviceViewController];
 }
 
--(id)initWithView:(NSView*)view
+-(id)initWithView:(CocoaView*)view
 {
     self = [super init];
     
@@ -49,7 +49,7 @@
     //CGRect surfaceRect = CGRectMake(0,0, CocoaScreenSize.width * screenScale, CocoaScreenSize.height * screenScale);
     
     //For Metal we mimic the OpenGL trick where we create the window at screen size then resize to the desired window size
-    NSView * rootView = [[CocoaView alloc] initWithFrame:windowRect];
+    CocoaView * rootView = [[CocoaView alloc] initWithFrame:windowRect];
     NSLog(@"MainWindow.rootView.frame.size = (%g, %g)", rootView.frame.size.width, rootView.frame.size.height);
     self.view = rootView; //[self.view addSubview:mtlView]; //SceneView must be the root view in order to resize window based on content size
     
@@ -87,6 +87,12 @@
     return self;
 }
 
+- (void)setRepresentedObject:(id)representedObject {
+    [super setRepresentedObject:representedObject];
+
+    // Update the view, if already loaded.
+}
+
 #else
 
 -(id)initWithWindow:(CocoaWindow*)window
@@ -94,7 +100,7 @@
     self = [super init];
     if( self )
     {
-        _windowID = 1;
+        //_windowID = 1;
     }
     return self;
 }
@@ -105,8 +111,9 @@
 
     [super viewDidLoad];
     
-    _windowID = 1; assert(_windowID > 0 ); //self.view.window.windowNumber;
-    [self loadCoreRenderView];
+    //_windowID = 1; assert(_windowID > 0 ); //self.view.window.windowNumber;
+    
+    [self loadRootView]; //[self loadCoreRenderView];
     //[CRAppDelegate.sharedInstance setColorSpaceProfile:[CGColorSpace genericRGBColorSpace]];
 
     //[self createChildLayerView];
@@ -117,7 +124,7 @@
 {
     NSLog(@"CRViewController::viewWillUnload");
     
-    [self removeSubviews];
+    //[self removeSubviews];
 }
 
 - (void)didReceiveMemoryWarning
@@ -127,10 +134,6 @@
 }
 #endif
 
-- (void)setRepresentedObject:(id)representedObject {
-    [super setRepresentedObject:representedObject];
 
-    // Update the view, if already loaded.
-}
 
 @end

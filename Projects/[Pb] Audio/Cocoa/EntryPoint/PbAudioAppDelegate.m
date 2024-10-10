@@ -17,6 +17,20 @@
 //#import "CRMenu.h"
 //#import "CRAppInterface.h"
 #import "PbAudioAppMenu.h"
+
+//Modal
+
+#import "AudioMidiSettingsView.h"
+#import "DeviceManagerView.h"
+#import "ProxyManagerView.h"
+#import "CMProxyModalView.h"
+#import "ControlManagerView.h"
+#import "DisplayManagerView.h"
+#import "SettingsModalViewController.h"
+
+//AppIcon Generation
+#import "CocoaImage+Logo.h"
+
 #else
 
 #endif
@@ -34,21 +48,11 @@
 //#import "C4CommanderViewController.h"
 #import "MainWindowViewController.h"
 
-//Modal
-
-#import "AudioMidiSettingsView.h"
-#import "DeviceManagerView.h"
-#import "ProxyManagerView.h"
-#import "CMProxyModalView.h"
-#import "ControlManagerView.h"
-#import "DisplayManagerView.h"
-#import "SettingsModalViewController.h"
 
 //Button
 #import "CustomButtonView.h"
 
-//AppIcon Generation
-#import "CocoaImage+Logo.h"
+
 
 #import "NSString+Ext.h"
 
@@ -63,22 +67,29 @@ static NSString * const NSToolbarAddItemIdentifier      = @"AddToolbarItem";
     //CMThruScrollListView * _scrollListView;
 }
 
+#if TARGET_OS_OSX
+
 //@property (nonatomic, retain) CustomButtonView* createThruButton;
 @property (nonatomic, retain) NSTitlebarAccessoryViewController * accessoryViewController;
 
-@property NSStatusItem                                    * barItem ;
+@property                     NSStatusItem                       * barItem ;
+#endif
 
-@property (nonatomic, retain) NSToolbar                   * toolbar;
-@property (nonatomic, retain) NSToolbar                   * modalToolbar;
+
+@property (nonatomic, retain) CocoaToolbar                * toolbar;
+@property (nonatomic, retain) CocoaToolbar                * modalToolbar;
 
 @property (nonatomic, retain) CocoaView                   * rootView;
 @property (nonatomic, retain) MainWindowViewController    * rootViewController;    //root VC
 
-@property (nonatomic, retain) NSView                      * modalView;
-@property (nonatomic, retain) SettingsModalViewController * modalViewController;
+@property (nonatomic, retain) CocoaView                   * modalView;
 
-@property (nonatomic, retain) NSImage                     * statusOnImage;
-@property (nonatomic, retain) NSImage                     * statusOffImage;
+#if TARGET_OS_OSX
+@property (nonatomic, retain) SettingsModalViewController * modalViewController;
+#endif
+
+@property (nonatomic, retain) CocoaImage                  * statusOnImage;
+@property (nonatomic, retain) CocoaImage                  * statusOffImage;
 
 @end
 
@@ -95,6 +106,7 @@ static NSString * const NSToolbarAddItemIdentifier      = @"AddToolbarItem";
     return appDelegate;
 }
 
+#if TARGET_OS_OSX
 
 -(void)openSettingsManagerModalWindow
 {
@@ -145,210 +157,7 @@ static NSString * const NSToolbarAddItemIdentifier      = @"AddToolbarItem";
     
 }
 
-/*
--(void)openDeviceManagerModalWindow
-{
-    NSLog(@"openDeviceManagerModalWindow");
-    
-    //Create a view and view controller for the data model as an overlay window, popover or sheet
-    CGSize popoverSize = CGSizeMake(550, 550);
-    CGRect viewFrame = CGRectMake(0,0,popoverSize.width, popoverSize.height);
-    
-    //Create the view/view controller pair that will manage the UI for a single abstract data model database entry as a modal window, popover or sheet
-    self.modalView = [[DeviceManagerView alloc] initWithFrame:viewFrame andActiveDevice:self.rootViewController.deviceView.device];
-    self.modalViewController = [[SettingsModalViewController alloc] initWithView:self.modalView];
-    self.modalView.translatesAutoresizingMaskIntoConstraints = NO;
-    self.modalView.autoresizingMask = NSViewNotSizable;
-    
-    //Present the ModalView/ViewCOntroller pair as a modal window, popover, or sheet on top of the parent window/view controller pair
-    [self.rootViewController presentViewControllerAsModalWindow:self.modalViewController];
-    
-    [self.modalView.window setStyleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable]; // | NSWindowStyleMaskMiniaturizable];// | NSWindowStyleMaskFullSizeContentView ];
-    self.modalView.window.title = [NSString stringWithFormat:@"Control Surfaces"];
-    //self.modalView.titleLabel.stringValue = [NSString stringWithFormat:@"New Midi Route"];
-    
-    [self.modalView.window makeKeyAndOrderFront:self];     // Show the window
 
-}
-
--(void)openActiveDeviceWindow
-{
-    [self.window makeKeyAndOrderFront:self];
-    [self.window orderFrontRegardless];
-    if( self.modalView ) [self.modalWindow orderFrontRegardless];
-}
-
--(void)openDeviceManagerModalWindow:(NSString*)deviceID
-{
-    NSLog(@"openDeviceManagerModalWindow: %@", deviceID);
- 
-    //Create a view and view controller for the data model as an overlay window, popover or sheet
-    CGSize popoverSize = CGSizeMake(550, 550);
-    CGRect viewFrame = CGRectMake(0,0,popoverSize.width, popoverSize.height);
-    
-    //Create the view/view controller pair that will manage the UI for a single abstract data model database entry as a modal window, popover or sheet
-    self.modalView = [[DeviceManagerView alloc] initWithFrame:viewFrame andActiveDevice:self.rootViewController.deviceView.device];
-    self.modalViewController = [[SettingsModalViewController alloc] initWithView:self.modalView];
-    self.modalView.translatesAutoresizingMaskIntoConstraints = NO;
-    self.modalView.autoresizingMask = NSViewHeightSizable;
-    
-
-    //[self.modalWindow setStyleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable]; // | NSWindowStyleMaskMiniaturizable];// | NSWindowStyleMaskFullSizeContentView ];
-    self.modalWindow.title = [NSString stringWithFormat:@"Control Surfaces"];
-    //self.modalView.titleLabel.stringValue = [NSString stringWithFormat:@"New Midi Route"];
-
-
-    //Present the ModalView/ViewCOntroller pair as a modal window, popover, or sheet on top of the parent window/view controller pair
-    //[self.rootViewController presentViewControllerAsModalWindow:self.modalViewController];
-
-    [self.modalWindow setContentViewController:self.modalViewController];
-    [self.modalWindow makeKeyAndOrderFront:self];
-    [self.modalWindow orderFrontRegardless];
-    
-}
-
-
--(void)createModalToolbar
-{
-    self.modalToolbar = [[NSToolbar alloc] init];
-
-    // Toolbar **need1s** a delegate
-    self.modalToolbar.delegate = self;
-    
-    // Assign the toolbar to the window object
-    self.modalWindow.toolbar = self.modalToolbar;
-}
-
-
--(void)openProxyConnectionModalWindow
-{
-    NSLog(@"openProxyConnectionModalWindow");
- 
-    //Create a view and view controller for the data model as an overlay window, popover or sheet
-    CGSize popoverSize = CGSizeMake(550, 550);
-    CGRect viewFrame = CGRectMake(0,0,popoverSize.width, popoverSize.height);
-    
-    //Create the view/view controller pair that will manage the UI for a single abstract data model database entry as a modal window, popover or sheet
-    NSView * modalView = [[CMProxyModalView alloc] initWithFrame:viewFrame andProxy:nil];
-    NSViewController * modalVC = [[SettingsModalViewController alloc] initWithView:modalView];
-    
-    modalView.translatesAutoresizingMaskIntoConstraints = NO;
-    modalView.autoresizingMask = NSViewHeightSizable;
-    
-    //Present the ModalView/ViewCOntroller pair as a modal window, popover, or sheet on top of the parent window/view controller pair
-    [self.modalViewController presentViewControllerAsModalWindow:modalVC];
-
-    [modalView.window setStyleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable];// | NSWindowStyleMaskFullSizeContentView ];
-    modalView.window.title = [NSString stringWithFormat:@"New Proxy Connection"];
-
-    
-}
-
--(void)openProxyConnectionModalWindow:(NSString*)proxyID
-{
-    NSLog(@"openProxyConnectionModalWindow: %@", proxyID);
- 
-    //Create a view and view controller for the data model as an overlay window, popover or sheet
-    CGSize popoverSize = CGSizeMake(550, 550);
-    CGRect viewFrame = CGRectMake(0,0,popoverSize.width, popoverSize.height);
-    
-    //Create the view/view controller pair that will manage the UI for a single abstract data model database entry as a modal window, popover or sheet
-    NSView * modalView = [[ProxyManagerView alloc] initWithFrame:viewFrame];// andProxy:proxyID];
-    NSViewController * modalVC = [[SettingsModalViewController alloc] initWithView:modalView];
-    
-    modalView.translatesAutoresizingMaskIntoConstraints = NO;
-    modalView.autoresizingMask = NSViewHeightSizable;
-    
-    //Present the ModalView/ViewCOntroller pair as a modal window, popover, or sheet on top of the parent window/view controller pair
-    [self.modalViewController presentViewControllerAsModalWindow:modalVC];
-
-    [modalView.window setStyleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable];// | NSWindowStyleMaskFullSizeContentView ];
-    modalView.window.title = [NSString stringWithFormat:@"Edit Proxy Connection"];
-
-    
-}
-
--(void)openProxyManagerModalWindow:(NSString*)proxyID
-{
-    NSLog(@"openProxyManagerModalWindow: %@", proxyID);
- 
-    //Create a view and view controller for the data model as an overlay window, popover or sheet
-    CGSize popoverSize = CGSizeMake(1024, 768);
-    CGRect viewFrame = CGRectMake(0,0,popoverSize.width, popoverSize.height);
-    
-    //Create the view/view controller pair that will manage the UI for a single abstract data model database entry as a modal window, popover or sheet
-    self.modalView = [[ProxyManagerView alloc] initWithFrame:viewFrame];// andProxy:proxyID];
-    self.modalViewController = [[SettingsModalViewController alloc] initWithView:self.modalView];
-    self.modalView.translatesAutoresizingMaskIntoConstraints = NO;
-    self.modalView.autoresizingMask = NSViewHeightSizable;
-    
-    //NSUInteger windowStyleMask = NSWindowStyleMaskTitled | NSWindowStyleMaskResizable | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskFullSizeContentView ;
-    //[self.modalWindow setStyleMask:windowStyleMask];//NSWindowStyleMaskTitled | NSWindowStyleMaskClosable]; // | NSWindowStyleMaskMiniaturizable];// | NSWindowStyleMaskFullSizeContentView ];
-    self.modalWindow.title = [NSString stringWithFormat:@"Proxy Connections"];
-    //self.modalView.titleLabel.stringValue = [NSString stringWithFormat:@"New Midi Route"];
-
-    //Present the ModalView/ViewCOntroller pair as a modal window, popover, or sheet on top of the parent window/view controller pair
-    //[self.rootViewController presentViewControllerAsModalWindow:self.modalViewController];
-
-    [self.modalWindow setContentViewController:self.modalViewController];
-    [self.modalWindow makeKeyAndOrderFront:self];
-    [self.modalWindow orderFrontRegardless];
-    
-}
-
--(void)openControlManagerModalWindow:(CMControl*)control
-{
-    NSLog(@"openControlManagerModalWindow: %d", control->type);
-    
-    //Create a view and view controller for the data model as an overlay window, popover or sheet
-    CGSize popoverSize = CGSizeMake(550, 550);
-    CGRect viewFrame = CGRectMake(0,0,popoverSize.width, popoverSize.height);
-    
-    //Create the view/view controller pair that will manage the UI for a single abstract data model database entry as a modal window, popover or sheet
-    self.modalView = [[ControlManagerView alloc] initWithFrame:viewFrame andControl:control];
-    self.modalViewController = [[SettingsModalViewController alloc] initWithView:self.modalView];
-    self.modalView.translatesAutoresizingMaskIntoConstraints = NO;
-    self.modalView.autoresizingMask = NSViewHeightSizable;
-    
-    //Present the ModalView/ViewCOntroller pair as a modal window, popover, or sheet on top of the parent window/view controller pair
-    //[self.rootViewController presentViewControllerAsModalWindow:self.modalViewController];
-
-    //[self.modalView.window setStyleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable]; // | NSWindowStyleMaskMiniaturizable];// | NSWindowStyleMaskFullSizeContentView ];
-    self.modalWindow.title = [NSString stringWithFormat:@"Control Mapping"];
-    //self.modalView.titleLabel.stringValue = [NSString stringWithFormat:@"New Midi Route"];
-    
-    [self.modalWindow setContentViewController:self.modalViewController];
-    [self.modalWindow makeKeyAndOrderFront:self];
-    [self.modalWindow orderFrontRegardless];
-    
-}
-
--(void)openDisplayManagerModalWindow:(CMDisplay*)display
-{
-    NSLog(@"openDisplayManagerModalWindow");
-    
-    //Create a view and view controller for the data model as an overlay window, popover or sheet
-    CGSize popoverSize = CGSizeMake(550, 550);
-    CGRect viewFrame = CGRectMake(0,0,popoverSize.width, popoverSize.height);
-    
-    //Create the view/view controller pair that will manage the UI for a single abstract data model database entry as a modal window, popover or sheet
-    self.modalView = [[DisplayManagerView alloc] initWithFrame:viewFrame andDisplay:display];
-    self.modalViewController = [[SettingsModalViewController alloc] initWithView:self.modalView];
-    self.modalView.translatesAutoresizingMaskIntoConstraints = NO;
-    self.modalView.autoresizingMask = NSViewHeightSizable;
-    
-    //Present the ModalView/ViewCOntroller pair as a modal window, popover, or sheet on top of the parent window/view controller pair
-    //[self.rootViewController presentViewControllerAsModalWindow:self.modalViewController];
-    
-    //[self.modalView.window setStyleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable]; // | NSWindowStyleMaskMiniaturizable];// | NSWindowStyleMaskFullSizeContentView ];
-    self.modalWindow.title = [NSString stringWithFormat:@"Display Mapping"];
-    //self.modalView.titleLabel.stringValue = [NSString stringWithFormat:@"New Midi Route"];
-    
-    [self.modalWindow setContentViewController:self.modalViewController];
-    [self.modalWindow makeKeyAndOrderFront:self];
-    [self.modalWindow orderFrontRegardless];
-}
-*/
 
 
 -(void)dismissModalWindow
@@ -373,134 +182,6 @@ static NSString * const NSToolbarAddItemIdentifier      = @"AddToolbarItem";
     
 }
 
-/*
--(CMHardwareDevice*)activeDevice
-{
-    return self.rootViewController.deviceView.device;
-}
-
--(void)setActiveDevice:(CMHardwareDevice*)device
-{
-    [self.rootViewController setActiveDevice:(CMHardwareDevice*)device];
-}
-
-
--(void)setDevice:(CMHardwareDevice*)device DisplayAtIndex:(int)displayIndex
-{
-    [self.rootViewController setDevice:(device ? device : self.rootViewController.deviceView.device) DisplayAtIndex:displayIndex];
-}
-
--(void)setDevice:(CMHardwareDevice*)device DisplayForControlType:(CMControlType)controlType atIndex:(CMControlIndex)controlIndex
-{
-    [self.rootViewController setDevice:(device ? device : self.rootViewController.deviceView.device) DisplayForControlType:controlType atIndex:controlIndex];
-    
-}
-
--(void)setDevice:(CMHardwareDevice*)device ControlType:(CMControlType)controlType atIndex:(CMControlIndex)controlIndex
-{
-    [self.rootViewController setDevice:(device ? device : self.rootViewController.deviceView.device) ControlType:controlType atIndex:controlIndex];
-}
-
-
-//-(MCUDeviceView*)activeDeviceView
-//{
-//    return self.rootViewController ;
-//}
-
--(void)addRouteButtonClicked:(id)sender
-{
-    
-    NSLog(@"addRouteButtonClicked");
-}
-
-
-- (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar
-{
-    if( toolbar == self.toolbar )
-        return @[NSToolbarBackwardItemIdentifier, NSToolbarForwardItemIdentifier, NSToolbarAddItemIdentifier];
-    else if( toolbar == self.modalToolbar)
-        return @[NSToolbarAddItemIdentifier];
-    
-    return nil;
-}
-
-- (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar
-{
-    if( toolbar == self.toolbar )
-        return @[NSToolbarBackwardItemIdentifier, NSToolbarForwardItemIdentifier, NSToolbarAddItemIdentifier];
-    else if( toolbar == self.modalToolbar)
-        return @[NSToolbarAddItemIdentifier];
-    
-    return nil;
-}
-
-- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSToolbarItemIdentifier)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag
-{
-    if( toolbar == self.toolbar )
-    {
-        
-        if( [itemIdentifier localizedCompare:NSToolbarBackwardItemIdentifier] == NSOrderedSame)
-        {
-            NSButton * button = [NSButton buttonWithImage:[NSImage imageNamed:NSImageNameGoBackTemplate] target:self action: @selector(GoBackwardButtonClicked)];
-            button.bezelStyle = NSBezelStyleTexturedRounded;
-            button.frame = CGRectMake(0,0,button.frame.size.height,button.frame.size.height);
-            
-            //self.createThruButton = [self createButtonViewWithImage:[NSImage imageNamed:NSImageNameAddTemplate]];
-            return [self customToolbarItem:NSToolbarBackwardItemIdentifier label:nil paletteLabel:@"Previous Device" toolTip:nil itemContent:button];
-        }
-        else if( [itemIdentifier localizedCompare:NSToolbarForwardItemIdentifier] == NSOrderedSame)
-        {
-            NSButton * button = [NSButton buttonWithImage:[NSImage imageNamed:NSImageNameGoForwardTemplate] target:self action: @selector(GoForwardButtonClicked)];
-            button.bezelStyle = NSBezelStyleTexturedRounded;
-            button.frame = CGRectMake(0,0,button.frame.size.height,button.frame.size.height);
-            
-            //self.createThruButton = [self createButtonViewWithImage:[NSImage imageNamed:NSImageNameAddTemplate]];
-            return [self customToolbarItem:NSToolbarForwardItemIdentifier label:nil paletteLabel:@"Next Device" toolTip:nil itemContent:button];
-        }
-        else if( [itemIdentifier localizedCompare:NSToolbarAddItemIdentifier] == NSOrderedSame)
-        {
-            NSButton * button = [NSButton buttonWithImage:[NSImage imageNamed:NSImageNameTouchBarAddTemplate] target:self action: @selector(AddItemButtonClicked)];
-            button.bezelStyle = NSBezelStyleTexturedRounded;
-            button.frame = CGRectMake(0,0,button.frame.size.height,button.frame.size.height);
-            
-            //self.createThruButton = [self createButtonViewWithImage:[NSImage imageNamed:NSImageNameAddTemplate]];
-            return [self customToolbarItem:NSToolbarAddItemIdentifier label:nil paletteLabel:@"Add Device" toolTip:nil itemContent:button];
-        }
-    }
-    else if( toolbar == self.modalToolbar)
-    {
-        if( [itemIdentifier localizedCompare:NSToolbarAddItemIdentifier] == NSOrderedSame)
-        {
-            NSButton * button = [NSButton buttonWithImage:[NSImage imageNamed:NSImageNameAddTemplate] target:self action: @selector(openProxyConnectionModalWindow)];
-            button.bezelStyle = NSBezelStyleTexturedRounded;
-            button.frame = CGRectMake(0,0,button.frame.size.height,button.frame.size.height);
-            
-            //self.createThruButton = [self createButtonViewWithImage:[NSImage imageNamed:NSImageNameAddTemplate]];
-            return [self customToolbarItem:NSToolbarAddItemIdentifier label:@"New" paletteLabel:@"New Proxy Connection" toolTip:@"Create a New Proxy Connection" itemContent:button];
-        }
-    }
-
-    
-    return nil;
-    
-}
-
--(void)GoBackwardButtonClicked
-{
-    [self.rootViewController showPrevDevice];
-
-}
-
-
--(void)GoForwardButtonClicked
-{
-    [self.rootViewController showNextDevice];
-    
-
-
-
-}
-*/
 
 -(void)showPopupMenu
 {
@@ -639,6 +320,9 @@ Mostly base on Apple sample code: https://developer.apple.com/documentation/appk
     [self.window addTitlebarAccessoryViewController:self.accessoryViewController];
 }
 
+#endif
+
+
 /*
 -(void)createWindow
 {
@@ -700,7 +384,7 @@ Mostly base on Apple sample code: https://developer.apple.com/documentation/appk
     self.window.backgroundColor = nil;//[NSColor blackColor]; //Use magenta to identify/debug platform window default layer, black for release builds
     [self.window makeKeyAndOrderFront:self];
 #else
-    self.window = [[CRWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.backgroundColor = nil;//[UIColor magentaColor]; //Use magenta to identify/debug platform window default layers, nil for release builds
 #endif
     }

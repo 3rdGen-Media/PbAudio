@@ -459,8 +459,7 @@ void PBAudioInit(void)
     //const char * audioFileURL = "../../assets/Audio/WAV/Test/16_48k_PerfectTest.wav";
     //const char * audioFileExt = "wav\0";
 
-    //"/Users/jmoulton/Music/iTunes/iTunes Media/Music/Unknown Artist/Unknown Album/Print#45.aif";
-    const char* audioFileURL = "../../assets/Audio/AIF/Print#45.aif"; 
+    const char* audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/Unknown Artist/Unknown Album/Print#45.aif";//"../../assets/Audio/AIF/Print#45.aif";
     const char* audioFileExt = "aif\0";
 
     //const char * audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/ArticulationLayers/65 Drum Samples/56442_Surfjira_Snare_HeadShot_Hard.wav";

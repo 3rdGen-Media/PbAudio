@@ -88,7 +88,7 @@ static void PBAudioStreamSampleRateChangedNotificationCallback(CFNotificationCen
     fprintf(stdout, "\nPBAudioStreamSampleRateChangedNotificationCallback (Sample Rate: %lu)\n", (unsigned int)DeviceStream->currentSampleRate);
  
     //Modify Application State Based on Notification Here:
-    ToneGeneratorSetFrequency(&toneGenerator, toneGenerator.freq, DeviceStream->currentSampleRate);
+    //ToneGeneratorSetFrequency(&toneGenerator, toneGenerator.freq, DeviceStream->currentSampleRate);
     
     //TO DO:  Reload audio files from source with conversion to new sample rate format
 }

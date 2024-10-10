@@ -13,12 +13,19 @@
 #define CocoaDelegateSuperclass NSObject
 #define CocoaAppDelegate        NSApplicationDelegate
 #define CocoaWindow             NSWindow
+#define CocoaToolbarDelelegate  NSToolbarDelegate
+#define CocoaToolbar            NSToolbar
+#define CocoaImage              NSImage
+
 //#import "MCUCommanderMenu.h"
 //#import "MCUCommanderMainMenu.h"
 #else
 #define CocoaDelegateSuperclass UIResponder
 #define CocoaAppDelegate        UIApplicationDelegate, UIWindowSceneDelegate
 #define CocoaWindow             UIWindow
+#define CocoaToolbarDelelegate  UIToolbarDelegate
+#define CocoaToolbar            UIToolbar
+#define CocoaImage              UIImage
 #endif
 
 
@@ -26,7 +33,7 @@
 #import "CustomButtonView.h"
 //#import "MCUDeviceView.h"
 
-@interface PbAudioAppDelegate : CocoaDelegateSuperclass <CocoaAppDelegate, NSToolbarDelegate, CustomButtonViewDelegate>
+@interface PbAudioAppDelegate : CocoaDelegateSuperclass <CocoaAppDelegate, CocoaToolbarDelelegate, CustomButtonViewDelegate>
 
 + (PbAudioAppDelegate*)sharedInstance;
 

@@ -14,6 +14,7 @@
 #include <xnz/cr_file.h>
 #include <xnz/xnz_aif_codec.h>
 #include <xnz/xnz_wav_codec.h>
+#include <xnz/xnz_flac_codec.h>
 
 #ifndef __APPLE__
 typedef CRFile* ExtAudioFileRef;
@@ -42,11 +43,12 @@ typedef IMFSourceReader* ExtAudioFileRef;
 
 typedef enum xng_audio_form
 {
-    XNG_AUDIO_FORM_PCM = 0, //raw sample buffer
-    XNG_AUDIO_FORM_AIF = 1, //APPLE     aiff
-    XNG_AUDIO_FORM_WAV = 2, //MICROSOFT wav
-    XNG_AUDIO_FORM_MP3 = 3, //MPEG-3
-    XNG_AUDIO_FORM_MP4 = 4, //MPEG-4 TS
+    XNG_AUDIO_FORM_PCM  = 0, //raw sample buffer
+    XNG_AUDIO_FORM_AIF  = 1, //APPLE     aiff
+    XNG_AUDIO_FORM_WAV  = 2, //MICROSOFT wav
+    XNG_AUDIO_FORM_MP3  = 3, //MPEG-3
+    XNG_AUDIO_FORM_MP4  = 4, //MPEG-4 TS
+    XNG_AUDIO_FORM_FLAC = 5
 }xng_audio_form;
 
 
@@ -58,6 +60,7 @@ typedef struct PBAFile
         CRFile              file;
         XNZ_AIF_ARCHIVE     aif;
         XNZ_WAV_ARCHIVE     wav;
+        XNZ_FLAC_ARCHIVE    flac;
 #else
         ExtAudioFileRef     file;
 #endif

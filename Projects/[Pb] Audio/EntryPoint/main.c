@@ -492,6 +492,32 @@ void PBAudioInit(void)
     //PBAudioRegisterDeviceListeners(&g_notificationClient, NULL);
 }
 
+void CRCleanup(void)
+{
+    fprintf(stderr, "\nCRCleanup!\n");
+    //NOTE: This method should ONLY be called AFTER Message window render/control threads and wait for them to shut down
+    //TerminateDisplaySyncProcess(cr_displaySyncProcess); //if there was no display sync process this does nothing
+
+#ifdef CR_TARGET_WIN32
+    //to stop the simulation post to the message loop running on the main thread
+    PostThreadMessage(PBAudio.mainThreadID, PBA_EVENT_MSG_LOOP_QUIT, true, 0);
+#elif defined(CR_TARGET_OSX)
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        //[[CTApplcation sharedApplication] replyToApplicationShouldTerminate:YES];
+        id (*objc_ClassSelector)(Class class, SEL _cmd) = (void*)objc_msgSend;//objc_msgSend(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc")), sel_registerName("init"))
+        id (*objc_InstanceSelector1)(id self, SEL _cmd, id sender) = (void*)objc_msgSend;//objc_msgSend(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc")), sel_registerName("init"))
+        id CTApp = objc_ClassSelector(objc_getClass(CocoaAppClassName), sel_registerName("sharedApplication"));
+        objc_InstanceSelector1(CTApp, sel_getUid("terminate:"), NULL);
+    });
+#else
+    //dispatch event to be picked up by Cocoa UIApplication waiting on kqueue in AppDelegate::applicationWillTerminate
+    struct kevent kev;
+    EV_SET(&kev, crevent_exit, EVFILT_USER, EV_ADD|EV_ENABLE|EV_ONESHOT, NOTE_FFCOPY|NOTE_TRIGGER|0x1, 0, NULL);
+    kevent(cr_platformEventQueue, &kev, 1, NULL, 0, NULL);
+#endif
+
+}
+
 //must return void* in order to use with GCD dispatch_async_f
 static void* CRRunLoop(void* opaqueQueue)
 {   
@@ -660,14 +686,16 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
 
     }
 
+    //Stop all streams
+    PBAudio.Stop(&PBAudio.OutputStreams[0]);
+    
     //Cleanup PBAudio + CMidi
     SamplePlayerDestroy(&samplePlayer);
     ToneGeneratorDestroy(&toneGenerator);
 
+    CRCleanup();
+    
 #ifdef _WIN32
-
-    //to stop the simulation post to the message loop running on the main thread
-    PostThreadMessage(PBAudio.mainThreadID, PBA_EVENT_MSG_LOOP_QUIT, true, 0);
 
     // let's play nice and return any message sent by windows
     //return (int)msg.wParam;

@@ -922,6 +922,7 @@ CMConnection* CMCreateInputConnectionAtIndex(const char * inputID, CMSource* sou
     //int destID   = thruParams->destinations[0].uniqueID;
 
 #ifdef __APPLE__
+    /*
     CFStringRef endpointName = NULL; //what is endpointName used for?
     if( (cmError = MIDIObjectGetStringProperty(sourceEndpoint->endpoint, kMIDIPropertyName, &endpointName)) != noErr)
     {
@@ -929,6 +930,7 @@ CMConnection* CMCreateInputConnectionAtIndex(const char * inputID, CMSource* sou
         assert(1==0);
         return nil;
     }
+    */
     
     //send the endpointRef as the context parameter
     if( (cmError = MIDIPortConnectSource(CMClient.inPort, sourceEndpoint->endpoint, &(CMClient.inputConnections[inputIndex]))) != noErr)
@@ -1137,6 +1139,8 @@ ItemCount CMUpdateInputDevices(void)
                     break;
                 }
             }
+            
+            CFRelease(str);
         }
 
         fprintf(stderr, "%d) %s (%d) [%s]\n", i, CMFullEndpointName(endpoint, CMClient.sources[i].name, &driverID), sourceEndpointUniqueID, s);
@@ -1403,6 +1407,8 @@ ItemCount CMUpdateOutputDevices(void)
                     break;
                 }
             }
+            
+            CFRelease(str);
         }
         
         fprintf(stderr, "%d) %s (%d) [%s]\n", i, CMFullEndpointName(endpoint,  CMClient.destinations[i].name, &driverID), destEndpointUniqueID, s);

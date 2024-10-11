@@ -73,6 +73,32 @@
     */
 }
 
+
+-(void)quitApplication:(id)sender
+{
+    //Hold up NSApplication::terminate: from being called so we can notify CoreTransport to clean up and it can notify NSApplication when finished so that shutdown can proceed
+    //struct kevent kev;
+    //EV_SET(&kev, crevent_exit, EVFILT_USER, EV_ADD | EV_ENABLE | EV_ONESHOT, NOTE_FFCOPY|NOTE_TRIGGER|0x1, 0, NULL);
+    //kevent(cr_appEventQueue, &kev, 1, NULL, 0, NULL);
+    
+    //struct kevent kev;
+    //uint64_t menuEventType = crmenu_quit;
+    //EV_SET(&kev, crevent_menu, EVFILT_USER, 0, NOTE_TRIGGER, 0, (void*)menuEventType);
+    //kevent(cr_appEventQueue, &kev, 1, NULL, 0, NULL);
+    
+    //Send message to enable/disable a midi input connection
+    CMUniversalMessage * message     = &pba_message_events[pba_message_event_index++]; pba_message_event_index = pba_message_event_index % MAX_MESSAGE_EVENTS;
+    message->type                    = CMMessageTypeSystem;
+    message->group                   = pba_shutdown;
+    //message->system.status           = enabled ? CMStatusStart : CMStatusStop;
+    //message->system.uniqueID         = CMClient.sources[index].uniqueID;
+        
+    struct kevent kev;
+    EV_SET(&kev, message->type, EVFILT_USER, 0, NOTE_TRIGGER, 0, message);
+    kevent(PBAudio.eventQueue.kq, &kev, 1, NULL, 0, NULL);
+}
+
+
 -(void)createMainSubmenu
 {
     //0  Create at  least one  Menu Bar Item (Submenu)
@@ -120,9 +146,13 @@
     [proxyManagerMenuItem setTarget:self];
     proxyManagerMenuItem.enabled = YES;
     
-    NSMenuItem* quitMenuItem = [[NSMenuItem alloc] initWithTitle:@"Quit"
-                                                          action:@selector(terminate:)
-                                                           keyEquivalent:@""];
+    //NSMenuItem* quitMenuItem = [[NSMenuItem alloc] initWithTitle:@"Quit" action:@selector(terminate:) keyEquivalent:@""];
+
+    NSMenuItem* quitMenuItem = [[NSMenuItem alloc] initWithTitle:@"Quit" action:@selector(quitApplication:) keyEquivalent:@"q"];
+    [quitMenuItem setKeyEquivalent:@"q"];
+    [quitMenuItem setTarget:self];
+    [quitMenuItem setEnabled:YES];
+
     [self addItem:quitMenuItem];
     
     //1.b Add the submenu to the menu bar

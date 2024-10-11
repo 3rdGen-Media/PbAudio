@@ -107,10 +107,10 @@ typedef void (*PBAStreamOutputPass)(struct PBABufferList* ioData, uint32_t frame
 
 #ifdef __BLOCKS__
 typedef void (^PBARenderPass)(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp,
-                              PBAStreamFormatSampleType target, void* _Nullable source, void* _Nullable events, UInt32 nEvents);
+                              PBAStreamFormatSampleType target, void* _Nullable source, void*_Nullable* _Nullable events, UInt32 nEvents);
 #else
 typedef void (*PBARenderPass)(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp,
-                              PBAStreamFormatSampleType target, void* source, void* events, uint32_t nEvents);
+                              PBAStreamFormatSampleType target, void* source, void** events, uint32_t nEvents);
 #endif
 
 //Render Context

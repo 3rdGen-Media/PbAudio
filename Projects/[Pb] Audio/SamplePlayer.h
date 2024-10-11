@@ -19,7 +19,7 @@ extern "C" {
 #ifdef __BLOCKS__
 PB_AUDIO_EXTERN PBARenderPass SamplePlayerRenderPass;
 #else
-void CALLBACK SamplePlayerRenderPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, PBAStreamFormatSampleType target, void* source, void* events, uint32_t nEvents);
+void CALLBACK SamplePlayerRenderPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, PBAStreamFormatSampleType target, void* source, void** events, uint32_t nEvents);
 #endif
 
 

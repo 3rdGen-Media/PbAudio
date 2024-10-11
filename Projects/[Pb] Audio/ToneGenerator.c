@@ -37,10 +37,10 @@ int convert(double val) {
 
 #ifdef __BLOCKS__
 PBARenderPass ToneGeneratorRenderPass = ^ (AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp,
-                                           PBAStreamFormatSampleType target, void* source, void* events, UInt32 nEvents)
+                                           PBAStreamFormatSampleType target, void* source, void** events, UInt32 nEvents)
 #else
 void CALLBACK ToneGeneratorRenderPass(struct PBABufferList * ioData, uint32_t frames, const struct PBATimeStamp * timestamp,
-                                      PBAStreamFormatSampleType target, void* source, void* events, uint32_t nEvents)
+                                      PBAStreamFormatSampleType target, void* source, void** events, uint32_t nEvents)
 #endif
 {
     //UINT64 playbackSampleOffset = 0;

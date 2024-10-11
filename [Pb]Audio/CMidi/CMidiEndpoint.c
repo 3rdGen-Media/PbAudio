@@ -49,6 +49,8 @@ CFStringRef CMEndpointName(MIDIEndpointRef endpoint, bool isExternal, CMDriverID
             
             int isIAC = (strcmp(s, cm_driver_list[CM_DRIVER_APPLE_IAC]) == 0);
             *driverID = CM_DRIVER_APPLE_IAC * isIAC + *driverID * !isIAC;
+            
+            CFRelease(str);
         }
     }
 

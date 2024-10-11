@@ -17,10 +17,10 @@
 
 #ifdef __BLOCKS__
 PBARenderPass SamplePlayerRenderPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, //Required
-                                         PBAStreamFormatSampleType  target, void* source,  void* events, uint32_t nEvents)            //Extended
+                                         PBAStreamFormatSampleType  target, void* source,  void** events, uint32_t nEvents)            //Extended
 #else
 void        SamplePlayerRenderPass      (struct PBABufferList*     ioData, uint32_t frames, const struct  PBATimeStamp* timestamp,    //Required 
-                                        PBAStreamFormatSampleType target, void*    source, void* events, uint32_t nEvents)            //Extended
+                                        PBAStreamFormatSampleType target, void*    source, void** events, uint32_t nEvents)            //Extended
 #endif
 {
     uint32_t samplesToCopy = 0;
@@ -223,7 +223,7 @@ void SamplePlayerDestroy(SamplePlayer* player)
 #ifdef __APPLE__ //Conversion when reading from file is currently only implemented on Apple
     int nSourceBuffers = 1; //player->sourceAudioFile.sourceFormat.mChannelsPerFrame;
     int nInterleavedChannels = player->sourceAudioFile.sourceFormat.mChannelsPerFrame; //1;
-    if (converterFormat) nSourceBuffers = converterFormat->mChannelsPerFrame > 2 ? 2 : converterFormat->mChannelsPerFrame;
+    nSourceBuffers = player->sourceAudioFile.conversionFormat.mChannelsPerFrame > 2 ? 2 : player->sourceAudioFile.conversionFormat.mChannelsPerFrame;
 #else
     int nSourceBuffers = 1;
     int nInterleavedChannels = player->sourceAudioFile.sourceFormat.mChannelsPerFrame;

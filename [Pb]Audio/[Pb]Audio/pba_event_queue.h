@@ -257,6 +257,7 @@ typedef enum crevent_type
 typedef enum pba_system_event_group
 {
     pba_no_group,
+    pba_shutdown,                       //terminate PBAudio event thread/runloop
     pba_midi_input_connection,          //send a start/stop to indicate create/remove
     pba_midi_create_input_connection,   //send a start to indicate create
     pba_midi_remove_input_connection    //send a stop to indicate remove

@@ -42,7 +42,8 @@ typedef struct SamplePlayer
     
 }SamplePlayer;
 
-void SamplePlayerInit(SamplePlayer* player, const char* audioFileURL, const char* audioFileEXT, PBAStreamFormat* converterFormat);
+void SamplePlayerInit(SamplePlayer* player, const char* audioFileURL, const char* audioFileEXT, PBAStreamFormatRef converterFormat);
+void SamplePlayerDestroy(SamplePlayer* player);
 
 
 #ifdef __cplusplus

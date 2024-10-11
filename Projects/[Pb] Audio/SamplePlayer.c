@@ -214,3 +214,36 @@ void SamplePlayerInit(SamplePlayer* player, const char * audioFileURL, const cha
     //PBAFileStreamClose(&player->sourceAudioFile.file);
 
 }
+
+
+void SamplePlayerDestroy(SamplePlayer* player)
+{
+    int iBuffer = 0;
+
+#ifdef __APPLE__ //Conversion when reading from file is currently only implemented on Apple
+    int nSourceBuffers = 1; //player->sourceAudioFile.sourceFormat.mChannelsPerFrame;
+    int nInterleavedChannels = player->sourceAudioFile.sourceFormat.mChannelsPerFrame; //1;
+    if (converterFormat) nSourceBuffers = converterFormat->mChannelsPerFrame > 2 ? 2 : converterFormat->mChannelsPerFrame;
+#else
+    int nSourceBuffers = 1;
+    int nInterleavedChannels = player->sourceAudioFile.sourceFormat.mChannelsPerFrame;
+#endif
+
+    for (iBuffer = 0; iBuffer < nSourceBuffers; iBuffer++)
+    {
+        //until memory is a concern just allocate to the max supported output sample size of 4 bytes per sample (this makes it easier to do in place conversion)
+        //TO DO: parse sample format and frame container type to determine size
+        free(player->sourceAudioFile.samples[iBuffer]);
+        player->sourceAudioFile.samples[iBuffer] = NULL;
+
+        /*
+        //get memory for buffers
+        if (converterFormat)
+        {
+            conversionBuffers[iBuffer] = (float*)malloc(nFramesPerBuffer * sizeof(float));
+            memset(conversionBuffers[iBuffer], 0, nFramesPerBuffer * sizeof(float));
+        }
+        */
+    }
+
+}

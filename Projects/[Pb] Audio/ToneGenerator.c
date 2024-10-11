@@ -166,3 +166,10 @@ void ToneGeneratorInit(ToneGenerator* source, float freq, float sampleRate)
     GenerateSineSamplesFloat(&source->SineWave.buffer, source->SineWave.length, freq, nSineBufferChannels, currentSampleRate, 0.25f, NULL);
     ToneGeneratorSetFrequency(source, freq, sampleRate);
 }
+
+void ToneGeneratorDestroy(ToneGenerator* source)
+{
+    free(*source->SineWave.buffer);
+    *(source->SineWave.buffer) = NULL;
+
+}

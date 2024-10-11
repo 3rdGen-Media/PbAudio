@@ -63,12 +63,13 @@ extern "C" {
 #endif
 #endif
 
-
+#ifdef __APPLE__
 #define WAVE_FORMAT_PCM         0x0001
 #define WAVE_FORMAT_IEEE_FLOAT  0x0003
 #define WAVE_FORMAT_ALAW        0x0006
 #define WAVE_FORMAT_MULAW       0x0007
-#define WAVE_FORMAT_EXTENSIBLE  0x0007
+#define WAVE_FORMAT_EXTENSIBLE  65534
+#endif
 
 typedef struct WAV_SAMPLE
 {

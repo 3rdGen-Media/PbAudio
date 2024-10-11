@@ -45,7 +45,24 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamClose(ExtAudioFileRef inputAu
         //assert(1 == 0);
 #endif
 #else
-        xnz_wav_close(&inputAudioFileRef);
+        //CRFileClose(inputAudioFileRef);
+
+        PBAFile* file = ((PBAFile*)inputAudioFileRef);
+        switch(file->form )
+        {
+            case (XNG_AUDIO_FORM_AIF):
+                xnz_aif_close(&file->aif); break;
+
+            case (XNG_AUDIO_FORM_WAV):
+                xnz_wav_close (&file->wav); break;
+
+            case (XNG_AUDIO_FORM_FLAC):
+                xnz_flac_close(&file->flac); break;
+
+            default:
+                assert(1 == 0);
+        }
+
 #endif
         if( err )
         {
@@ -661,7 +678,27 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char* fileURL, con
 
         inputAudioFileRef->form = XNG_AUDIO_FORM_WAV;
     }
+    else if (strcmp(fileExt, "flac") == 0 || strcmp(fileExt, "FLAC") == 0)    //load flac
+    {
+        xnz_flac_open(&inputAudioFileRef->flac, (char*)fileURL);
 
+        inputAudioFileRef->sourceFormat.wFormatTag      = inputAudioFileRef->flac.streaminfo.nChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM;
+        inputAudioFileRef->sourceFormat.nChannels       = inputAudioFileRef->flac.streaminfo.nChannels;
+        inputAudioFileRef->sourceFormat.nSamplesPerSec  = (DWORD)inputAudioFileRef->flac.streaminfo.sampleRate;
+        inputAudioFileRef->sourceFormat.nBlockAlign     = inputAudioFileRef->flac.streaminfo.nChannels * (inputAudioFileRef->flac.streaminfo.bitsPerSample / 8);
+        inputAudioFileRef->sourceFormat.wBitsPerSample  = inputAudioFileRef->flac.streaminfo.bitsPerSample;
+
+        //copy source format to conversion format
+        memcpy(&inputAudioFileRef->conversionFormat, &inputAudioFileRef->sourceFormat, sizeof(PBAStreamFormat));
+
+        inputAudioFileRef->type = PBAStreamFormatGetType(&inputAudioFileRef->sourceFormat); //enumerate a sample packing protocol for the given format
+
+        //calculate frame count
+        inputAudioFileRef->numFrames = inputAudioFileRef->flac.streaminfo.nSampleFrames;
+
+        inputAudioFileRef->form = XNG_AUDIO_FORM_FLAC;
+
+    }
 #endif
 
 }
@@ -682,7 +719,10 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamReadFrames(PBAFileRef audioFi
                 xnz_aif_read_samples(&audioFileRef->aif, numFramesToRead, sampleBuffers); break;
 
             case (XNG_AUDIO_FORM_WAV):
-                xnz_wav_read_samples(&audioFileRef->aif, numFramesToRead, sampleBuffers); break;
+                xnz_wav_read_samples(&audioFileRef->wav, numFramesToRead, sampleBuffers); break;
+
+            case (XNG_AUDIO_FORM_FLAC):
+                xnz_flac_read_samples(&audioFileRef->flac, numFramesToRead, sampleBuffers); break;
 
             default:
                 assert(1 == 0);

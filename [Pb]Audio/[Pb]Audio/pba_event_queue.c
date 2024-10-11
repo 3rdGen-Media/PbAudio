@@ -15,8 +15,8 @@
 
 #pragma mark -- Init Main Thread/Run Loop References
 
-//pba_platform_thread    pba_mainThread      = NULL;
-//pba_platform_thread_id pba_mainThreadID;// = 0;
+pba_platform_thread    pba_mainThread      = NULL;
+pba_platform_thread_id pba_mainThreadID;// = 0;
 
 pba_platform_thread    pba_eventThread      = NULL;
 pba_platform_thread_id pba_eventThreadID;// = 0;

@@ -45,6 +45,7 @@ typedef struct ToneGenerator
 
 void ToneGeneratorInit(ToneGenerator* source, float freq, float sampleRate);
 void ToneGeneratorSetFrequency(ToneGenerator* source, float freq, float sampleRate);
+void ToneGeneratorDestroy(ToneGenerator* source);
 
 
 #ifdef __cplusplus

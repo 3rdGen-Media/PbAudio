@@ -314,6 +314,9 @@ void InitPlatform()
     pID = (HANDLE)GetProcessId(GetCurrentProcess()); threadID = GetCurrentThread();
     SetPriorityClass(pID, REALTIME_PRIORITY_CLASS); //SetThreadPriority(threadID, THREAD_PRIORITY_TIME_CRITICAL);
     
+    PBAudio.mainThread = GetCurrentThread();
+    PBAudio.mainThreadID = GetCurrentThreadId();
+
 #elif defined(__APPLE__) && TARGET_OS_OSX
     //Initialize kernel timing mechanisms for debugging
     //monotonicTimeNanos();
@@ -365,7 +368,6 @@ int StartPlatformEventLoop(int argc, const char * argv[])
 #else //Windowless Runloop
 
     MSG msg;
-    //int exitStatus;
     bool appIsRunning = true;
 
     //will just idle for now (in a multiwindow scenario this is best)
@@ -374,12 +376,15 @@ int StartPlatformEventLoop(int argc, const char * argv[])
     {
         //filter for events we would like to be notified of in the message queue, much like a kqueue or [NSApplication nextEventWith:]
         //Use GetMessage to wait until the message arrives, or PeekMessage to return immediately
-        //if(PeekMessage(&msg, NULL, CR_PLATFORM_EVENT_MSG_LOOP_QUIT, CR_PLATFORM_EVENT_MSG_LOOP_QUIT, PM_REMOVE))
         if (GetMessage(&msg, NULL, 0, 0) && msg.message != WM_QUIT)  //run the event loop until it spits out error or quit
+        //if(PeekMessage(&msg, NULL, CR_PLATFORM_EVENT_MSG_LOOP_QUIT, CR_PLATFORM_EVENT_MSG_LOOP_QUIT, PM_REMOVE))
         {
-            //pass on the messages to the __main_event_queue for processing
-            //TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            //observe our custom defined quit message
+            if (msg.message == CR_PLATFORM_EVENT_MSG_LOOP_QUIT)
+            {
+                fprintf(stdout, "\nCR_PLATFORM_EVENT_MSG_LOOP_QUIT\n");
+                appIsRunning = false;
+}
             memset(&msg, 0, sizeof(MSG));
         }
     }
@@ -459,12 +464,22 @@ void PBAudioInit(void)
     //const char * audioFileURL = "../../assets/Audio/WAV/Test/16_48k_PerfectTest.wav";
     //const char * audioFileExt = "wav\0";
 
-    const char* audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/Unknown Artist/Unknown Album/Print#45.aif";//"../../assets/Audio/AIF/Print#45.aif";
-    const char* audioFileExt = "aif\0";
+    const char* home = RESOURCE_HOME ? getenv(RESOURCE_HOME) : "\0";
+    char   audioFileURL[256] = "\0";
 
+    static const char* TEST_FILE = RESOURCE_DIR "/AudioAssets/Test/FLAC/subset/28 - high resolution audio, default settings.flac";
+    //const char* audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/Unknown Artist/Unknown Album/Print#45.aif";//"../../assets/Audio/AIF/Print#45.aif";
     //const char * audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/ArticulationLayers/65 Drum Samples/56442_Surfjira_Snare_HeadShot_Hard.wav";
+
+    const char* audioFileExt = "flac\0";
+    //const char * audioFileExt = "aif\0";
     //const char * audioFileExt = "wav\0";
-    
+
+    //mtl->textures[pbrTextureIndex]->name = (char*)malloc(strlen(texturePaths[pbrTextureIndex]) + strlen(home) + 1);
+    //mtl->textures[pbrTextureIndex]->name[0] = '\0';
+    strcpy(audioFileURL, home);
+    strcat(audioFileURL, TEST_FILE);
+
     //Initialize Renderpasses
     ToneGeneratorInit(&toneGenerator, 440.f, PBAudio.OutputStreams[0].currentSampleRate);           //Initialize a 32-bit floating point sine wave buffer
     SamplePlayerInit(&samplePlayer, audioFileURL, audioFileExt, &PBAudio.OutputStreams[0].format);  //Read an audio file from disk to formatted buffer for playback
@@ -565,7 +580,8 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
     CMUniversalMessage* message = {0}; //this is like the udata on kev
     CMMessageType messageType;
 
-    while (1)
+    bool processIsRunning = true;
+    while (processIsRunning)
     {
 #ifdef _WIN32
         
@@ -606,6 +622,11 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
 
                         break;
                 }
+                else if (message->group == pba_shutdown)
+                {
+                    processIsRunning = false;
+                }
+                else assert(1 == 0);
 
                 break;
             }
@@ -639,6 +660,20 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
 
     }
 
+    //Cleanup PBAudio + CMidi
+    SamplePlayerDestroy(&samplePlayer);
+    ToneGeneratorDestroy(&toneGenerator);
+
+#ifdef _WIN32
+
+    //to stop the simulation post to the message loop running on the main thread
+    PostThreadMessage(PBAudio.mainThreadID, PBA_EVENT_MSG_LOOP_QUIT, true, 0);
+
+    // let's play nice and return any message sent by windows
+    //return (int)msg.wParam;
+#else
+
+#endif
     return 0;
 }
 

@@ -43,7 +43,7 @@ enum
 
 PBAudioDeviceList           _deviceList;
 PBADeviceNotificationClient _deviceNotificationObserver;// = { &PBADeviceNotificationClient_Vtbl, NULL };
-struct CMClientDriver*      m_midi;
+struct CMClientDriver* m_midi;
 
 //UI Resources...
 HFONT hDefaultFont;
@@ -142,7 +142,7 @@ static HRESULT STDMETHODCALLTYPE AMSDeviceStateChanged(PBADeviceNotificationClie
     fprintf(stdout, "  -->New device state is DEVICE_STATE_%s (0x%8.8x)\n", pszState, dwNewState);
 
     DemoApp* pDemoApp = (DemoApp*)This->context; // reinterpret_cast<DemoApp*>(static_cast<LONG_PTR>(
-    
+
     //Update UI will reflect if selected device has changed
     pDemoApp->UpdateOutputDeviceList();
 
@@ -274,7 +274,7 @@ LRESULT CALLBACK ListViewSubClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     if (uMsg == WM_NOTIFY)
     {
-        
+
         int idFrom = (int)wParam;
         NMHDR* pnm = (LPNMHDR)lParam;
 
@@ -295,10 +295,10 @@ LRESULT CALLBACK ListViewSubClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
         }
     }
-    else if( uMsg == LVN_ITEMCHANGED)
+    else if (uMsg == LVN_ITEMCHANGED)
         fprintf(stdout, "List View Subclass uMsg = %d\n", uMsg);
 
-    
+
     if (uMsg == WM_NCDESTROY)
     {
         // NOTE: this requirement is NOT stated in the documentation,
@@ -351,8 +351,8 @@ void DemoApp::CreateDriverModeLabel()
     //Release DC
     ReleaseDC(driverModeLabel, odlDC);
 
-    driverModeLabelFrame.left = 20; driverModeLabelFrame.right   = driverModeLabelFrame.left + size.cx + 2;
-    driverModeLabelFrame.top  = 0;  driverModeLabelFrame.bottom  = driverModeLabelFrame.top  + size.cy;
+    driverModeLabelFrame.left = 20; driverModeLabelFrame.right = driverModeLabelFrame.left + size.cx + 2;
+    driverModeLabelFrame.top = 0;  driverModeLabelFrame.bottom = driverModeLabelFrame.top + size.cy;
 
 }
 
@@ -413,7 +413,7 @@ void DemoApp::CreateDriverModePopupButton()
 
     LONG  buttonRight = windowWidth - buttonWidth;
 
-    int nwidth  = 200;         // Width of the window
+    int nwidth = 200;         // Width of the window
     int nheight = 200;         // Height of the window
     HWND hwndParent = m_hwnd;  // Handle to the parent window
 
@@ -425,7 +425,7 @@ void DemoApp::CreateDriverModePopupButton()
     // load the combobox with item list.  
     // Send a CB_ADDSTRING message to load each item
     UpdateDriverModeList();
-    
+
     HDC odlDC = GetDC(driverModeLabel);
 
     HFONT font = getSystemDefaultFont();
@@ -451,12 +451,12 @@ void DemoApp::CreateOutputDeviceLabel()
     RECT labelFrame;
     //RECT buttonFrame;
 
-    GetWindowRect(m_hwnd,          &windowFrame);
+    GetWindowRect(m_hwnd, &windowFrame);
     GetWindowRect(driverModeLabel, &labelFrame);
     //GetWindowRect(testButton, &buttonFrame);
 
 
-    LONG  labelWidth  = labelFrame.right - labelFrame.left;
+    LONG  labelWidth = labelFrame.right - labelFrame.left;
     LONG  labelHeight = labelFrame.bottom - labelFrame.top;
     LONG  x = driverModeLabelFrame.left;// labelFrame.left;
     LONG  y = labelFrame.top;
@@ -489,10 +489,10 @@ void DemoApp::CreateOutputDeviceLabel()
     HFONT dcFont = (HFONT)SelectObject(odlDC, (HGDIOBJ)font); //SelectFont(odlDC, font);
 
     SendMessage(outputDeviceLabel, WM_SETFONT, (WPARAM)font, FALSE);
-    
+
     //Set Text
     SetWindowText(outputDeviceLabel, L"Output Device:"); //SendMessage(outputDeviceLabel, WM_SETTEXT, (WPARAM)getSystemDefaultFont(), FALSE);
-    
+
     SIZE size = { 0,0 };
     GetTextExtentPoint32(odlDC, L"Active Output Channels:", lstrlen(L"Active Output Channels:"), &size);
 
@@ -506,8 +506,8 @@ void DemoApp::CreateOutputDeviceLabel()
     //Release DC
     ReleaseDC(outputDeviceLabel, odlDC);
 
-    outputDeviceLabelFrame.left = x;                     outputDeviceLabelFrame.right  = outputDeviceLabelFrame.left + size.cx + 2;
-    outputDeviceLabelFrame.top  = 20 + labelHeight + 20; outputDeviceLabelFrame.bottom = outputDeviceLabelFrame.top  + size.cy;
+    outputDeviceLabelFrame.left = x;                     outputDeviceLabelFrame.right = outputDeviceLabelFrame.left + size.cx + 2;
+    outputDeviceLabelFrame.top = 20 + labelHeight + 20; outputDeviceLabelFrame.bottom = outputDeviceLabelFrame.top + size.cy;
 
 }
 
@@ -534,18 +534,18 @@ void DemoApp::CreateTestButton()
     float windowWidth = (float)(windowFrame.right - windowFrame.left);
     float labelHeight = (float)(labelFrame.bottom - labelFrame.top);
 
-    LONG  buttonWidth  = (LONG) (((float)windowWidth) / 12.f);
+    LONG  buttonWidth = (LONG)(((float)windowWidth) / 12.f);
     LONG  buttonHeight = labelHeight;
     LONG  x = windowWidth - buttonWidth - 26;
     LONG  y = outputDeviceLabelFrame.top;// labelFrame.top - windowFrame.top;
 
     LONG buttonRight = windowWidth - buttonWidth;
-    x  = buttonRight - 40;
+    x = buttonRight - 40;
 
     testButton =
         CreateWindow(L"button", L"+",
             WS_VISIBLE | WS_CHILD | WS_TABSTOP |
-            SS_NOTIFY | SS_CENTER| SS_CENTERIMAGE,
+            SS_NOTIFY | SS_CENTER | SS_CENTERIMAGE,
             x, y, buttonRight - x, buttonHeight,
             m_hwnd, (HMENU)TEST_BUTTON, NULL, NULL);
 
@@ -611,13 +611,13 @@ int DemoApp::UpdateOutputDeviceList()
 
         fprintf(stdout, "\nAudioMidiSettings::UpdateOutputDeviceList() Endpoint: %S\n", (LPWSTR)deviceName);
         //fprintf(stdout, "\nAudioMidiSettings::UpdateOutputDeviceList() %p : %p\n", PBAudio.OutputStreams[0].audioDevice, _deviceList.devices[i]);
- 
+
         //Find selected device index
         //Can't rely on comparing ptr values, must compare device id strings
         uint32_t idLen1 = 128; char id1[128] = "\0"; PBAudioDeviceID(_deviceList.devices[i], id1, &idLen1);
         uint32_t idLen2 = 128; char id2[128] = "\0"; PBAudioDeviceID(PBAudio.OutputStreams[0].audioDevice, id2, &idLen2);
         if (memcmp(id1, id2, idLen1) == 0) { outputIndex = i; }
-                   
+
     }
 
     //select the index of active audio device
@@ -650,19 +650,19 @@ void DemoApp::CreateOutputPopupButton()
     LONG  x = labelFrame.right;
     LONG  y = outputDeviceLabelFrame.top;// 20;
 
-    int nwidth  = 200;         // Width of the window
+    int nwidth = 200;         // Width of the window
     int nheight = 200;         // Height of the window
     HWND hwndParent = m_hwnd;  // Handle to the parent window
 
     outputDevicePopupButton = CreateWindow(WC_COMBOBOX, TEXT(""),
         CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
-        x, y, buttonFrame.left - x, nheight, 
+        x, y, buttonFrame.left - x, nheight,
         hwndParent, (HMENU)OUTPUT_DEVICE_POPUP_BUTTON, HINST_THISCOMPONENT, NULL);
 
     // load the combobox with item list.  
     // Send a CB_ADDSTRING message to load each item
     UpdateOutputDeviceList();
-    
+
     HDC odlDC = GetDC(outputDeviceLabel);
 
     HFONT font = getSystemDefaultFont();
@@ -678,7 +678,7 @@ void DemoApp::CreateOutputPopupButton()
     //Release DC
     ReleaseDC(outputDeviceLabel, odlDC);
 }
- 
+
 void DemoApp::CreateOutputChannelsLabel()
 {
     RECT windowFrame;
@@ -689,12 +689,12 @@ void DemoApp::CreateOutputChannelsLabel()
     GetWindowRect(outputDeviceLabel, &labelFrame);
     GetWindowRect(testButton, &buttonFrame);
 
-    LONG  labelWidth  = labelFrame.right - labelFrame.left;
+    LONG  labelWidth = labelFrame.right - labelFrame.left;
     LONG  labelHeight = labelFrame.bottom - labelFrame.top;
     LONG  x = outputDeviceLabelFrame.left;// labelFrame.left;
     LONG  y = outputDeviceLabelFrame.bottom + 20;// labelFrame.top;
 
-    int nwidth  = 200;         // Width of the window
+    int nwidth = 200;         // Width of the window
     int nheight = 200;         // Height of the window
     HWND hwndParent = m_hwnd;  // Handle to the parent window
 
@@ -739,8 +739,8 @@ void DemoApp::CreateOutputChannelsLabel()
     ReleaseDC(outputChannelsLabel, odlDC);
 
 
-    outputChannelsLabelFrame.left = x; outputChannelsLabelFrame.right  = outputChannelsLabelFrame.left + size.cx + 2;
-    outputChannelsLabelFrame.top  = y; outputChannelsLabelFrame.bottom = outputChannelsLabelFrame.top  + size.cy;
+    outputChannelsLabelFrame.left = x; outputChannelsLabelFrame.right = outputChannelsLabelFrame.left + size.cx + 2;
+    outputChannelsLabelFrame.top = y; outputChannelsLabelFrame.bottom = outputChannelsLabelFrame.top + size.cy;
 
 }
 
@@ -810,7 +810,7 @@ void DemoApp::CreateOutputChannelFilterView()
     LONG  x = labelFrame.right;
     LONG  y = outputChannelsLabelFrame.top;// 20 + buttonHeight + 20;// labelFrame.top - windowFrame.top;
 
-    int nwidth  = 200;         // Width of the window
+    int nwidth = 200;         // Width of the window
     int nheight = 100;         // Height of the window
     HWND hwndParent = m_hwnd;  // Handle to the parent window
 
@@ -848,8 +848,8 @@ void DemoApp::CreateOutputChannelFilterView()
     //Release DC
     ReleaseDC(outputChannelsLabel, odlDC);
 
-    channelFilterViewFrame.left = 20 + size.cx + 2; channelFilterViewFrame.right  = channelFilterViewFrame.left + buttonFrame.right - x - 10;
-    channelFilterViewFrame.top  = y;                channelFilterViewFrame.bottom = channelFilterViewFrame.top  + nheight;
+    channelFilterViewFrame.left = 20 + size.cx + 2; channelFilterViewFrame.right = channelFilterViewFrame.left + buttonFrame.right - x - 10;
+    channelFilterViewFrame.top = y;                channelFilterViewFrame.bottom = channelFilterViewFrame.top + nheight;
 }
 
 
@@ -863,7 +863,7 @@ void DemoApp::CreateSampleRateLabel()
     GetWindowRect(outputChannelsLabel, &labelFrame);
     //GetWindowRect(testButton, &buttonFrame);
 
-    LONG  labelWidth  = labelFrame.right - labelFrame.left;
+    LONG  labelWidth = labelFrame.right - labelFrame.left;
     LONG  labelHeight = labelFrame.bottom - labelFrame.top;
     LONG  x = outputDeviceLabelFrame.left;// labelFrame.left;
     LONG  y = channelFilterViewFrame.bottom;
@@ -912,8 +912,8 @@ void DemoApp::CreateSampleRateLabel()
     //Release DC
     ReleaseDC(sampleRateLabel, odlDC);
 
-    sampleRateLabelFrame.left = 20;     sampleRateLabelFrame.right  = sampleRateLabelFrame.left + size.cx + 2;
-    sampleRateLabelFrame.top  = y + 20; sampleRateLabelFrame.bottom = sampleRateLabelFrame.top  + size.cy;
+    sampleRateLabelFrame.left = 20;     sampleRateLabelFrame.right = sampleRateLabelFrame.left + size.cx + 2;
+    sampleRateLabelFrame.top = y + 20; sampleRateLabelFrame.bottom = sampleRateLabelFrame.top + size.cy;
 
 }
 
@@ -990,20 +990,20 @@ void DemoApp::CreateSampleRatePopupButton()
     LONG  x = labelFrame.right;
     LONG  y = sampleRateLabelFrame.top;// labelFrame.top - windowFrame.top;
 
-    int nwidth  = 200;         // Width of the window
+    int nwidth = 200;         // Width of the window
     int nheight = 200;         // Height of the window
     HWND hwndParent = m_hwnd;  // Handle to the parent window
 
     sampleRatePopupButton = CreateWindow(WC_COMBOBOX, TEXT(""),
         CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
-        x, y, buttonFrame.right - x, nheight, 
+        x, y, buttonFrame.right - x, nheight,
         hwndParent, (HMENU)SAMPLE_RATE_POPUP_BUTTON, HINST_THISCOMPONENT, NULL);
 
 
     // load the combobox with item list.  
     // Send a CB_ADDSTRING message to load each item
     UpdateSampleRateList();
-    
+
     HDC odlDC = GetDC(sampleRateLabel);
 
     HFONT font = getSystemDefaultFont();
@@ -1082,8 +1082,8 @@ void DemoApp::CreateBufferSizeLabel()
     ReleaseDC(bufferSizeLabel, odlDC);
 
 
-    bufferSizeLabelFrame.left = 20;     bufferSizeLabelFrame.right  = bufferSizeLabelFrame.left + size.cx + 2;
-    bufferSizeLabelFrame.top  = 20 + y; bufferSizeLabelFrame.bottom = bufferSizeLabelFrame.top  + size.cy;
+    bufferSizeLabelFrame.left = 20;     bufferSizeLabelFrame.right = bufferSizeLabelFrame.left + size.cx + 2;
+    bufferSizeLabelFrame.top = 20 + y; bufferSizeLabelFrame.bottom = bufferSizeLabelFrame.top + size.cy;
 
 }
 
@@ -1095,7 +1095,7 @@ int DemoApp::UpdateBufferSizeList()
 
     int outputIndex = 0;
 
-    if ( 1 )//PBAudio.OutputStreams[0].shareMode == AUDCLNT_SHAREMODE_SHARED)
+    if (1)//PBAudio.OutputStreams[0].shareMode == AUDCLNT_SHAREMODE_SHARED)
     {
         double duration = (double)PBAudio.OutputStreams[0].bufferFrameCount / (double)PBAudio.OutputStreams[0].format.nSamplesPerSec * 1000.;
         uint32_t nameLen = 128; wchar_t sampleRate[128] = L"\0"; swprintf(sampleRate, L"%d samples (%.1f ms)", PBAudio.OutputStreams[0].bufferFrameCount, (float)duration);
@@ -1179,20 +1179,20 @@ void DemoApp::CreateBufferSizePopupButton()
     LONG  x = labelFrame.right;
     LONG  y = bufferSizeLabelFrame.top;// labelFrame.top - windowFrame.top;
 
-    int nwidth  = 200;         // Width of the window
+    int nwidth = 200;         // Width of the window
     int nheight = 200;         // Height of the window
     HWND hwndParent = m_hwnd;  // Handle to the parent window
 
     bufferSizePopupButton = CreateWindow(WC_COMBOBOX, TEXT(""),
         CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
-        x, y, buttonFrame.right - x, nheight, 
+        x, y, buttonFrame.right - x, nheight,
         hwndParent, (HMENU)BUFFER_SIZE_POPUP_BUTTON, HINST_THISCOMPONENT, NULL);
 
 
     // load the combobox with item list.  
     // Send a CB_ADDSTRING message to load each item
     UpdateBufferSizeList();
-    
+
     HDC odlDC = GetDC(bufferSizeLabel);
 
     HFONT font = getSystemDefaultFont();
@@ -1273,8 +1273,8 @@ void DemoApp::CreateMidiInputLabel()
     //Release DC
     ReleaseDC(midiInputLabel, odlDC);
 
-    midiInputLabelFrame.left = 20;     midiInputLabelFrame.right  = midiInputLabelFrame.left + size.cx + 2;
-    midiInputLabelFrame.top  = 20 + y; midiInputLabelFrame.bottom = midiInputLabelFrame.top  + size.cy;
+    midiInputLabelFrame.left = 20;     midiInputLabelFrame.right = midiInputLabelFrame.left + size.cx + 2;
+    midiInputLabelFrame.top = 20 + y; midiInputLabelFrame.bottom = midiInputLabelFrame.top + size.cy;
 }
 
 
@@ -1296,7 +1296,7 @@ void DemoApp::CreateMidiInputFilterView()
     LONG  x = labelFrame.right;
     LONG  y = midiInputLabelFrame.top;
 
-    int nwidth  = 200;         // Width of the window
+    int nwidth = 200;         // Width of the window
     int nheight = 100;         // Height of the window
     HWND hwndParent = m_hwnd;  // Handle to the parent window
 
@@ -1324,12 +1324,12 @@ void DemoApp::CreateMidiInputFilterView()
     //wchar_t* ptrColHeaderString2 = L"Enabled";
 
     //Create Columns
-    CreateTextColumn(midiInputFilterView, 0, ptrColHeaderString1, buttonFrame.right - x - 10 );
+    CreateTextColumn(midiInputFilterView, 0, ptrColHeaderString1, buttonFrame.right - x - 10);
     //CreateTextColumn(midiInputFilterView, 1, ptrColHeaderString2, iColSize2);
 
     int numSources = 0;
     //If CMClientDriver was passed to constructor from the same process
-    if( m_midi ) numSources = m_midi->UpdateInputDevices();
+    if (m_midi) numSources = m_midi->UpdateInputDevices();
     else
     {
         //TO DO:  Remotely message CMidi or user an internal CMClientDriver to maintain the list
@@ -1337,7 +1337,7 @@ void DemoApp::CreateMidiInputFilterView()
     }
 
     //Create Rows for each midi input device
-    
+
     //NSMutableArray* inputDeviceNames = [[NSMutableArray alloc]initWithCapacity:CMClient.numSources];
     //NSDictionary* sourceIDMap = [[NSMutableDictionary alloc]initWithCapacity:CMClient.numSources];
 
@@ -1352,7 +1352,7 @@ void DemoApp::CreateMidiInputFilterView()
 
     //self.midiInputFilterView = [[NSCheckboxView alloc]initWithIdentifiers:inputDeviceNames Title : nil Justification : NSTextAlignmentVertical];
     //self.midiInputFilterView.delegate = self;
-       
+
 
     //Resize window
     SetWindowPos(midiInputFilterView, 0, 20 + size.cx + 2 + lPadding, y, buttonFrame.right - x - 10, nheight, SWP_FRAMECHANGED);
@@ -1361,8 +1361,8 @@ void DemoApp::CreateMidiInputFilterView()
     ReleaseDC(midiInputLabel, odlDC);
 
 
-    midiInputFilterViewFrame.left = 20 + size.cx + 2; midiInputFilterViewFrame.right  = midiInputFilterViewFrame.left + buttonFrame.right - x - 10;
-    midiInputFilterViewFrame.top  = y;                midiInputFilterViewFrame.bottom = midiInputFilterViewFrame.top  + nheight;
+    midiInputFilterViewFrame.left = 20 + size.cx + 2; midiInputFilterViewFrame.right = midiInputFilterViewFrame.left + buttonFrame.right - x - 10;
+    midiInputFilterViewFrame.top = y;                midiInputFilterViewFrame.bottom = midiInputFilterViewFrame.top + nheight;
 
     /*
     if (!SetWindowSubclass(midiInputFilterView, ListViewSubClass, 1, 0)) {
@@ -1389,10 +1389,10 @@ void DemoApp::CreateMidiInputFilterView()
 void DemoApp::buttonToggledAtIndex(int index, HWND sender, bool state, struct CMClientDriver* midi)
 {
     fprintf(stdout, "AudioMidiSettingsView::NSCheckBoxView::buttonToggledAtIndex(%d)\n", index);
-    
+
     //if( self.modalViewMode == ModalView_Modify ) self.submitButton.enabled = YES;
-    
-    if( sender == channelFilterView )
+
+    if (sender == channelFilterView)
     {
         //if( ((NSButton*)[self.channelFilterView.buttons objectAtIndex:index]).state == NSControlStateValueOn )
         {
@@ -1405,34 +1405,34 @@ void DemoApp::buttonToggledAtIndex(int index, HWND sender, bool state, struct CM
             //PBAudio.Stop(&PBAudio.OutputStreams[index]);
         }
     }
-    else if( sender == midiInputFilterView )
+    else if (sender == midiInputFilterView)
     {
         bool enabled = state;// ((NSButton*)[self.midiInputFilterView.buttons objectAtIndex : index]).state;
-        
+
         //Enable\Disable Midi Input Connection
         //fprintf("%s Toggled: %d", ((NSButton*)[self.midiInputFilterView.buttons objectAtIndex:index]).title, enabled);
-        
+
         //Populate thruParam Inputs/Outputs
         //MIDIThruConnectionParams* thruParams = &(CMClient.thruConnections[CMClient.numThruConnections].params);
         //CMInitThruParams(thruParams, inputIDs, 1, outputIDs, 1);
-        
+
         //struct CMDeviceDescription * deviceDescription = &(CMClient.hardwareDevices[CMClient.numHardwareDevices]);
         //CMDeviceType deviceType = surfaceType[0];
-        
+
         //Use the CoreMIDI unique id of the input source endpoint for our DOM primary key
         //NSString * sourceKey = [NSString stringWithFormat:@"%d", CMClient.sources[index].uniqueID];//[NSString stringWithUTF8String:CMClient.sources[inputIDs[0]].uniqueID]'
-        
+
         //CMSource* source = this->m_midi->Source(index);
 
         //Send message to enable/disable a midi input connection
-        CMUniversalMessage * message     = &pba_message_events[pba_message_event_index++]; pba_message_event_index = pba_message_event_index % MAX_MESSAGE_EVENTS;
-        message->type                    = CMMessageTypeSystem;
-        message->group                   = pba_midi_input_connection;
-        message->system.status           = enabled ? CMStatusStart : CMStatusStop;
-        message->system.uniqueID         = midi->Source(index)->uniqueID; //one would typically use a unique id here but in WMS that is a WinRT hstring so we'll just use the index :(
-        
+        CMUniversalMessage* message = &pba_message_events[pba_message_event_index++]; pba_message_event_index = pba_message_event_index % MAX_MESSAGE_EVENTS;
+        message->type = CMMessageTypeSystem;
+        message->group = pba_midi_input_connection;
+        message->system.status = enabled ? CMStatusStart : CMStatusStop;
+        message->system.uniqueID = midi->Source(index)->uniqueID; //one would typically use a unique id here but in WMS that is a WinRT hstring so we'll just use the index :(
+
         //uint32_t messageType = state ? pba_midi_create_input_connection : pba_midi_remove_input_connection;
-        
+
         /*
         //TO DO:  introduce some error checking to this function pipeline
         CMInputConnection * inputConnection = [CMInputConnection createInputConnection:sourceKey];// Params:thruParams];
@@ -1442,7 +1442,7 @@ void DemoApp::buttonToggledAtIndex(int index, HWND sender, bool state, struct CM
         assert(inputConnection.connection);
         //[device setConnection:thruConnection.connection];
         */
-        
+
         //struct kevent kev;
         //EV_SET(&kev, message->type, EVFILT_USER, 0, NOTE_TRIGGER, 0, message);
         //kevent(PBAudio.eventQueue.kq, &kev, 1, NULL, 0, NULL);
@@ -1452,7 +1452,7 @@ void DemoApp::buttonToggledAtIndex(int index, HWND sender, bool state, struct CM
 
         //Send the message to the PbAudio Event Queue Thread
         PostThreadMessage((DWORD)PBAudio.eventQueue.kq, PBA_EVENT_UMP_CONTROL, message->type, (LPARAM)message);
-            
+
     }
 }
 
@@ -1527,7 +1527,7 @@ HRESULT DemoApp::Initialize()
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
-        static_cast<UINT>(ceil(500   * dpiX / 96.f)),
+        static_cast<UINT>(ceil(500 * dpiX / 96.f)),
         static_cast<UINT>(ceil(450.f * dpiY / 96.f)),
         NULL,
         NULL,
@@ -1585,11 +1585,32 @@ HRESULT DemoApp::Initialize()
 void DemoApp::RunMessageLoop()
 {
     MSG msg;
+    bool appIsRunning = true;
 
-    while (GetMessage(&msg, NULL, 0, 0))
+    //will just idle for now (in a multiwindow scenario this is best)
+    //_idleEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+    while (appIsRunning)
     {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        //filter for events we would like to be notified of in the message queue, much like a kqueue or [NSApplication nextEventWith:]
+        //Use GetMessage to wait until the message arrives, or PeekMessage to return immediately
+        if (GetMessage(&msg, NULL, 0, 0) && msg.message != WM_QUIT)  //run the event loop until it spits out error or quit
+        //if(PeekMessage(&msg, NULL, CR_PLATFORM_EVENT_MSG_LOOP_QUIT, CR_PLATFORM_EVENT_MSG_LOOP_QUIT, PM_REMOVE))
+        {
+            //observe our custom defined quit message
+            if (msg.message == PBA_EVENT_MSG_LOOP_QUIT)
+            {
+                //TO DO:  when/where to call WM_DESTROY in Sample Project(s) -- it won't matter in a CoreRender application
+
+
+                fprintf(stdout, "\nCR_PLATFORM_EVENT_MSG_LOOP_QUIT\n");
+                appIsRunning = false;
+            }
+
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+
+            memset(&msg, 0, sizeof(MSG));
+        }
     }
 }
 
@@ -1637,88 +1658,121 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                 //if (hwnd == midiInputFilterView)  fprintf(stdout, "List View Wnd Proc\n");
 
-                case WM_NOTIFY:
+            case WM_NOTIFY:
+            {
+                NMHDR* pnm = (LPNMHDR)lParam;
+
+                //assert(pnm->hwndFrom == midiInputFilterView);
+                //fprintf(stdout, "List View Subclass WM_NOTIFY code = %d\n", pnm->code);
+
+                if (pnm->idFrom == MIDI_INPUT_LIST_VIEW)
                 {
-                    NMHDR* pnm = (LPNMHDR)lParam;
+                    LPNMLISTVIEW pnmlistview = (LPNMLISTVIEW)lParam;
 
-                    //assert(pnm->hwndFrom == midiInputFilterView);
-                    //fprintf(stdout, "List View Subclass WM_NOTIFY code = %d\n", pnm->code);
-
-                    if (pnm->idFrom == MIDI_INPUT_LIST_VIEW)
+                    if (pnm->code == LVN_ITEMCHANGED)
                     {
-                        LPNMLISTVIEW pnmlistview = (LPNMLISTVIEW)lParam;
+                        UINT oldCheckboxState = (pnmlistview->uOldState >> 12) - 1;
+                        UINT checkboxState = (pnmlistview->uNewState >> 12) - 1;
 
-                        if (pnm->code == LVN_ITEMCHANGED)
-                        {
-                            UINT oldCheckboxState = (pnmlistview->uOldState >> 12) - 1;
-                            UINT checkboxState    = (pnmlistview->uNewState >> 12) - 1;
+                        fprintf(stdout, "Midi Input List View LVN_ITEMCHANGED[%d] = %d\n", pnmlistview->iItem, checkboxState);
 
-                            fprintf(stdout, "Midi Input List View LVN_ITEMCHANGED[%d] = %d\n", pnmlistview->iItem, checkboxState);
-
-                            if( checkboxState != oldCheckboxState ) //disregard clicks on the item that didn't actually toggle the checkbox
-                                pDemoApp->buttonToggledAtIndex(pnmlistview->iItem, midiInputFilterView, checkboxState, m_midi);
-                        }
-
-                        //if (pnm->code == LVN_ITEMCHANGING) fprintf(stdout, "Midi Input List View LVN_ITEMCHANGING\n");
-                        //if (pnm->code == LVM_SETITEMSTATE) fprintf(stdout, "Midi Input List View LVM_SETITEMSTATE\n");
-
+                        if (checkboxState != oldCheckboxState) //disregard clicks on the item that didn't actually toggle the checkbox
+                            pDemoApp->buttonToggledAtIndex(pnmlistview->iItem, midiInputFilterView, checkboxState, m_midi);
                     }
 
+                    //if (pnm->code == LVN_ITEMCHANGING) fprintf(stdout, "Midi Input List View LVN_ITEMCHANGING\n");
+                    //if (pnm->code == LVM_SETITEMSTATE) fprintf(stdout, "Midi Input List View LVM_SETITEMSTATE\n");
 
-                    wasHandled = true;
-                    result = 0;
-                    break;
                 }
 
-                case WM_COMMAND:
 
-                    //prevent this message on static [text] controls
-                    if ((HWND)lParam == outputDeviceLabel) break;
+                wasHandled = true;
+                result = 0;
+                break;
+            }
 
+            case WM_COMMAND:
 
-                    //If the user makes a selection from the list:
-                    //   Send CB_GETCURSEL message to get the index of the selected list item.
-                    //   Send CB_GETLBTEXT message to get the item.
-                    //   Display the item in a messagebox.
-                    if (HIWORD(wParam) == CBN_SELCHANGE)
-                    {
-                        TCHAR  ListItem[256];
-                        
-                        int ItemIndex = SendMessage((HWND)lParam, (UINT)CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
-                        (TCHAR)SendMessage((HWND)lParam, (UINT)CB_GETLBTEXT, (WPARAM)ItemIndex, (LPARAM)ListItem);
-                        //MessageBox(hwnd, (LPCWSTR)ListItem, TEXT("Item Selected"), MB_OK);
-                        pDemoApp->comboBoxSelectedAtIndex((HWND)lParam, ItemIndex, ListItem);                        
-                    }
+                //prevent this message on static [text] controls
+                if ((HWND)lParam == outputDeviceLabel) break;
 
 
-                    wasHandled = true;
-                    result = 0;
-                    break;
-
-
-                case WM_DISPLAYCHANGE:
+                //If the user makes a selection from the list:
+                //   Send CB_GETCURSEL message to get the index of the selected list item.
+                //   Send CB_GETLBTEXT message to get the item.
+                //   Display the item in a messagebox.
+                if (HIWORD(wParam) == CBN_SELCHANGE)
                 {
-                    InvalidateRect(hwnd, NULL, FALSE);
-                    wasHandled = true;
-                    result = 0;
-                    break;
+                    TCHAR  ListItem[256];
+
+                    int ItemIndex = SendMessage((HWND)lParam, (UINT)CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+                    (TCHAR)SendMessage((HWND)lParam, (UINT)CB_GETLBTEXT, (WPARAM)ItemIndex, (LPARAM)ListItem);
+                    //MessageBox(hwnd, (LPCWSTR)ListItem, TEXT("Item Selected"), MB_OK);
+                    pDemoApp->comboBoxSelectedAtIndex((HWND)lParam, ItemIndex, ListItem);
                 }
 
-                //Make Static Controls Transparent
-                case WM_CTLCOLORSTATIC:
-                {
-                    HDC hdcStatic = (HDC)wParam;
-                    SetBkMode(hdcStatic, TRANSPARENT);
-                    return (LRESULT)GetStockObject(NULL_BRUSH);
-                }
 
-                case WM_DESTROY:
-                {
-                    PostQuitMessage(0);
-                    wasHandled = true;
-                    result = 1;
-                    break;
-                }
+                wasHandled = true;
+                result = 0;
+                break;
+
+
+            case WM_DISPLAYCHANGE:
+            {
+                InvalidateRect(hwnd, NULL, FALSE);
+                wasHandled = true;
+                result = 0;
+                break;
+            }
+
+            //Make Static Controls Transparent
+            case WM_CTLCOLORSTATIC:
+            {
+                HDC hdcStatic = (HDC)wParam;
+                SetBkMode(hdcStatic, TRANSPARENT);
+                return (LRESULT)GetStockObject(NULL_BRUSH);
+            }
+
+            case WM_CLOSE:	//when user clicks 'close' button on a win32 window, this is the first method that will handle it
+            {
+                fprintf(stdout, "\nWM_CLOSE\n");
+
+                CMUniversalMessage* message = &pba_message_events[pba_message_event_index++]; pba_message_event_index = pba_message_event_index % MAX_MESSAGE_EVENTS;
+                message->type = CMMessageTypeSystem;
+                message->group = pba_shutdown;
+
+                //message->system.status = enabled ? CMStatusStart : CMStatusStop;
+                //message->system.uniqueID = midi->Source(index)->uniqueID; //one would typically use a unique id here but in WMS that is a WinRT hstring so we'll just use the index :(
+
+                //send a message to the corresponding render thread to shutdown the platform 
+                //if (MessageBox(hwnd,"Are you sure you want to close the window?", viewNode->view->title, MB_OKCANCEL) == IDOK)
+                //{
+                    //delete the view node, destroy the hglrc context
+                    //crgc_delete_view_node(&hwnd);
+                    //destroy the platform window, which will result in a WM_DESTROY message
+                    //DestroyWindow(hwnd);
+                //}
+                // Indicate to Win32 that we processed this messasge ourselves
+
+                //Send the shutdown message to the PbAudio Event Queue Thread
+
+                //post quit via UMP message on PBA Event Thread's queue
+                PostThreadMessage((DWORD)PBAudio.eventQueue.kq, PBA_EVENT_UMP_CONTROL, message->type, (LPARAM)message);
+
+                //post directly to PBAudio event loop thread
+                //PostThreadMessage(PBAudio.eventThreadID, PBA_EVENT_MSG_LOOP_QUIT, NULL, NULL);
+
+
+                return 0;
+            }
+
+            case WM_DESTROY:
+            {
+                PostQuitMessage(0);
+                wasHandled = true;
+                result = 1;
+                break;
+            }
             }
         }
 

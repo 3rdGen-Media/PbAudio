@@ -52,6 +52,10 @@ typedef struct PBAudioStreamFactory
     //Master Device
     //AudioDeviceID          OutputDevice;
 
+    //PBAKernelQueue           eventQueue;       //event queue
+    pba_platform_thread      mainThread;      //event queue thread [pool]
+    unsigned int             mainThreadID;
+
     //Event Queue
     PBAKernelQueue           eventQueue;       //event queue
     pba_platform_thread      eventThread;      //event queue thread [pool]

@@ -8,6 +8,12 @@
 
 #ifdef __APPLE__
 #include <CommonCrypto/CommonDigest.h> //MD5 hash
+#elif defined(_WIN32)
+#include <stdio.h>
+#include <windows.h>
+#include <Wincrypt.h>
+#define CC_MD5_DIGEST_LENGTH  16
+#define CC_LONG DWORD
 #endif
 
 #ifdef __cplusplus
@@ -828,7 +834,7 @@ XNZ_FLAC_API XNZ_FLAC_INLINE void xnz_flac_open(XNZ_FLAC_ARCHIVE* archive, const
     if (filepath)
     {
         //1 OPEN THE GBL OR GLTF FILE FOR READING AND GET FILESIZE USING LSEEK
-        archive->file.fd = cr_file_open(filepath);
+        archive->file.fd   = cr_file_open(filepath);
         archive->file.size = cr_file_size(archive->file.fd);
         archive->file.path = (char*)filepath;
 
@@ -1732,7 +1738,7 @@ XNZ_FLAC_API XNZ_FLAC_INLINE void xnz_flac_read_samples(XNZ_FLAC_ARCHIVE* archiv
 
         //decode subframe samples to dst buffer
         uint8_t* hostBuffer = ((uint8_t*)sampleBuffers[0]) + i;
-        uint64_t subframeSamples = xnz_flac_decode_frame_samples(archive, &bs, &frame, &hostBuffer, nSubframeSamples);
+        uint64_t subframeSamples = xnz_flac_decode_frame_samples(archive, &bs, &frame, (void**)&hostBuffer, nSubframeSamples);
         
         //increment counts
         i += (subframeSamples * frame.nChannels) * (frame.sampleSize/8);
@@ -1766,7 +1772,7 @@ XNZ_FLAC_API XNZ_FLAC_INLINE void xnz_flac_read_samples(XNZ_FLAC_ARCHIVE* archiv
 
     //oneshot
     
-
+#ifdef __APPLE__
     CC_MD5(data, datalen, digest);
 
     for (i=0; i<CC_MD5_DIGEST_LENGTH; ++i)
@@ -1782,8 +1788,71 @@ XNZ_FLAC_API XNZ_FLAC_INLINE void xnz_flac_read_samples(XNZ_FLAC_ARCHIVE* archiv
        //assert( digest[i] == archive->streaminfo.signature[i] );
     }
     */
-    
     fprintf(stdout, "\n");
+
+#elif defined(_WIN32)
+
+    DWORD dwStatus = 0;
+    BOOL bResult = FALSE;
+    HCRYPTPROV hProv = 0;
+    HCRYPTHASH hHash = 0;
+    //BYTE rgbFile[BUFSIZE];
+    //DWORD cbRead = 0;
+    //BYTE rgbHash[MD5LEN];
+    DWORD cbHash = 0;
+
+    CHAR rgbDigits[] = "0123456789abcdef";
+
+     // Get handle to the crypto provider
+    if (!CryptAcquireContext(&hProv,
+        NULL,
+        NULL,
+        PROV_RSA_FULL,
+        CRYPT_VERIFYCONTEXT))
+    {
+        dwStatus = GetLastError();
+        fprintf(stderr, "CryptAcquireContext failed: %d\n", dwStatus);
+        assert(1 == 0);
+    }
+
+    if (!CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash))
+    {
+        dwStatus = GetLastError();
+        fprintf(stderr,"CryptCreateHash failed: %d\n", dwStatus);
+        CryptReleaseContext(hProv, 0);
+        assert(1 == 0);
+    }
+
+    if (!CryptHashData(hHash, data, datalen, 0))
+    {
+        dwStatus = GetLastError();
+        fprintf(stderr, "CryptHashData failed: %d\n", dwStatus);
+        CryptReleaseContext(hProv, 0);
+        CryptDestroyHash(hHash);
+        assert(1 == 0);
+    }
+
+    cbHash = CC_MD5_DIGEST_LENGTH;
+    if (CryptGetHashParam(hHash, HP_HASHVAL, digest, &cbHash, 0))
+    {
+        fprintf(stdout, "MD5 hash is: ");
+        for (DWORD i = 0; i < cbHash; i++)
+        {
+            fprintf(stdout, "%c%c", rgbDigits[digest[i] >> 4], rgbDigits[digest[i] & 0xf]);
+            assert(digest[i] == archive->streaminfo.signature[i]);
+        }
+        fprintf(stdout, "\n");
+    }
+    else
+    {
+        dwStatus = GetLastError();
+        fprintf(stderr, "CryptGetHashParam failed: %d\n", dwStatus);
+    }
+
+    CryptDestroyHash(hHash);
+    CryptReleaseContext(hProv, 0);
+#endif
+
 
     //assert(1==0);
 }

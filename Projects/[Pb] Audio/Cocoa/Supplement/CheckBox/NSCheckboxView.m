@@ -17,7 +17,7 @@
 @property (nonatomic, retain) NSString * title;
 @property (nonatomic) NSTextAlignment alignment;
 
-@property (nonatomic, retain) NSTextField * titleLabel;
+@property (nonatomic, retain) CocoaTextField * titleLabel;
 @property (nonatomic, retain) NSMutableArray * buttons;
 
 @end
@@ -35,7 +35,8 @@
 {
     if(self.title )
     {
-        self.titleLabel = [[NSTextField alloc] initWithFrame:CGRectMake(0,200,200,100)];
+        self.titleLabel = [[CocoaTextField alloc] initWithFrame:CGRectMake(0,200,200,100)];
+#if TARGET_OS_OSX
         self.titleLabel.focusRingType = NSFocusRingTypeNone;
         self.titleLabel.stringValue = self.title;
         self.titleLabel.wantsLayer = YES;
@@ -43,17 +44,21 @@
         self.titleLabel.editable = YES;
         self.titleLabel.drawsBackground = YES;
         self.titleLabel.layer.masksToBounds = NO;
+#endif
         
         //self.thruIDLabel.usesSingleLineMode = NO;
         //self.thruIDLabel.maximumNumberOfLines = 1;
-        self.titleLabel.textColor = NSColor.blackColor;
-        self.titleLabel.backgroundColor = [NSColor clearColor];
-        self.titleLabel.layer.backgroundColor = [NSColor clearColor].CGColor;
+        self.titleLabel.textColor = CocoaColor.blackColor;
+        self.titleLabel.backgroundColor = [CocoaColor clearColor];
+        self.titleLabel.layer.backgroundColor = [CocoaColor clearColor].CGColor;
+        
+#if TARGET_OS_OSX
         self.titleLabel.alignment = self.alignment;
         
         self.titleLabel.bezeled         = NO;
         self.titleLabel.editable        = NO;
         self.titleLabel.drawsBackground = NO;
+#endif
         
         [self addSubview:self.titleLabel];
         
@@ -86,20 +91,24 @@
 - (void)checkboxToggled:(nullable id)sender
 {
     NSLog(@"NSCheckboxView::checkboxToggled:");
-    assert( [sender isKindOfClass:NSButton.class]);
+    assert( [sender isKindOfClass:ToggleButton.class]);
     if(self.delegate && [self.delegate respondsToSelector:@selector(buttonToggledAtIndex:sender:)])
-        [self.delegate buttonToggledAtIndex:(int)((NSButton*)sender).tag sender:self];
+        [self.delegate buttonToggledAtIndex:(int)((ToggleButton*)sender).tag sender:self];
 }
 
+#if TARGET_OS_OSX
 -(NSSize)intrinsicContentSize
+#else
+-(CGSize)intrinsicContentSize
+#endif
 {
-    NSButton * button = self.buttons.lastObject;//[self.buttons objectAtIndex:self.buttons.];
+    ToggleButton * button = self.buttons.lastObject;//[self.buttons objectAtIndex:self.buttons.];
     //CGFloat buttonHeight = button.font.pointSize;
     //CGFloat fCount = (CGFloat)self.buttons.count + 1.;
     
-    CGFloat padding = 2.;
-    CGFloat buttonHeight  = button.frame.size.height + padding;
-    CGFloat buttonsHeight = buttonHeight * self.buttons.count;
+    CGFloat padding = 4.;
+    CGFloat buttonHeight  = button.frame.size.height;//+ padding;
+    CGFloat buttonsHeight = buttonHeight * self.buttons.count + padding * self.buttons.count;
 
     //If the total button content within a DocumentView are less than the dimensions of a containing scrollview
     //then the content will appear with origin at the bottom of the DocumentView...
@@ -110,18 +119,25 @@
     return CGSizeMake(self.superview.frame.size.width, contentHeight);
 }
 
+
+
 -(void)createCheckboxArray
 {
     self.buttons = [NSMutableArray arrayWithCapacity:self.identifiers.count];
     
     if( self.alignment == NSTextAlignmentRight )
     {
-        NSButton * prevButton = [[NSButton alloc] initWithFrame:CGRectZero];
+        ToggleButton * prevButton = [[ToggleButton alloc] initWithFrame:CGRectZero];
+#if TARGET_OS_OSX
         [prevButton.cell setButtonType:NSButtonTypeSwitch];
         prevButton.title = [self.identifiers objectAtIndex:self.identifiers.count-1];
-        prevButton.tag = self.identifiers.count-1;
         [prevButton setAction:@selector(checkboxToggled:)];
         [prevButton setTarget:self];
+#else
+        //prevButton.titleLabel.text = [self.identifiers objectAtIndex:self.identifiers.count-1];
+#endif
+        prevButton.tag = self.identifiers.count-1;
+
         
         //[prevButton performClick:YES];
         
@@ -147,12 +163,19 @@
         
         for( int i = (int)self.identifiers.count-2; i>-1; i--)
         {
-            NSButton * button = [[NSButton alloc] initWithFrame:CGRectZero];
+            ToggleButton * button = [[ToggleButton alloc] initWithFrame:CGRectZero];
+            
+#if TARGET_OS_OSX
             [button.cell setButtonType:NSButtonTypeSwitch];
             button.title = [self.identifiers objectAtIndex:i];
-            button.tag = i;
             [button setAction:@selector(checkboxToggled:)];
             [button setTarget:self];
+#else
+            //button.titleLabel.text = [self.identifiers objectAtIndex:i];
+#endif
+            button.tag = i;
+
+
             
             [self addSubview:button];
             button.translatesAutoresizingMaskIntoConstraints = NO; //Window will not resize unless this is set to NO
@@ -182,14 +205,28 @@
     }
     else if( self.alignment == NSTextAlignmentVertical )
     {
-        NSButton * prevButton = [[NSButton alloc] initWithFrame:CGRectZero];
+        ToggleButton * prevButton   = [[ToggleButton alloc] initWithFrame:CGRectZero];
+        CocoaTextField * prevLabel = nil;// [[CocoaTextField alloc] initWithFrame:CGRectZero];
+
+#if TARGET_OS_OSX
         [prevButton.cell setButtonType:NSButtonTypeSwitch];
         prevButton.title = [self.identifiers objectAtIndex:0];
-        prevButton.tag = 0;
         //[prevButton sizeToFit]; //Note: this will cause weird microadjustments to the origin of checkbox buttons
         [prevButton setAction:@selector(checkboxToggled:)];
-        prevButton.enabled = YES;
         prevButton.target = self; //without this popup items will appear grayed out if no other ui to make first responder
+#else
+        prevLabel = [[CocoaTextField alloc] initWithFrame:CGRectZero];
+        prevLabel.text = [self.identifiers objectAtIndex:0];
+        
+        //prevButton.title = prevLabel.text; //for debugging delegate
+        [prevButton addTarget:self action:@selector(checkboxToggled:) forControlEvents:UIControlEventValueChanged];
+        //prevButton.titleLabel.text       = nil; //will set text or image to checkmark upon selection
+        //prevButton.backgroundColor       = CocoaColor.greenColor;
+        //prevButton.layer.backgroundColor = CocoaColor.greenColor.CGColor;
+#endif
+        prevButton.tag = 0;
+        prevButton.enabled = YES;
+
         [self addSubview:prevButton];
         
         
@@ -201,6 +238,7 @@
                                                                     attribute:NSLayoutAttributeLeft
                                                                     multiplier:1.0f constant:4.0f];
         
+
         //Note: The only way I have been able to recreate ScrollView's DocumentView with different heights
         //is to give the DocumentView's children explicit height so that intrinsicContentSize reports the correct button heights :(
         NSLayoutConstraint * height = [NSLayoutConstraint constraintWithItem:prevButton
@@ -216,20 +254,67 @@
                                                                        toItem:self
                                                                     attribute:NSLayoutAttributeTop
                                                                     multiplier:1.0f constant:2.];
+#if TARGET_OS_OSX
         [self addConstraints:@[ left, top, height]];
+#else
+        [self addConstraints:@[ left, top]];
+#endif
+        
         [self.buttons addObject:prevButton];
          
+        if( prevLabel )
+        {
+            [self addSubview:prevLabel];
+            prevLabel.translatesAutoresizingMaskIntoConstraints = NO; //Window will not resize unless this is set to NO
+
+            left = [NSLayoutConstraint constraintWithItem:prevLabel
+                                                                        attribute: NSLayoutAttributeLeft
+                                                                            relatedBy:NSLayoutRelationEqual
+                                                                           toItem:prevButton
+                                                                        attribute:NSLayoutAttributeRight
+                                                                        multiplier:1.0f constant:4.0f];
+            
+            height = [NSLayoutConstraint constraintWithItem:prevLabel
+                                                                        attribute: NSLayoutAttributeHeight
+                                                                            relatedBy:NSLayoutRelationEqual
+                                                                           toItem:prevButton
+                                                                        attribute:NSLayoutAttributeHeight
+                                                                        multiplier:1. constant:0];
+
+            top = [NSLayoutConstraint constraintWithItem:prevLabel
+                                                                        attribute: NSLayoutAttributeTop
+                                                                            relatedBy:NSLayoutRelationEqual
+                                                                           toItem:prevButton
+                                                                        attribute:NSLayoutAttributeTop
+                                                                        multiplier:1.0f constant:0.];
+            
+            [self addConstraints:@[ left, top, height]];
+
+        }
         
         for( int i = 1; i<self.identifiers.count; i++)
         {
-            NSButton * button = [[NSButton alloc] initWithFrame:CGRectZero];
+            ToggleButton * button = [[ToggleButton alloc] initWithFrame:CGRectZero];
+            CocoaTextField* label = nil;
+#if TARGET_OS_OSX
             [button.cell setButtonType:NSButtonTypeSwitch];
             button.title = [self.identifiers objectAtIndex:i];
-            button.tag = i;
             //[prevButton sizeToFit]; //Note: this will cause weird microadjustments to the origin of checkbox buttons
             [button setAction:@selector(checkboxToggled:)];
-            button.enabled = YES;
             button.target = self; //without this popup items will appear grayed out if no other ui to make first responder
+#else
+            label = [[CocoaTextField alloc] initWithFrame:CGRectZero];
+            label.text = [self.identifiers objectAtIndex:i];
+            
+            //button.title = prevLabel.text; //for debugging delegate
+            [button addTarget:self action:@selector(checkboxToggled:) forControlEvents:UIControlEventValueChanged];
+            //button.titleLabel.text       = nil; //will set text or image to checkmark upon selection
+            //button.backgroundColor       = CocoaColor.greenColor;
+            //button.layer.backgroundColor = CocoaColor.greenColor.CGColor;
+#endif
+            button.enabled = YES;
+            button.tag = i;
+
             [self addSubview:button];
             
             
@@ -255,18 +340,56 @@
                                                                            toItem:prevButton
                                                                         attribute:NSLayoutAttributeBottom
                                                                         multiplier:1.0f constant:4.];
+            
+            
             [self addConstraints:@[ left, top, height]];
             [self.buttons addObject:button];
-             prevButton = button;
+            
+            if( label )
+            {
+                [self addSubview:label];
+                label.translatesAutoresizingMaskIntoConstraints = NO; //Window will not resize unless this is set to NO
+
+                left = [NSLayoutConstraint constraintWithItem:label
+                                                                            attribute: NSLayoutAttributeLeft
+                                                                                relatedBy:NSLayoutRelationEqual
+                                                                               toItem:button
+                                                                            attribute:NSLayoutAttributeRight
+                                                                            multiplier:1.0f constant:4.0f];
+                
+                height = [NSLayoutConstraint constraintWithItem:label
+                                                                            attribute: NSLayoutAttributeHeight
+                                                                                relatedBy:NSLayoutRelationEqual
+                                                                               toItem:button
+                                                                            attribute:NSLayoutAttributeHeight
+                                                                            multiplier:1. constant:0];
+
+                top = [NSLayoutConstraint constraintWithItem:label
+                                                                            attribute: NSLayoutAttributeCenterY
+                                                                                relatedBy:NSLayoutRelationEqual
+                                                                               toItem:button
+                                                                            attribute:NSLayoutAttributeCenterY
+                                                                            multiplier:1.0f constant:0.];
+                
+                [self addConstraints:@[ left, top, height]];
+
+            }
+
+            prevButton = button;
+            prevLabel = label;
         }
         
     }
     else
     {
         
-        NSButton * prevButton = [[NSButton alloc] initWithFrame:CGRectZero];
+        ToggleButton * prevButton = [[ToggleButton alloc] initWithFrame:CGRectZero];
+#if TARGET_OS_OSX
         [prevButton.cell setButtonType:NSButtonTypeSwitch];
         prevButton.title = [self.identifiers objectAtIndex:0];
+#else
+        //prevButton.titleLabel.text = [self.identifiers objectAtIndex:0];
+#endif
         prevButton.tag = 0;
         //[prevButton setAction:@selector(buttonToggled:)];
 
@@ -292,9 +415,13 @@
         
         for( int i = 1; i<self.identifiers.count; i++)
         {
-            NSButton * button = [[NSButton alloc] initWithFrame:CGRectZero];
+            ToggleButton * button = [[ToggleButton alloc] initWithFrame:CGRectZero];
+#if TARGET_OS_OSX
             [button.cell setButtonType:NSButtonTypeSwitch];
             button.title = [self.identifiers objectAtIndex:i];
+#else
+            //button.titleLabel.text = [self.identifiers objectAtIndex:i];
+#endif
             button.tag = i;
             //[button setAction:@selector(buttonToggled:)];
             [self addSubview:button];
@@ -338,7 +465,7 @@
     return self;
 }
 
-- (void)drawRect:(NSRect)dirtyRect {
+- (void)drawRect:(CGRect)dirtyRect {
     [super drawRect:dirtyRect];
     
     // Drawing code here.

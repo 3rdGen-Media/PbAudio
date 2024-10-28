@@ -319,46 +319,12 @@ OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * f
         //PBACheckOSStatus(AudioUnitAddPropertyListener(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, PBAIOAudioUnitStreamFormatChanged, (void*)streamContext), "AudioUnitAddPropertyListener(kAudioUnitProperty_StreamFormat)");
         //PBACheckOSStatus(AudioUnitAddPropertyListener(streamContext->audioUnit, kAudioUnitProperty_SampleRate,   PBAIOAudioUnitSampleRateChanged,   (void*)streamContext), "AudioUnitAddPropertyListener(kAudioUnitProperty_SampleRate)");
 
-#if TARGET_OS_IPHONE || TARGET_OS_TVOS
-        // __weak typeof(self) weakSelf = self;
-        
-        // Watch for session interruptions
-        __block BOOL wasRunning;
-            
-        CFNotificationCenterRef center = CFNotificationCenterGetLocalCenter();
-        assert(center);
-        
-        // add an observer
-        //self.sessionInterruptionObserverToken =
-        CFNotificationCenterAddObserver(center, NULL, AVAudioSessionInterruptionNotificationCallback,
-                                        CFSTR("AVAudioSessionInterruptionNotification"), NULL,
-                                        CFNotificationSuspensionBehaviorDeliverImmediately);
-
-        // Watch for media reset notifications
-        //self.mediaResetObserverToken =
-        CFNotificationCenterAddObserver(center, NULL, AVAudioSessionMediaServicesWereResetNotificationCallback,
-                                        CFSTR("AVAudioSessionMediaServicesWereResetNotification"), NULL,
-                                        CFNotificationSuspensionBehaviorDeliverImmediately);
-        
-        // Watch for audio route changes
-        //self.routeChangeObserverToken =
-        CFNotificationCenterAddObserver(center, NULL, AVAudioSessionRouteChangeNotificationCallback,
-                                        CFSTR("AVAudioSessionRouteChangeNotification"), NULL,
-                                        CFNotificationSuspensionBehaviorDeliverImmediately);
-    
- 
-        // Register callback to watch for Inter-App Audio connections
-        //PBACheckOSStatus(AudioUnitAddPropertyListener(_audioUnit, kAudioUnitProperty_IsInterAppConnected, AEIOAudioUnitIAAConnectionChanged, (__bridge void*)self), "AudioUnitAddPropertyListener(kAudioUnitProperty_IsInterAppConnected)");
-
-#elif TARGET_OS_OSX
     
     //Register PBAudio Private CoreAudio [Device] Object Observers
     //Notifications will be redistributed to clients via PbAudio so that
     //'Client Application' Processes can remain in sync with Master PbAudio 'Mix Engine' State
     PBAudioRegisterDeviceListeners(NULL, streamContext);
-    
-#endif
-        
+            
     return result;
 
 #elif defined(_WIN32)
@@ -441,7 +407,7 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
 #ifdef __APPLE__
     OSStatus result = -1;
     bool active;
-#if (CR_TARGET_IOS) || defined(CR_TARGET_TVOS)
+#if !TARGET_OS_OSX
     // Activate audio session
     /*
     NSError * e;
@@ -455,6 +421,9 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
     //((id (*)(id, SEL, void*))objc_msgSend)(objc_msgSend(objc_getClass("CRMetalInterface"), sel_registerName("sharedInstance")), sel_getUid("displayLoop:"), view);
     void* (*objc_msgSendSharedInstance)(Class, SEL) = (void*)objc_msgSend;
     id avSessionSharedInstance = objc_msgSendSharedInstance(objc_getClass("AVAudioSession"), sel_registerName("sharedInstance"));
+    
+    //TO DO: set session category?
+    //AVAudioSessionCategoryPlayAndRecord
     
     //id nsError =
     BOOL (*objc_msgSendSetActive)(void*, SEL, BOOL, id) = (void*)objc_msgSend;
@@ -786,6 +755,30 @@ OSStatus PBAudioStreamStop(PBAStreamContext * streamContext)
     return result;
 
     
+}
+
+OSStatus PBAudioStreamGetOutputDevice(PBAStreamContext * streamContext, PBAudioDevice* deviceID)
+{
+    OSStatus result = 0;
+
+#ifdef __APPLE__
+    if( streamContext->audioUnit )
+    {
+        UInt32 size = sizeof(AudioDeviceID);
+        result = AudioUnitGetProperty(streamContext->audioUnit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, deviceID, &size);
+        
+        if ( !PBACheckOSStatus(result, "AudioDeviceID(kAudioOutputUnitProperty_CurrentDevice)\n") )
+        {
+            //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:result userInfo:@{ NSLocalizedDescriptionKey: @"Unable to start IO unit" }];
+            fprintf(stderr, ", Unable to get audio unit output device\n");
+            return result;
+        }
+    }
+#else
+        assert(1==0);
+#endif
+    
+    return result;
 }
 
 OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioDevice deviceID)

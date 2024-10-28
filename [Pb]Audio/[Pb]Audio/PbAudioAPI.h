@@ -24,6 +24,8 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamInit(PBAStreamContext * strea
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamStart(PBAStreamContext * streamContext);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamStop(PBAStreamContext * streamContext);
 PB_AUDIO_API PB_AUDIO_INLINE void     PBAudioStreamSetBypass(PBAStreamContext * streamContext, bool bypass);
+
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamGetOutputDevice(PBAStreamContext * streamContext, PBAudioDevice* deviceID);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioDevice deviceID);
 
 //#pragma mark -- CTConnection API Method Function Pointer Definitions

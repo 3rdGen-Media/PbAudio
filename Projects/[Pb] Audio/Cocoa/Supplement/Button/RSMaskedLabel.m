@@ -47,7 +47,11 @@
 - (void) setBackgroundColor:(CocoaColor *)backgroundColor
 {
 	maskedBackgroundColor = backgroundColor;
+#if TARGET_OS_OSX
     self.needsDisplay = YES;
+#else
+    [self setNeedsDisplay];
+#endif
 }
 
 - (void)RS_commonInit
@@ -94,8 +98,12 @@
         applyMasking = false;
     }
     
+#if TARGET_OS_OSX
     self.needsDisplay = YES;
-
+#else
+    [self setNeedsDisplay];
+#endif
+    
 }
 
 - (void)drawRect:(CGRect)rect

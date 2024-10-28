@@ -65,11 +65,13 @@
 
 }
 
+#if TARGET_OS_OSX
 -(void)createTrackingArea
 {
     NSTrackingArea* trackingArea = [[NSTrackingArea alloc] initWithRect:self.bounds options: (NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved |  NSTrackingCursorUpdate | NSTrackingActiveWhenFirstResponder | NSTrackingActiveAlways) owner:self userInfo: nil];
     [self addTrackingArea:trackingArea];
 }
+#endif
 
 -(id) init
 {
@@ -101,8 +103,11 @@
         
         [self createBackgroundImageView];
         [self createTitleLabelSet];
-
+        
+#if TARGET_OS_OSX
         [self createTrackingArea];
+#endif
+        
     }
     
     return self;

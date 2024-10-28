@@ -191,6 +191,10 @@ static const GUID _IID_MF_LOW_LATENCY = { 0x9c27891a, 0xed7a, 0x40e1, {0x88, 0xe
 //******************************************************//
 
 #define RESOURCE_HOME "HOME"
+#define MUSIC_DIR     "/Music"
+#define ITUNES_DIR    "/Music/iTunes/iTunes Media"
+#define DOWNLOADS_DIR "/Downloads"
+
 #define RESOURCE_DIR  "/Development/3rdGen/AssetLibrary"
 #define ENGINE_DIR    "/Development/3rdGen/CoreRender"
 #define INCLUDE_DIR   ENGINE_DIR "/include"

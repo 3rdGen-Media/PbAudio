@@ -86,7 +86,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus         PBAudioRegisterDeviceListeners(str
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDeviceID(PBAudioDevice deviceID, char* id, uint32_t* idLen);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDeviceName(PBAudioDevice deviceID, char * deviceName, uint32_t * nameLen);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioDefaultDevice(AudioObjectPropertySelector selector, PBAudioDevice* pDevice);
-PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void);
+PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(AudioObjectPropertyScope scope);
 
 #ifdef _WIN32
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus          PBAudioActivateDevice(IMMDevice* device, IAUDIOCLIENT** audioClient);

@@ -88,8 +88,8 @@ static OSStatus PBAIOAudioUnitInputCallback(void *inRefCon, AudioUnitRenderActio
 
 
 
-static void PBAIOAudioUnitStreamFormatChanged(void *inRefCon, AudioUnit inUnit, AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement) {
-    //AEIOAudioUnit * self = (__bridge AEIOAudioUnit *)inRefCon;
+static void PBAIOAudioUnitStreamFormatChanged(void *inRefCon, AudioUnit inUnit, AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement)
+{
     __unsafe_unretained PBAStreamContext * streamContext = (PBAStreamContext *)inRefCon;
     fprintf(stdout, "PBAIOAudioUnitStreamFormatChanged\n");
     //PBAudioStreamUpdateFormat(streamContext);
@@ -217,21 +217,116 @@ static void AVAudioSessionInterruptionNotificationCallback(CFNotificationCenterR
 static void AVAudioSessionMediaServicesWereResetNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
 {
     
-    printf("\nAVAudioSessionMediaServicesWereResetNotificationCallback\n");
+    fprintf(stdout, "\nAVAudioSessionMediaServicesWereResetNotificationCallback\n");
     //[weakSelf reload];
 }
 
+/// Values for AVAudioSessionRouteChangeReasonKey in AVAudioSessionRouteChangeNotification's
+/// userInfo dictionary
+typedef CF_ENUM(uint32_t, PBAudioSessionRouteChangeReason)
+{
+    /// The reason is unknown.
+    PBAudioSessionRouteChangeReasonUnknown = 0,
+
+    /// A new device became available (e.g. headphones have been plugged in).
+    PBAudioSessionRouteChangeReasonNewDeviceAvailable = 1,
+
+    /// The old device became unavailable (e.g. headphones have been unplugged).
+    PBAudioSessionRouteChangeReasonOldDeviceUnavailable = 2,
+
+    /// The audio category has changed (e.g. AVAudioSessionCategoryPlayback has been changed to
+    /// AVAudioSessionCategoryPlayAndRecord).
+    PBAudioSessionRouteChangeReasonCategoryChange = 3,
+
+    /// The route has been overridden (e.g. category is AVAudioSessionCategoryPlayAndRecord and
+    /// the output has been changed from the receiver, which is the default, to the speaker).
+    PBAudioSessionRouteChangeReasonOverride = 4,
+
+    /// The device woke from sleep.
+    PBAudioSessionRouteChangeReasonWakeFromSleep = 6,
+
+    /// Returned when there is no route for the current category (for instance, the category is
+    /// AVAudioSessionCategoryRecord but no input device is available).
+    PBAudioSessionRouteChangeReasonNoSuitableRouteForCategory = 7,
+
+    /// Indicates that the set of input and/our output ports has not changed, but some aspect of
+    /// their configuration has changed.  For example, a port's selected data source has changed.
+    /// (Introduced in iOS 7.0, watchOS 2.0, tvOS 9.0).
+    PBAudioSessionRouteChangeReasonRouteConfigurationChange = 8
+};
+
+
 static void AVAudioSessionRouteChangeNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
 {
-    printf("\nAVAudioSessionRouteChangeNotificationCallback\n");
+    fprintf(stdout, "\nAVAudioSessionRouteChangeNotificationCallback\n");
 
-    /*
-     dispatch_async(dispatch_get_main_queue(), ^{
-            renderContext->outputLatency = [AVAudioSession sharedInstance].outputLatency;
-            renderContext->inputLatency = [AVAudioSession sharedInstance].inputLatency;
-            //renderContext->inputGain = weakSelf.inputGain;
-        });
-    */
+    //Distribute the notification to registered PBAudio 'Engine' Process Clients
+    //dispatch_async(dispatch_get_main_queue(), ^{
+        
+        // post a notification
+        CFNotificationCenterPostNotification(CFNotificationCenterGetLocalCenter(), kPBAudioSessionRouteChangedNotification, NULL, userInfo, true);
+        
+    //});
+    
+    fprintf(stdout, "\nPBAudioSessionRouteChangeNotificationCallback\n" );
+    assert(userInfo);
+
+    PBAudioSessionRouteChangeReason reason = 0;
+    CFNumberRef reasonRef = (CFNumberRef)CFDictionaryGetValue(userInfo, CFSTR("AVAudioSessionRouteChangeReasonKey")); assert(reasonRef);
+    BOOL success = CFNumberGetValue( reasonRef, kCFNumberSInt32Type, &reason); assert(success);
+
+    switch(reason)
+    {
+        /// A new device became available (e.g. headphones have been plugged in).
+        case(PBAudioSessionRouteChangeReasonNewDeviceAvailable):
+        {
+            CFNotificationCenterPostNotification(CFNotificationCenterGetLocalCenter(), CFSTR("PBADeviceAvailableDevicesChangedNotification"), NULL, NULL, TRUE);
+            break;
+        }
+        
+        case(PBAudioSessionRouteChangeReasonOldDeviceUnavailable):
+        {
+            CFNotificationCenterPostNotification(CFNotificationCenterGetLocalCenter(), CFSTR("PBADeviceAvailableDevicesChangedNotification"), NULL, NULL, TRUE);
+            break;
+        }
+            
+        case(PBAudioSessionRouteChangeReasonCategoryChange):
+        {
+            assert(1==0);
+            break;
+            
+        }
+        
+        case(PBAudioSessionRouteChangeReasonOverride):
+        {
+            assert(1==0);
+            break;
+            
+        }
+        case(PBAudioSessionRouteChangeReasonWakeFromSleep):
+        {
+            assert(1==0);
+            break;
+            
+        }
+
+        case(PBAudioSessionRouteChangeReasonNoSuitableRouteForCategory):
+        {
+            assert(1==0);
+            break;
+            
+        }
+        case(PBAudioSessionRouteChangeReasonRouteConfigurationChange):
+        {
+            assert(1==0);
+            break;
+        }
+            
+            
+        default:
+            assert(1==0);
+    }
+    
 }
 
 #else

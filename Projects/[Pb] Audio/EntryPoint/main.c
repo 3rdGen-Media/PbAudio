@@ -18,8 +18,8 @@
 #endif
 
 //[Pb]Audio Renderpass(es)
-#include "../ToneGenerator.h"
-#include "../SamplePlayer.h"
+#include "../Render/ToneGenerator.h"
+#include "../Render/SamplePlayer.h"
 
 SamplePlayer  samplePlayer  = {0};
 ToneGenerator toneGenerator = {0};
@@ -511,13 +511,19 @@ void CRCleanup(void)
     });
 #else
     //dispatch event to be picked up by Cocoa UIApplication waiting on kqueue in AppDelegate::applicationWillTerminate
-    struct kevent kev;
-    EV_SET(&kev, crevent_exit, EVFILT_USER, EV_ADD|EV_ENABLE|EV_ONESHOT, NOTE_FFCOPY|NOTE_TRIGGER|0x1, 0, NULL);
-    kevent(cr_platformEventQueue, &kev, 1, NULL, 0, NULL);
+    //struct kevent kev;
+    //EV_SET(&kev, crevent_exit, EVFILT_USER, EV_ADD|EV_ENABLE|EV_ONESHOT, NOTE_FFCOPY|NOTE_TRIGGER|0x1, 0, NULL);
+    //kevent(cr_platformEventQueue, &kev, 1, NULL, 0, NULL);
+    
+    id (*objc_ClassSelector)(Class class, SEL _cmd) = (void*)objc_msgSend;//objc_msgSend(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc")), sel_registerName("init"))
+    id (*objc_InstanceSelector1)(id self, SEL _cmd, id sender) = (void*)objc_msgSend;//objc_msgSend(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc")), sel_registerName("init"))
+    id CTApp = objc_ClassSelector(objc_getClass(CocoaAppClassName), sel_registerName("sharedApplication"));
+    objc_InstanceSelector1(CTApp, sel_getUid("terminate:"), NULL);
 #endif
 
 }
 
+/*
 //must return void* in order to use with GCD dispatch_async_f
 static void* CRRunLoop(void* opaqueQueue)
 {   
@@ -582,6 +588,7 @@ static void* CRRunLoop(void* opaqueQueue)
 #endif
     return NULL;
 }
+*/
 
 //must return void* in order to use with GCD dispatch_async_f
 #ifdef __APPLE__
@@ -727,6 +734,25 @@ void StartAudioMessageEventLoop(void)
 #else
 
 #endif
+    
+    //*** CMidi ***//
+
+#if defined(__APPLE__)
+    //register kevents [for Midi Note On Types] that can be queued to trigger audio on the real-time audio thread
+    uint64_t triggerEvent; CMTriggerEventQueue = kqueue(); //create kqueue
+    for (triggerEvent = 0; triggerEvent < 128; ++triggerEvent)
+    {
+        struct kevent kev;
+        EV_SET(&kev, triggerEvent, EVFILT_USER, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
+        kevent(CMTriggerEventQueue, &kev, 1, NULL, 0, NULL);
+    }
+#else
+
+    
+#endif
+
+    //Load functions from DLL + initialize a CMidi client
+    CMidi.Init(CM_CLIENT_OWNER_ID, CMidiNotifyBlock, CMidiReceiveBlock, NULL);
 
     /***
      * Init [Pb]Audio [Session/Stream] for Scheduling Audio [Buffers] to a Real-Time Thread
@@ -801,22 +827,7 @@ void StartAudioMessageEventLoop(void)
 
     //*** CMidi ***//
 
-#if defined(__APPLE__)
-    //register kevents [for Midi Note On Types] that can be queued to trigger audio on the real-time audio thread
-    uint64_t triggerEvent; CMTriggerEventQueue = kqueue(); //create kqueue
-    for (triggerEvent = 0; triggerEvent < 128; ++triggerEvent)
-    {
-        struct kevent kev;
-        EV_SET(&kev, triggerEvent, EVFILT_USER, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
-        kevent(CMTriggerEventQueue, &kev, 1, NULL, 0, NULL);
-    }
-#else
 
-    
-#endif
-
-    //Load functions from DLL + initialize a CMidi client
-    CMidi.Init(CM_CLIENT_OWNER_ID, CMidiNotifyBlock, CMidiReceiveBlock, NULL);
 }
  
 int main(int argc, const char * argv[]) {
@@ -879,7 +890,8 @@ int main(int argc, const char * argv[]) {
      *  NSNotificationCenter/CFNotificationCenter
      ***/
 #ifdef CR_TARGET_OSX
-     RegisterNotificationObservers();
+    RegisterAppNotificationObservers();
+    RegisterAudioNotificationObservers();
 #endif
     
     /***

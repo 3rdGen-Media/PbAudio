@@ -906,7 +906,7 @@ XNZ_AIF_API XNZ_AIF_INLINE void xnz_aif_open(XNZ_AIF_ARCHIVE* archive, char* aif
 
         //2 MAP THE FILE TO BUFFER FOR READING
 #ifndef _WIN32
-        archive->file.buffer = cr_file_map_to_buffer(&(archive->file.buffer), archive->file.size, PROT_READ, MAP_SHARED | MAP_NORESERVE, archive->file.fd, 0);
+        archive->file.buffer = (char*)cr_file_map_to_buffer(&(archive->file.buffer), archive->file.size, PROT_READ, MAP_SHARED | MAP_NORESERVE, archive->file.fd, 0);
         if (madvise(archive->file.buffer, (size_t)archive->file.size, MADV_SEQUENTIAL | MADV_WILLNEED) == -1) {
             printf("\nread madvise failed\n");
         }

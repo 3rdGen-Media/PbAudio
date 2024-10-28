@@ -25,6 +25,8 @@
 const CFStringRef kPBAudioDidUpdateStreamFormatNotification  = CFSTR("PBAudioDidUpdateStreamFormatNotification");
 //const CFStringRef kPBAStreamFormatChangedNotification      = CFSTR("kPBAStreamFormatChangedNotification");
 const CFStringRef kPBAStreamSampleRateChangedNotification    = CFSTR("PBAudioStreamSampleRateChangedNotification");
+
+const CFStringRef kPBAudioSessionRouteChangedNotification    = CFSTR("PBAudioSessionRouteChangedNotification");
 #else
 
 #endif
@@ -181,15 +183,7 @@ void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRa
 
 PB_AUDIO_API PB_AUDIO_INLINE double PBABufferDuration(PBAStreamContext* streamContext)
 {
-#if TARGET_OS_IPHONE || TARGET_OS_TVOS
-    //return [[AVAudioSession sharedInstance] IOBufferDuration];
-    
-    void* (*objc_msgSendSharedInstance)(Class, SEL) = (void*)objc_msgSend;
-    id avSessionSharedInstance = objc_msgSendSharedInstance(objc_getClass("AVAudioSession"), sel_registerName("sharedInstance"));
-    double (*objc_msgSendGetProperty)(void*, SEL) = (void*)objc_msgSend;
-    return objc_msgSendGetProperty(avSessionSharedInstance, sel_getUid("IOBufferDuration"));//[AVAudioSession sharedInstance].outputLatency;
-       
-#else
+#if TARGET_OS_OSX
     // Get the default device
     AudioDeviceID deviceId; PBAudioDefaultDevice(streamContext->outputEnabled ? kAudioHardwarePropertyDefaultOutputDevice : kAudioHardwarePropertyDefaultInputDevice, &deviceId);
     if ( deviceId == kAudioDeviceUnknown ) return 0.0;
@@ -203,6 +197,11 @@ PB_AUDIO_API PB_AUDIO_INLINE double PBABufferDuration(PBAStreamContext* streamCo
         streamContext->outputEnabled ? kAudioDevicePropertyScopeOutput : kAudioDevicePropertyScopeInput, 0 };
     if ( !PBACheckOSStatus(AudioObjectGetPropertyData(deviceId, &addr, 0, NULL, &size, &duration), "AudioObjectSetPropertyData") ) return 0.0;
     return (double)duration / streamContext->currentSampleRate;
+#else
+    void* (*objc_msgSendSharedInstance)(Class, SEL) = (void*)objc_msgSend;
+    double (*objc_msgSendGetProperty)(void*, SEL) = (void*)objc_msgSend;
+    id avSessionSharedInstance = objc_msgSendSharedInstance(objc_getClass("AVAudioSession"), sel_registerName("sharedInstance"));
+    return objc_msgSendGetProperty(avSessionSharedInstance, sel_getUid("IOBufferDuration"));
 #endif
 }
 

@@ -12,6 +12,9 @@
 //#import <dlfcn.h>
 //#include "CoreRender/crPlatform.h"
 
+#import "AudioMidiSettingsView.h"
+#import "SettingsModalViewController.h"
+
 #if TARGET_OS_OSX
 //#import "CRWindowController.h"
 //#import "CRMenu.h"
@@ -20,13 +23,13 @@
 
 //Modal
 
-#import "AudioMidiSettingsView.h"
+//#import "AudioMidiSettingsView.h"
 #import "DeviceManagerView.h"
 #import "ProxyManagerView.h"
 #import "CMProxyModalView.h"
 #import "ControlManagerView.h"
 #import "DisplayManagerView.h"
-#import "SettingsModalViewController.h"
+//#import "SettingsModalViewController.h"
 
 //AppIcon Generation
 #import "CocoaImage+Logo.h"
@@ -46,7 +49,7 @@
 
 //#import "MCUDeviceQueueViewController.h"
 //#import "C4CommanderViewController.h"
-#import "MainWindowViewController.h"
+#import "AudioUnitViewController.h"
 
 
 //Button
@@ -80,13 +83,10 @@ static NSString * const NSToolbarAddItemIdentifier      = @"AddToolbarItem";
 @property (nonatomic, retain) CocoaToolbar                * modalToolbar;
 
 @property (nonatomic, retain) CocoaView                   * rootView;
-@property (nonatomic, retain) MainWindowViewController    * rootViewController;    //root VC
+@property (nonatomic, retain) AudioUnitViewController    * rootViewController;    //root VC
 
 @property (nonatomic, retain) CocoaView                   * modalView;
-
-#if TARGET_OS_OSX
 @property (nonatomic, retain) SettingsModalViewController * modalViewController;
-#endif
 
 @property (nonatomic, retain) CocoaImage                  * statusOnImage;
 @property (nonatomic, retain) CocoaImage                  * statusOffImage;
@@ -106,20 +106,21 @@ static NSString * const NSToolbarAddItemIdentifier      = @"AddToolbarItem";
     return appDelegate;
 }
 
-#if TARGET_OS_OSX
 
 -(void)openSettingsManagerModalWindow
 {
     NSLog(@"openSettingsManagerModalWindow");
     
     //Create a view and view controller for the data model as an overlay window, popover or sheet
-    CGSize popoverSize = CGSizeMake(500, 450); //ToonTrack Window Size
+    CGSize popoverSize = CGSizeMake(550, 450); //ToonTrack Window Size
     CGRect viewFrame = CGRectMake(0,0,popoverSize.width, popoverSize.height);
     
     //Create the view/view controller pair that will manage the UI for a single abstract data model database entry as a modal window, popover or sheet
-    self.modalView = [[AudioMidiSettingsView alloc] initWithFrame:viewFrame];// andActiveDevice:self.rootViewController.deviceView.device];
+    self.modalView           = [[AudioMidiSettingsView       alloc] initWithFrame:viewFrame];
     self.modalViewController = [[SettingsModalViewController alloc] initWithView:self.modalView];
     self.modalView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+#if TARGET_OS_OSX
     self.modalView.autoresizingMask = NSViewNotSizable;
     
     //Present the ModalView/ViewCOntroller pair as a modal window, popover, or sheet on top of the parent window/view controller pair
@@ -130,8 +131,22 @@ static NSString * const NSToolbarAddItemIdentifier      = @"AddToolbarItem";
     //self.modalView.titleLabel.stringValue = [NSString stringWithFormat:@"New Midi Route"];
     
     [self.modalView.window makeKeyAndOrderFront:self];     // Show the window
-
+#else
+    
+    CGRect sourceRect = CGRectMake(0,0,1,1);
+    self.modalViewController.modalPresentationStyle = UIModalPresentationPopover;
+    //self.modalViewController.popoverPresentationController.delegate = self;
+    self.modalViewController.preferredContentSize = CGSizeMake(viewFrame.size.width, viewFrame.size.height);
+    self.modalViewController.popoverPresentationController.sourceView = self.rootViewController.view;
+    self.modalViewController.popoverPresentationController.sourceRect = sourceRect;
+    
+    self.modalView.autoresizingMask = UIViewAutoresizingNone;
+    [self.rootViewController presentViewController:self.modalViewController animated:NO completion:nil];
+    
+#endif
 }
+
+#if TARGET_OS_OSX
 
 -(void)openProxyConnectionModalWindow
 {
@@ -443,7 +458,7 @@ Mostly base on Apple sample code: https://developer.apple.com/documentation/appk
 #if TARGET_OS_OSX
     NSRect windowRect = CGRectMake(0,0, self.window.contentView.frame.size.width, self.window.contentView.frame.size.height);
     self.rootView = [[NSView alloc] initWithFrame:windowRect];//[[MCUControlProView alloc] initWithFrame:windowRect];
-    self.rootViewController = [[MainWindowViewController alloc] initWithView:self.rootView];
+    self.rootViewController = [[AudioUnitViewController alloc] initWithView:self.rootView];
     //self.rootViewController.view = self.rootView;
     
     //Note to self:
@@ -478,7 +493,7 @@ Mostly base on Apple sample code: https://developer.apple.com/documentation/appk
     self.rootViewController = nil;
     
     //create the camera video view controller
-    self.rootViewController = [[MainWindowViewController alloc] initWithWindow:self.window];
+    self.rootViewController = [[AudioUnitViewController alloc] initWithWindow:self.window];
     
 #if TARGET_OS_OSX
     //NSRect windowRect = CGRectMake(0,0, self.window.contentView.frame.size.width, self.window.contentView.frame.size.height);
@@ -702,106 +717,6 @@ Mostly base on Apple sample code: https://developer.apple.com/documentation/appk
     //[image compositeToPoint:NSZeroPoint operation:NSCompositeCopy];
 
     return image;
-    
-    /*
-    NSBezierPath* bezier772Path = [NSBezierPath bezierPath];//WithRect:CGRectMake(0, 0, 75, 75)];
-    
-
-    
-    [bezier772Path moveToPoint: NSMakePoint(70.93, 37.89)];
-    [bezier772Path curveToPoint: NSMakePoint(74.88, 45.6) controlPoint1: NSMakePoint(70.93, 41.07) controlPoint2: NSMakePoint(72.5, 43.86)];
-    [bezier772Path curveToPoint: NSMakePoint(73.58, 50.18) controlPoint1: NSMakePoint(73.45, 52.14) controlPoint2: NSMakePoint(73.58, 50.18)];
-    [bezier772Path curveToPoint: NSMakePoint(66.82, 53.58) controlPoint1: NSMakePoint(71.04, 50.34) controlPoint2: NSMakePoint(68.59, 51.49)];
-    [bezier772Path curveToPoint: NSMakePoint(65.42, 63.61) controlPoint1: NSMakePoint(64.4, 56.48) controlPoint2: NSMakePoint(63.98, 60.38)];
-    [bezier772Path curveToPoint: NSMakePoint(62.37, 66.53) controlPoint1: NSMakePoint(64.46, 64.64) controlPoint2: NSMakePoint(63.44, 65.61)];
-    [bezier772Path curveToPoint: NSMakePoint(51.28, 69.16) controlPoint1: NSMakePoint(58.6, 64.91) controlPoint2: NSMakePoint(54.06, 65.85)];
-    [bezier772Path curveToPoint: NSMakePoint(49.17, 73.88) controlPoint1: NSMakePoint(50.11, 70.56) controlPoint2: NSMakePoint(49.42, 72.2)];
-    [bezier772Path curveToPoint: NSMakePoint(47.43, 74.44) controlPoint1: NSMakePoint(48.59, 74.06) controlPoint2: NSMakePoint(48.03, 74.28)];
-    [bezier772Path curveToPoint: NSMakePoint(44.83, 75) controlPoint1: NSMakePoint(46.56, 74.68) controlPoint2: NSMakePoint(45.69, 74.83)];
-    [bezier772Path curveToPoint: NSMakePoint(43.59, 73.66) controlPoint1: NSMakePoint(44.45, 74.53) controlPoint2: NSMakePoint(44.07, 74.06)];
-    [bezier772Path curveToPoint: NSMakePoint(30.1, 74.84) controlPoint1: NSMakePoint(39.53, 70.26) controlPoint2: NSMakePoint(33.5, 70.79)];
-    [bezier772Path curveToPoint: NSMakePoint(30, 74.96) controlPoint1: NSMakePoint(30.06, 74.88) controlPoint2: NSMakePoint(30.04, 74.92)];
-    [bezier772Path curveToPoint: NSMakePoint(24.33, 73.36) controlPoint1: NSMakePoint(28.06, 74.57) controlPoint2: NSMakePoint(26.17, 74.04)];
-    [bezier772Path curveToPoint: NSMakePoint(21.04, 67.29) controlPoint1: NSMakePoint(24.02, 71.08) controlPoint2: NSMakePoint(22.94, 68.89)];
-    [bezier772Path curveToPoint: NSMakePoint(11.67, 65.63) controlPoint1: NSMakePoint(18.34, 65.03) controlPoint2: NSMakePoint(14.77, 64.53)];
-    [bezier772Path curveToPoint: NSMakePoint(8.86, 62.75) controlPoint1: NSMakePoint(10.69, 64.72) controlPoint2: NSMakePoint(9.76, 63.76)];
-    [bezier772Path curveToPoint: NSMakePoint(6.18, 51.77) controlPoint1: NSMakePoint(10.4, 58.99) controlPoint2: NSMakePoint(9.46, 54.52)];
-    [bezier772Path curveToPoint: NSMakePoint(1.32, 49.65) controlPoint1: NSMakePoint(4.75, 50.57) controlPoint2: NSMakePoint(3.06, 49.88)];
-    [bezier772Path curveToPoint: NSMakePoint(0.6, 47.4) controlPoint1: NSMakePoint(1.07, 48.9) controlPoint2: NSMakePoint(0.8, 48.16)];
-    [bezier772Path curveToPoint: NSMakePoint(0.18, 45.45) controlPoint1: NSMakePoint(0.42, 46.74) controlPoint2: NSMakePoint(0.32, 46.1)];
-    [bezier772Path curveToPoint: NSMakePoint(0.42, 45.27) controlPoint1: NSMakePoint(0.26, 45.39) controlPoint2: NSMakePoint(0.34, 45.33)];
-    [bezier772Path curveToPoint: NSMakePoint(1.6, 31.77) controlPoint1: NSMakePoint(4.48, 41.87) controlPoint2: NSMakePoint(5.01, 35.83)];
-    [bezier772Path curveToPoint: NSMakePoint(0, 30.35) controlPoint1: NSMakePoint(1.13, 31.21) controlPoint2: NSMakePoint(0.56, 30.77)];
-    [bezier772Path curveToPoint: NSMakePoint(1.23, 25.55) controlPoint1: NSMakePoint(0.32, 28.72) controlPoint2: NSMakePoint(0.71, 27.11)];
-    [bezier772Path curveToPoint: NSMakePoint(6.19, 23.41) controlPoint1: NSMakePoint(2.99, 25.32) controlPoint2: NSMakePoint(4.72, 24.64)];
-    [bezier772Path curveToPoint: NSMakePoint(8.79, 12.28) controlPoint1: NSMakePoint(9.51, 20.62) controlPoint2: NSMakePoint(10.43, 16.07)];
-    [bezier772Path curveToPoint: NSMakePoint(11.73, 9.29) controlPoint1: NSMakePoint(9.71, 11.23) controlPoint2: NSMakePoint(10.7, 10.24)];
-    [bezier772Path curveToPoint: NSMakePoint(21.7, 7.87) controlPoint1: NSMakePoint(14.96, 10.7) controlPoint2: NSMakePoint(18.83, 10.28)];
-    [bezier772Path curveToPoint: NSMakePoint(25.06, 1.38) controlPoint1: NSMakePoint(23.73, 6.17) controlPoint2: NSMakePoint(24.84, 3.82)];
-    [bezier772Path curveToPoint: NSMakePoint(27.64, 0.55) controlPoint1: NSMakePoint(25.91, 1.09) controlPoint2: NSMakePoint(26.76, 0.79)];
-    [bezier772Path curveToPoint: NSMakePoint(28.54, 0.36) controlPoint1: NSMakePoint(27.94, 0.47) controlPoint2: NSMakePoint(28.25, 0.43)];
-    [bezier772Path curveToPoint: NSMakePoint(35.76, 4.78) controlPoint1: NSMakePoint(30.1, 2.78) controlPoint2: NSMakePoint(32.68, 4.51)];
-    [bezier772Path curveToPoint: NSMakePoint(44.9, 0) controlPoint1: NSMakePoint(39.6, 5.11) controlPoint2: NSMakePoint(43.1, 3.14)];
-    [bezier772Path curveToPoint: NSMakePoint(48.68, 0.95) controlPoint1: NSMakePoint(46.18, 0.25) controlPoint2: NSMakePoint(47.44, 0.57)];
-    [bezier772Path curveToPoint: NSMakePoint(49.16, 3.14) controlPoint1: NSMakePoint(48.76, 1.68) controlPoint2: NSMakePoint(48.9, 2.42)];
-    [bezier772Path curveToPoint: NSMakePoint(61.44, 8.86) controlPoint1: NSMakePoint(50.98, 8.11) controlPoint2: NSMakePoint(56.48, 10.67)];
-    [bezier772Path curveToPoint: NSMakePoint(62.39, 8.46) controlPoint1: NSMakePoint(61.77, 8.74) controlPoint2: NSMakePoint(62.08, 8.61)];
-    [bezier772Path curveToPoint: NSMakePoint(66.1, 12.12) controlPoint1: NSMakePoint(62.39, 8.46) controlPoint2: NSMakePoint(61.85, 7.34)];
-    [bezier772Path curveToPoint: NSMakePoint(68.05, 22.8) controlPoint1: NSMakePoint(64.52, 15.64) controlPoint2: NSMakePoint(65.16, 19.91)];
-    [bezier772Path curveToPoint: NSMakePoint(73.8, 25.52) controlPoint1: NSMakePoint(69.66, 24.41) controlPoint2: NSMakePoint(71.7, 25.3)];
-    [bezier772Path curveToPoint: NSMakePoint(74.47, 27.6) controlPoint1: NSMakePoint(74.03, 26.22) controlPoint2: NSMakePoint(74.28, 26.89)];
-    [bezier772Path curveToPoint: NSMakePoint(75, 30.08) controlPoint1: NSMakePoint(74.7, 28.43) controlPoint2: NSMakePoint(74.84, 29.25)];
-    [bezier772Path curveToPoint: NSMakePoint(70.93, 37.89) controlPoint1: NSMakePoint(72.55, 31.81) controlPoint2: NSMakePoint(70.93, 34.65)];
-
-    [bezier772Path closePath];
-
-    //CGFloat internalScale = 0.75;
-    //NSAffineTransform *scaleXform = [NSAffineTransform transform];
-    //[scaleXform scaleBy:internalScale];
-    //[bezier772Path transformUsingAffineTransform:scaleXform];
-
-    
-    //Important:  the trick to applying translation prior to rotating a bezier path
-    //is to perform the translation on the curve values prior to closing the path!!!
-    NSAffineTransform *xform = [NSAffineTransform transform];
-    [xform translateXBy:0 yBy:0 ];
-    [bezier772Path transformUsingAffineTransform:xform];
-    
-    
-    
-
-    //NSAffineTransform *xform2 = [NSAffineTransform transform];
-    //[xform2 translateXBy:75./2. yBy:75./2.];
-    //[bezier772Path transformUsingAffineTransform:xform2];
-    
-    //[xform translateXBy:-1*scale  yBy:-1*scale];
-     
-
-    
-    [NSColor.whiteColor setFill];
-    bezier772Path.lineWidth = 7.;
-    [bezier772Path fill];
-
-    CGFloat labelHeight = imageHeight/ 1.5 / scale;///1.65;
-    NSFont * font =  [NSFont fontWithName:@"Arial" size:labelHeight];
-    NSDictionary *attributes = @{NSFontAttributeName : font, NSForegroundColorAttributeName : [[NSColor blackColor] colorWithAlphaComponent:0.9]};
-    NSString * scribbleString = @"⌘";
-    NSAttributedString *attributedString = [[NSAttributedString alloc] initWithString:scribbleString attributes:attributes];
-    NSSize attrSize = [attributedString size];
-    
-    //attributedString = [[NSAttributedString alloc] initWithString:tickLabels[tickIndex] attributes:attributes];
-    //attrSize = [attributedString size];
-    
-    [attributedString drawAtPoint:CGPointMake(center.x - attrSize.width/2.0,center.y - attrSize.height/2.)];//center.x - attrSize.width/2.0, center.y - attrSize.height/2.)];
-
-    [image unlockFocus];
-
-    // Now draw in a view by compositing
-    //[image compositeToPoint:NSZeroPoint operation:NSCompositeCopy];
-    [image drawInRect:CGRectMake(0,0,imageWidth, imageHeight)];
-    
-    return image;
-     */
 }
 
 //this is the Mac OS entrypoint
@@ -935,9 +850,11 @@ Mostly base on Apple sample code: https://developer.apple.com/documentation/appk
         }
     }
     */
-    self.window.rootViewController = self.rootViewController;
+    //self.window.rootViewController = self.rootViewController;
     [self.window makeKeyAndVisible];
 
+    [self openSettingsManagerModalWindow];
+    
     //NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     //NSLog(@"Documents DIR: %@", [paths objectAtIndex:0]);
     
@@ -953,7 +870,7 @@ Mostly base on Apple sample code: https://developer.apple.com/documentation/appk
 }
 
 
-
+/*
 #pragma mark - UISceneSession lifecycle
 
 - (UISceneConfiguration *)application:(UIApplication *)application configurationForConnectingSceneSession:(UISceneSession *)connectingSceneSession options:(UISceneConnectionOptions *)options  API_AVAILABLE(ios(13.0)){
@@ -1020,7 +937,7 @@ Mostly base on Apple sample code: https://developer.apple.com/documentation/appk
     // Use this method to save data, release shared resources, and store enough scene-specific state information
     // to restore the scene back to its current state.
 }
-
+*/
 
 #endif
 

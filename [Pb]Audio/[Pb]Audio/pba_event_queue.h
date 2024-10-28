@@ -51,23 +51,24 @@ typedef HANDLE pba_pid_t;
 typedef pid_t  pba_pid_t;
 #endif
 
-/*
+
 //global display sync process handle
 PB_AUDIO_EXTERN pba_pid_t pba_displaySyncProcess;
 
 //Define Opaque Priority Class Types for Running System Processes
-typedef enum CR_PRIORITY_CLASS
+typedef enum PBA_PRIORITY_CLASS
 {
-    CR_DEFAULT_PRIORITY_CLASS = 0,
-    CR_REALTIME_PRIORITY_CLASS = 0x00000100  //WIn32 equivalent
-}CR_PRIORITY_CLASS;
+    PBA_DEFAULT_PRIORITY_CLASS = 0,
+    PBA_REALTIME_PRIORITY_CLASS = 0x00000100  //WIn32 equivalent
+}PBA_PRIORITY_CLASS;
 
-typedef enum CR_THREAD_PRIORITY
+typedef enum PBA_THREAD_PRIORITY
 {
-    CR_THREAD_PRIORITY_DEFAULT,
-    CR_THREAD_PRIORITY_CRITCAL // = THREAD_PRIORITY_TIME_CRITICAL
-}CR_THREAD_PRIORITY;
+    PBA_THREAD_PRIORITY_DEFAULT,
+    PBA_THREAD_PRIORITY_CRITCAL // = THREAD_PRIORITY_TIME_CRITICAL
+}PBA_THREAD_PRIORITY;
 
+/*
 #pragma mark -- Core Render Platform Kernel Message Definitions
 
 //Define Opaque OS Platform Kernel Message Type Provided by the OS (ie Mach Messages for Darwin)
@@ -226,34 +227,6 @@ typedef struct kevent pba_kernel_queue_event;
 
 #pragma mark -- Core Render Kernel Event Queue Event Enumerations
 
-
-//example display sync process/thread kernel queue events
-typedef enum crdisplay_event
-{
-    crdisplay_event_sync_running_start,
-    crdisplay_event_vsync,                 //definitely vblank
-    crdisplay_event_vblank_notification, //might be vblank, might be a premediated vblank notification, depending on the platform
-    crdisplay_event_next_frame_time,
-    crdisplay_event_idle,
-    crdisplay_event_timeout,
-    crdisplay_event_out_of_range
-}crdisplay_event;
-
-//example application event loop kernel queue events
-typedef enum crevent_type
-{
-    crevent_init,
-    crevent_exit,                   //we received a message to shutdown the applicaition
-    crevent_menu,                   //we received an event as a result of user clicking the menu
-    crevent_register_view,          //register a platform created view/layer backed by an accelerated gl context to render with Core Render
-    crevent_main_window_changed,    //the application event loop was notifi
-    crevent_platform_event,            //the application event loop received a platform event from the platform main event loop (or one of the window control threads, less likely)
-    crevent_graphics,
-    crevent_idle,
-    crevent_timeout,
-    crevent_out_of_range
-}crevent_type;
-
 typedef enum pba_system_event_group
 {
     pba_no_group,
@@ -274,18 +247,12 @@ typedef enum pba_sysex_event_type
 
 
 //example application menu events
-typedef enum crmenu_event
+typedef enum pbamenu_event
 {
-    crmenu_quit,
-    crmenu_close_window,
-    crmenu_toggle_fullscreen
-}crmenu_event;
-
-typedef enum crgraphics_event
-{
-    crgraphics_image_load
-
-}crgraphics_event;
+    pbamenu_quit,
+    pbamenu_close_window,
+    pbamenu_toggle_fullscreen
+}pbamenu_event;
 
 
 #pragma mark -- Core Render System Event Enumerations

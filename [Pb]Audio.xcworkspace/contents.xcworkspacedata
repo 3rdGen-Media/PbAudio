@@ -8,6 +8,6 @@
       location = "group:Projects/[Pb] Audio/[Pb] Audio.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:Projects/DimSum/DS Drums/DS Drums.xcodeproj">
+      location = "group:Projects/DimSum/DS Drums/DS Audio.xcodeproj">
    </FileRef>
 </Workspace>

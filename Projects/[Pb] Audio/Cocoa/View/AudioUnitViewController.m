@@ -6,9 +6,11 @@
 //  Copyright © 2020 3rdGen Multimedia. All rights reserved.
 //
 
-#import "MainWindowViewController.h"
+#import "AudioUnitViewController.h"
+#import "AudioUnitView.h"
+#import "PBAudioUnit.h"
 
-@implementation MainWindowViewController
+@implementation AudioUnitViewController
 
 -(void)createActiveDeviceViewController
 {
@@ -25,7 +27,7 @@
     
     if (self)
     {
-        NSLog(@"MainWindowViewController::initWithView()");
+        NSLog(@"AudioUnitViewController::initWithView()");
         self.view = view;
         
         //[self createActiveDeviceViewController];
@@ -49,8 +51,8 @@
     //CGRect surfaceRect = CGRectMake(0,0, CocoaScreenSize.width * screenScale, CocoaScreenSize.height * screenScale);
     
     //For Metal we mimic the OpenGL trick where we create the window at screen size then resize to the desired window size
-    CocoaView * rootView = [[CocoaView alloc] initWithFrame:windowRect];
-    NSLog(@"MainWindow.rootView.frame.size = (%g, %g)", rootView.frame.size.width, rootView.frame.size.height);
+    AudioUnitView * rootView = [[AudioUnitView alloc] initWithFrame:windowRect];
+    NSLog(@"AudioUnit.rootView.frame.size = (%g, %g)", rootView.frame.size.width, rootView.frame.size.height);
     self.view = rootView; //[self.view addSubview:mtlView]; //SceneView must be the root view in order to resize window based on content size
     
     //CGFloat scale = MIN( 1.0/retinaScale, 1.0/retinaScale );
@@ -85,6 +87,21 @@
         [self loadRootView];
     }
     return self;
+}
+
+- (void)viewDidLoad
+{
+    NSLog(@"AudioUnitViewController::viewDidLoad");
+
+    [super viewDidLoad];
+    
+    //_windowID = 1; assert(_windowID > 0 ); //self.view.window.windowNumber;
+    
+    [self loadRootView]; //[self loadCoreRenderView];
+    //[CRAppDelegate.sharedInstance setColorSpaceProfile:[CGColorSpace genericRGBColorSpace]];
+
+    //[self createChildLayerView];
+
 }
 
 - (void)setRepresentedObject:(id)representedObject {
@@ -135,5 +152,81 @@
 #endif
 
 
+@end
+
+
+
+@implementation AudioUnitViewController (AUAudioUnitFactory)
+
+/*
+ private func configureSwiftUIView(audioUnit: AUAudioUnit) {
+     if let host = hostingController {
+         host.removeFromParent()
+         host.view.removeFromSuperview()
+     }
+     
+     guard let observableParameterTree = audioUnit.observableParameterTree else {
+         return
+     }
+     let content = SampleInstrumentMainView(parameterTree: observableParameterTree)
+     let host = HostingController(rootView: content)
+     self.addChild(host)
+     host.view.frame = self.view.bounds
+     self.view.addSubview(host.view)
+     hostingController = host
+     
+     // Make sure the SwiftUI view fills the full area provided by the view controller
+     host.view.translatesAutoresizingMaskIntoConstraints = false
+     host.view.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
+     host.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+     host.view.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+     host.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+     self.view.bringSubviewToFront(host.view)
+ }
+ */
+
+
+#pragma mark -- Audio Unit Extension Entry Point
+
+- (nullable AUAudioUnit *) createAudioUnitWithComponentDescription:(AudioComponentDescription) desc error:(NSError **)error
+{
+    /*
+    return try DispatchQueue.main.sync {
+        
+        audioUnit = try SampleInstrumentAudioUnit(componentDescription: componentDescription, options: [])
+        
+        guard let audioUnit = self.audioUnit as? SampleInstrumentAudioUnit else {
+            log.error("Unable to create SampleInstrumentAudioUnit")
+            return audioUnit!
+        }
+        
+        defer {
+            // Configure the SwiftUI view after creating the AU, instead of in viewDidLoad,
+            // so that the parameter tree is set up before we build our @AUParameterUI properties
+            DispatchQueue.main.async {
+                self.configureSwiftUIView(audioUnit: audioUnit)
+            }
+        }
+        
+        audioUnit.setupParameterTree(SampleInstrumentParameterSpecs.createAUParameterTree())
+        
+        self.observation = audioUnit.observe(\.allParameterValues, options: [.new]) { object, change in
+            guard let tree = audioUnit.parameterTree else { return }
+            
+            // This insures the Audio Unit gets initial values from the host.
+            for param in tree.allParameters { param.value = param.value }
+        }
+        
+        guard audioUnit.parameterTree != nil else {
+            log.error("Unable to access AU ParameterTree")
+            return audioUnit
+        }
+        
+        return audioUnit
+    */
+    
+    self.audioUnit = [[PBAudioUnit alloc] initWithComponentDescription:desc error:error];
+    return self.audioUnit;
+}
 
 @end

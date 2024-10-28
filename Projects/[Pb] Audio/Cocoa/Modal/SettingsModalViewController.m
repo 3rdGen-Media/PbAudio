@@ -13,8 +13,7 @@
 
 @implementation SettingsModalViewController
 
-
--(id)initWithView:(NSView*)view
+-(id)initWithView:(CocoaView*)view
 {
     self = [super init];
     if( self)
@@ -25,38 +24,42 @@
 }
 
 
-- (void)viewDidAppear
+- (void)viewDidLoad
 {
-    [super viewDidAppear];
+    NSLog(@"SettingsModalViewController::viewDidLoad");
 
-    //[self.view.window makeFirstResponder: self];
-}
-
-
--(void)viewWillAppear
-{
-    self.view.layer.backgroundColor = [NSColor orangeColor].CGColor;
-}
-
-- (void)viewDidLoad {
     [super viewDidLoad];
     
-    
-    // Do view setup here.
-    //[self.view.window makeKeyAndOrderFront:self];
-    //[self.view.window makeFirstResponder:self.view];
-    
-    //CMThruModalView* modalView = (CMThruModalView*)self.view;
-    //self.preferredContentSize = NSMakeSize(self.view.frame.size.width, modalView.cancelButton.frame.size.height + modalView.cancelButton.frame.origin.y + 20);
-    
-    [self.view setNeedsLayout:YES];
-    [self.view display];
+    //_windowID = 1; assert(_windowID > 0 ); //self.view.window.windowNumber;
+    //[self loadCoreRenderView];
+    //[CRAppDelegate.sharedInstance setColorSpaceProfile:[CGColorSpace genericRGBColorSpace]];
+
+    //[self createChildLayerView];
+
 }
 
--(void)updateViewConstraints
+
+-(void)viewWillUnload
 {
-    [super updateViewConstraints];
+    NSLog(@"SettingsModalViewController::viewWillUnload");
+    
+    //[self removeSubviews];
 }
 
+#if !TARGET_OS_OSX
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear: animated];
+
+}
+
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+#endif
 
 @end

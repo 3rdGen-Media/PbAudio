@@ -130,7 +130,7 @@ void CALLBACK ToneGeneratorRenderPass(struct PBABufferList * ioData, uint32_t fr
         */
         
         //if( interleaved ) fBufferL[i*2] = fBufferL[i*2+1] = fSample;
-        //else              fBufferL[i]   = fBufferR[i]     = fSample;
+        fBufferL[i]   = fBufferR[i]     = fSample;
     }
 
 //#ifdef DEBUG

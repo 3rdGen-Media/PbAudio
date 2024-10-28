@@ -40,6 +40,69 @@ void NSApplicationDidResignActiveNotificationCallback(CFNotificationCenterRef ce
 
 #pragma mark -- PBAudioDevice Notification Observer Callbacks
 
+#if !TARGET_OS_OSX
+static void PBAudioSessionRouteChangeNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
+{
+    fprintf(stdout, "\nPBAudioSessionRouteChangeNotificationCallback\n" );
+    assert(userInfo);
+
+    PBAudioSessionRouteChangeReason reason = 0;
+    CFNumberRef reasonRef = (CFNumberRef)CFDictionaryGetValue(userInfo, CFSTR("AVAudioSessionRouteChangeReasonKey")); assert(reasonRef);
+    BOOL success = CFNumberGetValue( reasonRef, kCFNumberSInt32Type, &reason); assert(success);
+
+    switch(reason)
+    {
+        /// A new device became available (e.g. headphones have been plugged in).
+        case(PBAudioSessionRouteChangeReasonNewDeviceAvailable):
+        {
+            AudioDeviceID outputDeviceID; PBAudioStreamGetOutputDevice(&PBAudio.OutputStreams[0], &outputDeviceID);
+            fprintf(stdout, "\nPBAudioSessionRouteChangeReasonNewDeviceAvailable (AudioDeviceID: %u)\n", outputDeviceID);
+            break;
+        }
+        
+        case(PBAudioSessionRouteChangeReasonOldDeviceUnavailable):
+        {
+            AudioDeviceID outputDeviceID; PBAudioStreamGetOutputDevice(&PBAudio.OutputStreams[0], &outputDeviceID);
+            fprintf(stdout, "\nPBAudioSessionRouteChangeReasonOldDeviceUnavailable (AudioDeviceID: %u)\n", outputDeviceID);
+            break;
+        }
+            
+        case(PBAudioSessionRouteChangeReasonCategoryChange):
+        {
+            break;
+            
+        }
+        
+        case(PBAudioSessionRouteChangeReasonOverride):
+        {
+            break;
+            
+        }
+        case(PBAudioSessionRouteChangeReasonWakeFromSleep):
+        {
+            break;
+            
+        }
+
+        case(PBAudioSessionRouteChangeReasonNoSuitableRouteForCategory):
+        {
+            break;
+            
+        }
+        case(PBAudioSessionRouteChangeReasonRouteConfigurationChange):
+        {
+            
+            break;
+        }
+            
+            
+        default:
+            assert(1==0);
+    }
+    
+}
+#endif
+
 static void PBAudioDeviceDefaultOutputChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
 {
     AudioDeviceID outputDeviceID; PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &outputDeviceID);
@@ -120,8 +183,7 @@ static void CMidiDestinationsAvailableChangedNotificationCallback(CFNotification
     fprintf(stdout, "\nCMidiDestinationsAvailableChangedNotificationCallback\n");
 }
 
-
-static void RegisterNotificationObservers(void)
+static void RegisterAppNotificationObservers(void)
 {
     CFNotificationCenterRef center = CFNotificationCenterGetLocalCenter();
     assert(center);
@@ -138,6 +200,13 @@ static void RegisterNotificationObservers(void)
     CFNotificationCenterAddObserver(center, NULL, mainWindowChangedNotificationCallback,
                                     CFSTR("CGWindowDidBecomeMainNotification"), NULL,
                                     CFNotificationSuspensionBehaviorDeliverImmediately);
+}
+
+static void RegisterAudioNotificationObservers(void)
+{
+    CFNotificationCenterRef center = CFNotificationCenterGetLocalCenter();
+    assert(center);
+    
     
     //[Pb]Audio Device Notifications
     

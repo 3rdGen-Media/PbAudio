@@ -37,17 +37,6 @@ typedef enum PBATargetAttachments
     PBA_TARGET_MAX_ATTACHMENTS
 }PBATargetAttachments;
 
-typedef struct CRenderTarget
-{
-    //crgc_size       extent;
-    uint64_t        renderpass;
-    uint64_t        framebuffer; //Every Graphics API but Metal needs to maintain a separate reference to framebuffer renderpass attachment
-    //crgl_texture    attachments[PBA_TARGET_MAX_ATTACHMENTS];
-    uint32_t        pixelFormat;
-    uint32_t        depthFormat;
-    uint32_t        stencilFormat;
-}CRenderTarget;
-
 
 #define MAX_WAVE_TABLE_SIZE 1
 

@@ -107,8 +107,35 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioRegisterDeviceListeners(struct PBAD
     AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDefaultInputDevice,  kAudioObjectPropertyScopeGlobal}, PBAudioDeviceDefaultInputChanged,     context);
     AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyScopeGlobal}, PBAudioDeviceDefaultOutputChanged,    context);
     AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDevices,             kAudioObjectPropertyScopeGlobal}, PBAudioDeviceAvailableDevicesChanged, context);
-#else
+#else //#if TARGET_OS_IPHONE || TARGET_OS_TVOS
+        
+        // Watch for session interruptions
+            
+        CFNotificationCenterRef center = CFNotificationCenterGetLocalCenter();
+        assert(center);
+        
+        // add an observer
+        //self.sessionInterruptionObserverToken =
+        CFNotificationCenterAddObserver(center, NULL, AVAudioSessionInterruptionNotificationCallback,
+                                        CFSTR("AVAudioSessionInterruptionNotification"), NULL,
+                                        CFNotificationSuspensionBehaviorDeliverImmediately);
+
+        // Watch for media reset notifications
+        //self.mediaResetObserverToken =
+        CFNotificationCenterAddObserver(center, NULL, AVAudioSessionMediaServicesWereResetNotificationCallback,
+                                        CFSTR("AVAudioSessionMediaServicesWereResetNotification"), NULL,
+                                        CFNotificationSuspensionBehaviorDeliverImmediately);
+        
+        // Watch for audio route changes
+        //self.routeChangeObserverToken =
+        CFNotificationCenterAddObserver(center, NULL, AVAudioSessionRouteChangeNotificationCallback,
+                                        CFSTR("AVAudioSessionRouteChangeNotification"), NULL,
+                                        CFNotificationSuspensionBehaviorDeliverImmediately);
     
+ 
+        // Register callback to watch for Inter-App Audio connections
+        //PBACheckOSStatus(AudioUnitAddPropertyListener(_audioUnit, kAudioUnitProperty_IsInterAppConnected, AEIOAudioUnitIAAConnectionChanged, (__bridge void*)self), "AudioUnitAddPropertyListener(kAudioUnitProperty_IsInterAppConnected)");
+
 #endif
     
     return status;
@@ -243,7 +270,7 @@ static void LPWSTR_2_CHAR(LPWSTR in_char, LPSTR out_char, size_t str_len)
 }
 #endif
 
-PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void)
+PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(AudioObjectPropertyScope scope)
 {
     OSStatus result;
     uint32_t deviceListSize = 0;
@@ -273,6 +300,39 @@ PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(void)
         //return nil;
         assert(1==0);
     }
+    
+    //Sometimes we can get two devices with the same name (1 with inputs only + 1 with outputs only)
+    
+    if( scope != kAudioObjectPropertyScopeGlobal)
+    {
+        deviceCount = 0;
+        for( int i=0; i < deviceListSize/sizeof(AudioDeviceID); i++)
+        {
+            if( PBAudioDeviceChannelCount(_AudioDevices[i], scope) == 0 )
+            {
+                //shift to overwrite the duplicate to merge consecutive pairs with the device id
+                int nShiftDevices = (deviceListSize/sizeof(AudioDeviceID))- i - 1;
+                memmove(&_AudioDevices[i], &_AudioDevices[i+1], nShiftDevices * sizeof(PBAudioDevice));
+                continue;
+            }
+            
+            deviceCount++;
+        }
+        
+    }
+    
+
+#else
+    
+    void* (*objc_ClassSelector)(Class class, SEL _cmd) = (void*)objc_msgSend;
+    void* (*objc_InstanceSelector)(id self , SEL _cmd) = (void*)objc_msgSend;
+    int   (*objc_InstanceSelectorInt)(id self , SEL _cmd) = (void*)objc_msgSend;
+
+    id avSessionSharedInstance = objc_ClassSelector(objc_getClass("AVAudioSession"), sel_registerName("sharedInstance"));
+    id currentOutputs = objc_InstanceSelector(objc_InstanceSelector(avSessionSharedInstance, sel_registerName("currentRoute")), sel_registerName("outputs"));
+    
+    deviceCount = objc_InstanceSelectorInt(currentOutputs, sel_registerName("count")); assert( deviceCount <= PBA_MAX_DEVICES);
+    
 #endif
 
 #else
@@ -491,7 +551,11 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRate(PBAudioDevi
 
     }
 #else
+    void* (*objc_ClassSelector)(Class class, SEL _cmd) = (void*)objc_msgSend;
+    Float64   (*objc_InstanceSelectorDouble)(id self , SEL _cmd) = (void*)objc_msgSend;
 
+    id avSessionSharedInstance = objc_ClassSelector(objc_getClass("AVAudioSession"), sel_registerName("sharedInstance"));
+    *sampleRate = objc_InstanceSelectorDouble(avSessionSharedInstance, sel_registerName("sampleRate"));
 #endif
 
     return status;
@@ -520,7 +584,8 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRateCount(PBAudi
     *nSampleRates = srListSize / sizeof(AudioValueRange); //assert( deviceCount <= PBA_MAX_DEVICES);
     
 #else
-
+    Float64 sampleRate[3] = {44100., 48000., 96000.};
+    *nSampleRates = 3;
 #endif
 
     return result;
@@ -570,7 +635,20 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetSampleRate(PBAudioDevice d
     }
     PBAudioStreamSetBypass(streamContext, false);
 #else
+    void* (*objc_ClassSelector)(Class class, SEL _cmd) = (void*)objc_msgSend;
+    BOOL   (*objc_InstanceSelectorSetDouble)(id self , SEL _cmd, double d1, void* err) = (void*)objc_msgSend;
 
+    //NSError* error = nil;
+    id avSessionSharedInstance = objc_ClassSelector(objc_getClass("AVAudioSession"), sel_registerName("sharedInstance"));
+    BOOL success = objc_InstanceSelectorSetDouble(avSessionSharedInstance, sel_registerName("setPreferredSampleRate:error:"), sampleRate, nil);
+    //success  = [session setPreferredSampleRate:preferredSampleRate error:&error];
+
+    if (! success) fprintf(stderr, "\nPBAudioDeviceSetSampleRate::AVAudioSession setPreferredSampleRate (%g) failed\n", sampleRate);
+
+    double currentRate = 0;
+    PBAudioDeviceNominalSampleRate(deviceID, scope, &currentRate);
+    
+    fprintf(stdout, "\nPBAudioDeviceSetSampleRate::AVAudioSession.sampleRate = %g\n", currentRate );
 #endif
 
     return status;
@@ -613,7 +691,16 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSize(PBAudioDevice inDe
     if(theError == 0) *bufferSize = frameSize;
 
 #else
-
+    void* (*objc_msgSendSharedInstance)(Class, SEL) = (void*)objc_msgSend;
+    double (*objc_msgSendGetProperty)(void*, SEL) = (void*)objc_msgSend;
+    
+    id avSessionSharedInstance = objc_msgSendSharedInstance(objc_getClass("AVAudioSession"), sel_registerName("sharedInstance"));
+    double duration = objc_msgSendGetProperty(avSessionSharedInstance, sel_getUid("IOBufferDuration"));
+    double rate = 0.0; PBAudioDeviceNominalSampleRate( inDeviceID, kAudioObjectPropertyScopeOutput, &rate);
+    
+    double integral;
+    double frac = modf(duration * rate, &integral);
+    *bufferSize = (uint32_t)integral + (frac > 0.);
 #endif
 
     return theError;
@@ -675,7 +762,22 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice d
     //PBAudioStreamSetBypass(streamContext, wasBypassed);
 
 #else
+    void* (*objc_ClassSelector)(Class class, SEL _cmd) = (void*)objc_msgSend;
+    BOOL   (*objc_InstanceSelectorSetDouble)(id self , SEL _cmd, double d1, void* err) = (void*)objc_msgSend;
+    double (*objc_msgSendGetProperty)(void*, SEL) = (void*)objc_msgSend;
 
+    double currentRate = 0; PBAudioDeviceNominalSampleRate(deviceID, kAudioObjectPropertyScopeOutput, &currentRate);
+    double duration = (double)bufferSize / currentRate;
+    
+    //NSError* error = nil;
+    id avSessionSharedInstance = objc_ClassSelector(objc_getClass("AVAudioSession"), sel_registerName("sharedInstance"));
+    BOOL success = objc_InstanceSelectorSetDouble(avSessionSharedInstance, sel_registerName("setPreferredIOBufferDuration:error:"), duration, nil);
+    //success  = [session setPreferredSampleRate:preferredSampleRate error:&error];
+
+    if (! success) fprintf(stderr, "\nPBAudioDeviceSetBufferSize::AVAudioSession setPreferredIOBufferDuration (%g) failed\n", duration);
+
+    duration = objc_msgSendGetProperty(avSessionSharedInstance, sel_getUid("IOBufferDuration"));
+    fprintf(stdout, "\nnPBAudioDeviceSetBufferSize::AVAudioSession.bufferDuration = %g\n", duration );
 #endif
 
     return status;

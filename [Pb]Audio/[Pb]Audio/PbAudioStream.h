@@ -30,10 +30,10 @@ typedef AudioBufferList PBABufferList;
 typedef UInt32          AudioObjectID;
 typedef UInt32          AudioDeviceID;
 typedef UInt32          AudioObjectPropertySelector;
-typedef UInt32          AudioObjectPropertyScope;
+//typedef UInt32          AudioObjectPropertyScope;
 typedef UInt32          AudioObjectPropertyAddress;
 
-#define kAudioObjectPropertyScopeGlobal 0
+//#define kAudioObjectPropertyScopeGlobal 0
 
 #define kAudioObjectSystemObject 0
 #define kAudioObjectUnknown 0
@@ -42,6 +42,16 @@ typedef UInt32          AudioObjectPropertyAddress;
 #define kAudioHardwarePropertyDevices             0
 #define kAudioHardwarePropertyDefaultInputDevice  0
 #define kAudioHardwarePropertyDefaultOutputDevice 0
+
+typedef CF_ENUM(UInt32, AudioObjectPropertyScope)
+{
+    kAudioObjectPropertyScopeGlobal         = 'glob',
+    kAudioObjectPropertyScopeInput          = 'inpt',
+    kAudioObjectPropertyScopeOutput         = 'outp',
+    kAudioObjectPropertyScopePlayThrough    = 'ptru',
+    kAudioObjectPropertyElementMain            = 0,
+    kAudioObjectPropertyElementMaster API_DEPRECATED_WITH_REPLACEMENT("kAudioObjectPropertyElementMain", macos(10.0, 12.0), ios(2.0, 15.0), watchos(1.0, 8.0), tvos(9.0, 15.0))    = kAudioObjectPropertyElementMain
+};
 
 #else // OSX
 
@@ -99,6 +109,8 @@ struct PBAStreamContext; //fwd
 PB_AUDIO_EXTERN const CFStringRef kPBAStreamFormatChangedNotification;     //Format was changed as a Result of UpdateStream
 PB_AUDIO_EXTERN const CFStringRef kPBAStreamSampleRateChangedNotification; //Sample Rate Was Changed As a Result of UpdateStream
 PB_AUDIO_EXTERN const CFStringRef kPBASampleRateChangedNotification;       //Sample Rate Was Changed As a Result of DeviceSetlRate
+
+PB_AUDIO_EXTERN const CFStringRef kPBAudioSessionRouteChangedNotification; //AVAudioSession Route Change
 
 typedef void (^PBAStreamOutputPass)(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* _Nonnull stream);
 #else

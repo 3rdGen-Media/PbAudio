@@ -10,17 +10,29 @@
 
 #if TARGET_OS_OSX
 #import <Cocoa/Cocoa.h>
-#define CocoaTextField NSTextField
+#define CocoaTextField         NSTextField
+#define CocoaTextFieldDelegate NSTextFieldDelegate
+#define CocoaButton            NSButton
+#define CocoaVisualEffectView  NSVisualEffectView
+#define CocoaScrollView        NSScrollView
+#define CocoaPopUpButton       NSPopUpButton
+#define CocoaFont              UIFont
 #else
-#import <UIKit/UITextField.h>
-#define CocoaTextField UITextField
+#import <UIKit/UIKit.h>
+#define CocoaTextField         UILabel
+#define CocoaTextFieldDelegate UITextFieldDelegate
+#define CocoaButton            UIButton
+#define CocoaVisualEffectView  UIVisualEffectView
+#define CocoaScrollView        UIScrollView
+#define CocoaPopUpButton       UIButton
+#define CocoaFont              UIFont
 #endif
 
 #import "NSCheckboxView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface AudioMidiSettingsView : NSVisualEffectView <NSTextFieldDelegate, NSCheckboxViewDelegate>
+@interface AudioMidiSettingsView : CocoaVisualEffectView <CocoaTextFieldDelegate, NSCheckboxViewDelegate>
 
 //-(void)updateDocumentView;
 
@@ -30,7 +42,7 @@ NS_ASSUME_NONNULL_BEGIN
 //-(id)initWithFrame:(NSRect)frame andActiveDevice:(CMHardwareDevice* _Nullable)device;
 
 
-@property (nonatomic, readonly) NSButton* cancelButton;
+@property (nonatomic, readonly) CocoaButton* cancelButton;
 
 @end
 

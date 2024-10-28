@@ -12,7 +12,7 @@
 		<key>[Pb]Audio.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>2</integer>
+			<integer>6</integer>
 		</dict>
 		<key>[Pb]AudioOSX.xcscheme_^#shared#^_</key>
 		<dict>
@@ -22,7 +22,7 @@
 		<key>[Pb]AudioiOS.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>5</integer>
+			<integer>3</integer>
 		</dict>
 	</dict>
 </dict>

@@ -68,6 +68,11 @@ typedef struct PBAudioStreamFactory
     //pba_platform_thread    resourceThread;   //resource queue thread [pool]
     //unsigned int           resourceThreadID;
 
+    pba_pid_t                 pid;
+    pba_kernel_queue_event    ipcNotification;	//an event that can be shared with an external process for IPC
+    PBAKernelQueue            ipcEventQueue;    //a queue for the ipcNotification; can thisi be shared with eventQueue
+
+
 }PBAudioStreamFactory;
 
 //Note:  DYNAMIC libraries can only resolve links to functions but not global exported vars

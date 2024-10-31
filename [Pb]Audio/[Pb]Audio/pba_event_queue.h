@@ -21,14 +21,14 @@ extern "C" {
 //#include "pba_target_os.h"
 
 #if defined(_WIN32)         //MICROSOFT WINDOWS NT PLATFORMS
-#define CR_TARGET_WIN32     1
+#define PBA_TARGET_WIN32     1
 #elif defined( __APPLE__ )  //APPLE DARWIN XNU PLATFORMS
 #if defined(TARGET_OS_IOS) && TARGET_OS_IOS
-#define CR_TARGET_IOS       1
+#define PBA_TARGET_IOS       1
 #elif defined(TARGET_OS_TV) && TARGET_OS_TV
-#define CR_TARGET_TVOS      1
+#define PBA_TARGET_TVOS      1
 #elif defined(TARGET_OS_OSX) && TARGET_OS_OSX
-#define CR_TARGET_OSX       1
+#define PBA_TARGET_OSX       1
 #endif                      //APPLE DARWIN XNU PLATFORMS
 #endif
     
@@ -45,7 +45,7 @@ extern "C" {
 #pragma mark -- Core Render Process Definitions
 
 //Define an opaque process handle for supported platform process types
-#ifdef CR_TARGET_WIN32
+#ifdef PBA_TARGET_WIN32
 typedef HANDLE pba_pid_t;
 #elif defined(__APPLE__)
 typedef pid_t  pba_pid_t;
@@ -53,7 +53,9 @@ typedef pid_t  pba_pid_t;
 
 
 //global display sync process handle
-PB_AUDIO_EXTERN pba_pid_t pba_displaySyncProcess;
+//PB_AUDIO_EXTERN pba_pid_t pba_displaySyncProcess;
+//PB_AUDIO_EXTERN pba_pid_t pba_audioServerProcess;
+
 
 //Define Opaque Priority Class Types for Running System Processes
 typedef enum PBA_PRIORITY_CLASS
@@ -72,7 +74,7 @@ typedef enum PBA_THREAD_PRIORITY
 #pragma mark -- Core Render Platform Kernel Message Definitions
 
 //Define Opaque OS Platform Kernel Message Type Provided by the OS (ie Mach Messages for Darwin)
-//#ifdef CR_TARGET_WIN32
+//#ifdef PBA_TARGET_WIN32
 //what to put here?
 //#elif defined(__APPLE__)
 //typedef mach_msg pba_kernel_msg;
@@ -107,36 +109,36 @@ typedef uintptr_t  pba_platform_event_msg;
 #define PBA_EVENT_UMP_CONTROL                       PBA_EVENT_NOTE_TRIGGER  + 1 // HID Event
 
 
-//#define PBA_EVENT_MSG_BASE_ID                       CR_PLATFORM_EVENT_MSG_LOOP_QUIT + 1
-//#define CR_PLATFORM_WINDOW_EVENT_MSG_PAUSE            CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID
-//#define CR_PLATFORM_WINDOW_EVENT_MSG_RESIZE            CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 1
-//#define CR_PLATFORM_WINDOW_EVENT_MSG_SHOW            CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 2
-//#define CR_PLATFORM_WINDOW_EVENT_MSG_RECREATE       CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 3
-//#define CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE            CR_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 4
+//#define PBA_EVENT_MSG_BASE_ID                       PBA_PLATFORM_EVENT_MSG_LOOP_QUIT + 1
+//#define PBA_PLATFORM_WINDOW_EVENT_MSG_PAUSE            PBA_PLATFORM_WINDOW_EVENT_MSG_BASE_ID
+//#define PBA_PLATFORM_WINDOW_EVENT_MSG_RESIZE            PBA_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 1
+//#define PBA_PLATFORM_WINDOW_EVENT_MSG_SHOW            PBA_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 2
+//#define PBA_PLATFORM_WINDOW_EVENT_MSG_RECREATE       PBA_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 3
+//#define PBA_PLATFORM_WINDOW_EVENT_MSG_CLOSE            PBA_PLATFORM_WINDOW_EVENT_MSG_BASE_ID + 4
 
 //TO DO: Better distinguish between a scene event and simulation control event
-//#define CR_PLATFORM_WINDOW_CONTROL_EVENT            CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE + 1 // HID Event
-//#define CR_SCENE_CONTROL_EVENT                        CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE + 2 // Scene ECS Event
-//#define CR_SIMULATION_CONTROL_EVENT                    CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE + 3 // Scene Simulation Event
+//#define PBA_PLATFORM_WINDOW_CONTROL_EVENT            PBA_PLATFORM_WINDOW_EVENT_MSG_CLOSE + 1 // HID Event
+//#define PBA_SCENE_CONTROL_EVENT                        PBA_PLATFORM_WINDOW_EVENT_MSG_CLOSE + 2 // Scene ECS Event
+//#define PBA_SIMULATION_CONTROL_EVENT                    PBA_PLATFORM_WINDOW_EVENT_MSG_CLOSE + 3 // Scene Simulation Event
 
 /*
 //enumerate options for a bitfield option mask
-typedef enum CR_PLATFORM_WINDOW_RESIZE_OPTION
+typedef enum PBA_PLATFORM_WINDOW_RESIZE_OPTION
 {
-    CR_PLATFORM_WINDOW_RESIZE_OPTION_NONE            = 1 << 0,    // 0000 0001, //Standard resize of window
-    CR_PLATFORM_WINDOW_RESIZE_OPTION_BORDERLESS        = 1 << 1,    // 0000 0010,
-    CR_PLATFORM_WINDOW_RESIZE_OPTION_FULLSCREEN        = 1 << 2    // 0000 0100, //Fullscreen option will make the win32 window the size of the screen
+    PBA_PLATFORM_WINDOW_RESIZE_OPTION_NONE            = 1 << 0,    // 0000 0001, //Standard resize of window
+    PBA_PLATFORM_WINDOW_RESIZE_OPTION_BORDERLESS        = 1 << 1,    // 0000 0010,
+    PBA_PLATFORM_WINDOW_RESIZE_OPTION_FULLSCREEN        = 1 << 2    // 0000 0100, //Fullscreen option will make the win32 window the size of the screen
 
-}CR_PLATFORM_WINDOW_RESIZE_OPTION;
+}PBA_PLATFORM_WINDOW_RESIZE_OPTION;
 
-//Make "CR_MAIN_EVENT_LOOP" substring synonomous with "CR_PLATFORM_EVENT_LOOP"
-#define CR_MAIN_EVENT_LOOP CR_PLATFORM_EVENT_LOOP
+//Make "PBA_MAIN_EVENT_LOOP" substring synonomous with "PBA_PLATFORM_EVENT_LOOP"
+#define PBA_MAIN_EVENT_LOOP PBA_PLATFORM_EVENT_LOOP
 
 */
 
 #pragma mark -- Core Render Platform Thread Handle ID
 
-#ifdef CR_TARGET_WIN32
+#ifdef PBA_TARGET_WIN32
 typedef HANDLE           pba_platform_thread;
 typedef unsigned int     pba_platform_thread_id;
 #define pba_stdcall __stdcall
@@ -154,8 +156,8 @@ typedef unsigned int     pba_platform_thread_id;
 //#define CTThread               HANDLE
 //#define CTThreadID             unsigned int
 typedef HANDLE                   PBAKernelQueueType;
-typedef LPTHREAD_START_ROUTINE   CTThreadRoutine; //Win32 CRT Thread Routine
-#define CRDispatchSource         void
+typedef LPTHREAD_START_ROUTINE   PBAThreadRoutine; //Win32 CRT Thread Routine
+#define PBADispatchSource         void
 //#define SSLContextRef          void*
 //#define CTSocketError()        (WSAGetLastError())
 
@@ -168,15 +170,14 @@ typedef struct PBAKernelQueue
 
 typedef HANDLE PBAKernelQueueEvent;
 
-static const int CTSOCKET_DEFAULT_BLOCKING_OPTION = 0;
 #elif defined(__APPLE__) || defined(__FreeBSD__) //with libdispatch
 //#define CTThread               pthread_t
 //#define CTThreadID             unsigned int
 typedef int                      PBAKernelQueueType; //kqueues are just file descriptors
-typedef int                      CRKernelPipeType;  //pipes are just file descriptors
+typedef int                      PBAKernelPipeType;  //pipes are just file descriptors
 //typedef void *                 (*CTThreadRoutine)(void *); //pthread routine
-#define CRDispatchSource         dispatch_source_t
-typedef void(^CTDispatchSourceHandler)(void);      //clang block
+#define PBADispatchSource         dispatch_source_t
+typedef void(^PBADispatchSourceHandler)(void);      //clang block
 //#define CTSocketError() (errno)
 
 typedef struct PBAKernelQueue
@@ -188,8 +189,8 @@ typedef struct PBAKernelQueue
 
 typedef struct kevent PBAKernelQueueEvent;
 
-#define CR_INCOMING_PIPE    0
-#define CR_OUTGOING_PIPE    1
+#define PBA_INCOMING_PIPE    0
+#define PBA_OUTGOING_PIPE    1
 
 #endif
 
@@ -206,7 +207,7 @@ typedef struct kevent PBAKernelQueueEvent;
  ***/
 
 //Define Opaque OS Kernel Event Queue Data Type for Queue Mechanisms exposed by the OS Kernel
-#ifdef CR_TARGET_WIN32
+#ifdef PBA_TARGET_WIN32
 //For Win32 Interprocess Events, there is no queue manually created or exposed with an event that can be passed and triggered/waited on between processes as with BSD kqueue + pipe combination.
 //For Win32 Interthread Messages/Events, every thread comes with a dedicated event queue "under the hood" in the kernel.
 //The handles to these thread event/message queues themselves are not exposed as they can be identified and sent to by their corresponding thread address stored as unsigned int
@@ -219,7 +220,7 @@ typedef int           pba_kernel_queue_id;  //on BSD platforms kernel queues are
 
 
 //Define Opaque Event Data Type for OS Kernel Event Queue
-#ifdef CR_TARGET_WIN32
+#ifdef PBA_TARGET_WIN32
 typedef HANDLE        pba_kernel_queue_event;
 #elif defined(__APPLE__)
 typedef struct kevent pba_kernel_queue_event;
@@ -372,18 +373,18 @@ typedef struct pba_control_event_frame
 }pba_control_event_frame;
 */
 
-#if CR_TARGET_WIN32
-typedef void (CALLBACK* HIDCTRL) (UINT, struct pba_control_event*, void* ctx);
+#if PBA_TARGET_WIN32
+//typedef void (CALLBACK* HIDCTRL) (UINT, struct pba_control_event*, void* ctx);
 #else
 
 #endif
  
 #pragma mark -- Declare Opaque File Descriptor
     
-#ifdef CR_TARGET_WIN32
+#ifdef PBA_TARGET_WIN32
 typedef HANDLE      pba_file_descriptor;
 static const char * pba_process_ext = ".exe";
-#elif defined(CR_TARGET_OSX)
+#elif defined(PBA_TARGET_OSX)
 typedef int         pba_file_descriptor;
 static const char * pba_process_ext = "";
 #endif
@@ -399,20 +400,19 @@ static const char * pba_process_ext = "";
 
 #pragma mark -- Declare Thread Local Storage IDs
 
-//#ifdef CR_TARGET_WIN32
+//#ifdef PBA_TARGET_WIN32
 //PB_AUDIO_EXTERN DWORD                 pba_tlsIndex;
 //#endif
 
 #pragma mark -- Define Global Kernel Queues and corresponding Events (That live in crPlatform memory space)
 
 //define a global vertical retrace notification event suitable for use on all platforms
-//PB_AUDIO_EXTERN pba_kernel_queue_event pba_vBlankNotification;  //a native windows event associated with the display vertical retrace that can be waited on for thread synchronization
-                                                                //(A HANDLE is just a void*, a kqueue is just an int file descriptor)
+//PB_AUDIO_EXTERN pba_kernel_queue_event pba_audioNotification;	//a native windows event associated with the display vertical retrace that can be waited on for thread synchronization //(A HANDLE is just a void*, a kqueue is just an int file descriptor)
 
 #pragma mark -- Declare Global Event Queues and Pipes (for responding/handling events sent to a threads queue or sending messages to queues between process, respectively)
 
-#define CR_INCOMING_PIPE 0  //always use the same indexes for reading/writing to a pipe pair for posterity
-#define CR_OUTGOING_PIPE 1  //always use the same indexes for reading/writing to a pipe pair for posterity
+#define PBA_INCOMING_PIPE 0  //always use the same indexes for reading/writing to a pipe pair for posterity
+#define PBA_OUTGOING_PIPE 1  //always use the same indexes for reading/writing to a pipe pair for posterity
 
 //a kqueue singleton designed to that lives in [Pb]Audio shared lib so it can be shared and used for kernel level communication between
 //threads, processes and most importantly shared between application frameworks such as Cocoa and CoreRender, CoreTransport or [Pb]Audio
@@ -429,13 +429,14 @@ static const char * kPBAMainEventQueue     = "cr.3rdgen.[Pb]Audio.MainEventQueue
 //a global read/write pipe pair singleton for sending blob messages to to the pba_displayEventQueue (allows waking kqueue from a separate process)
 //extern int pba_displayEventPipe[2];
 //PB_AUDIO_EXTERN  PBAKernelQueue      pba_displayEventQueue;
+//PB_AUDIO_EXTERN  PBAKernelQueue      pba_audioEventQueue;
 
 extern int64_t pba_mainWindow;            //Main platform window id/handle
 //extern crgc_view * pba_mainView;       //Main crgc_view reference
 
 PB_AUDIO_API PB_AUDIO_INLINE PBAKernelQueue PBAKernelQueueCreate(void);
 
-#ifndef CR_TARGET_WIN32
+#ifndef PBA_TARGET_WIN32
 PB_AUDIO_API PB_AUDIO_INLINE uintptr_t pba_event_queue_wait_with_timeout(int kqueue, struct kevent * kev, int16_t eventFilter, uintptr_t timeoutEvent, uintptr_t outOfRangeEvent, uintptr_t eventRangeStart, uintptr_t eventRangeEnd, uint32_t timeout);
 #endif
     

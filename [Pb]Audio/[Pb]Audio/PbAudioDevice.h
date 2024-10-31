@@ -37,7 +37,8 @@ typedef struct CMDeviceDescription
 typedef AudioDeviceID PBAudioDevice;
 #else
 
-#define kAudioObjectUnknown 0
+#define kAudioObjectUnknown                       0
+#define kAudioObjectPropertyScopeOutput           0
 #define kAudioHardwarePropertyDefaultOutputDevice 0
 
 typedef uint32_t AudioObjectPropertySelector;

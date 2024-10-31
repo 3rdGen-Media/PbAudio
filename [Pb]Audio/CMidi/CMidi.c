@@ -261,6 +261,23 @@ struct CMClientContext CMClient = {0};
 //CMIDI_API CMIDI_INLINE CMClientContext* CMGetClientContext(void) { return &_CMClient; }
 
 
+CMClientDriver* GetCMidiClientDriver(void)
+{
+#ifdef _WIN32 
+
+#elif  defined(__GNUC__) && (__GNUC__ > 3)
+    // You are OK
+#else
+#error Add Critical Section for your platform
+#endif
+    static CMClientDriver driver = { cmidi_ext_load_init };
+#ifdef _WIN32
+    //END Critical Section Here
+#endif 
+
+    return &driver;
+}
+
 
 OSStatus CMDeleteThruConnection(const char * thruID)
 {
@@ -353,7 +370,7 @@ OSStatus CMDeleteInputConnection(uintptr_t UniqueID)
 #else
     wchar_t inputIDKey[256];// = "\0"; //used for copy and as DOM key
     wchar_t* inputID = (wchar_t*)UniqueID; size_t  inputLen = wcslen(inputID);
-    //fprintf(stdout, "CMDeleteInputConnection::Input: \n\n%S\n", (wchar_t*)inputID);
+    fprintf(stdout, "CMDeleteInputConnection::Input: \n\n%S\n", (wchar_t*)inputID);
 
     //create a copy of the uniqueID prior to overwriting CMSource memory with CMUpdateInputDevices
     wcscpy((wchar_t*)inputIDKey, inputID);
@@ -949,6 +966,7 @@ CMConnection* CMCreateInputConnectionAtIndex(const char * inputID, CMSource* sou
     
 
     //get the winrt::hstring back from the HSTRING raw buffer
+    assert(sourceEndpoint->uniqueID);
     winrt::hstring hEndpointID = winrt::hstring((wchar_t*)sourceEndpoint->uniqueID);
     auto endpoint = MidiEndpointDeviceInformation::CreateFromEndpointDeviceId(hEndpointID);
 
@@ -959,7 +977,7 @@ CMConnection* CMCreateInputConnectionAtIndex(const char * inputID, CMSource* sou
     //IMidiSession                    session = IMidiSession(CMClient.client, own);
 
     std::cout << "Connecting to endpoint: " << winrt::to_string(endpoint.EndpointDeviceId()) << std::endl;
-    auto endpointConnection = CMClient.session->CreateEndpointConnection(endpoint.EndpointDeviceId());    
+     auto endpointConnection = CMClient.session->CreateEndpointConnection(endpoint.EndpointDeviceId());    
     //std::cout << "Created endpoint connection: " << winrt::to_string(endpointConnection.ConnectionId()) << std::endl;
 
     // store the connection id
@@ -1071,8 +1089,33 @@ ItemCount CMGetNumberOfDevices(void)
 #endif
 }
 
+template <typename T>
+T convert_from_abi(IUnknown* from)
+{
+    T to{ nullptr }; // `T` is a projected type.
+
+    winrt::check_hresult(from->QueryInterface(winrt::guid_of<T>(), winrt::copy_from_abi(from, to)));
+
+    return to;
+}
+
 const CMSource* CMGetSource(int srcIndex)
 {
+    assert(CMClient.sources[srcIndex].endpoint);
+    //assert(CMClient.sources[srcIndex].uniqueID);    
+    //auto endpoint = convert_from_abi((IUnknown*)CMClient.sources[srcIndex].endpoint);
+
+    // Convert from an ABI type.
+    //MidiEndpointDeviceInformation endpoint = convert_from_abi<MidiEndpointDeviceInformation>((IUnknown*)CMClient.sources[srcIndex].endpoint);
+
+    //winrt::copy_from_abi((IUnknown*)CMClient.sources[srcIndex].endpoint, endpoint)
+
+    //reassign hstring abi memory
+    //UINT32* hLen = 0; HSTRING h = reinterpret_cast<HSTRING>(get_abi(endpoint.EndpointDeviceId()));
+    //PCWSTR rawBuffer = WindowsGetStringRawBuffer(h, hLen);
+    //fprintf(stdout, "\nCMGetSource::HSTRING = %S\n", rawBuffer);
+    //CMClient.sources[srcIndex].uniqueID = (uintptr_t)rawBuffer;    // (uintptr_t)(endpoint.EndpointDeviceId().data());
+
     return &CMClient.sources[srcIndex];
 }
 
@@ -1188,11 +1231,13 @@ ItemCount CMUpdateInputDevices(void)
         
 
         //Extract HSTRING from winrt::hstring using winrt abi
-        UINT32* hLen=0; HSTRING h = reinterpret_cast<HSTRING>(get_abi(endpoint.EndpointDeviceId()));
+        UINT32* hLen=0; HSTRING h = reinterpret_cast<HSTRING>(detach_abi(endpoint.EndpointDeviceId()));
+
+        //copy_to_abi
         PCWSTR rawBuffer = WindowsGetStringRawBuffer(h, hLen);
         fprintf(stdout, "\nHSTRING = %S\n", rawBuffer);
         CMClient.sources[i].uniqueID = (uintptr_t)rawBuffer;    // (uintptr_t)(endpoint.EndpointDeviceId().data());
-        CMClient.sources[i].endpoint = winrt::get_unknown(endpoint);// winrt::get_abi(endpoint);// (void*)winrt::get_unknown(endpoint); //store void* to IUnknown
+        CMClient.sources[i].endpoint = winrt::get_abi(endpoint);// (void*)winrt::get_unknown(endpoint); //store void* to IUnknown
 
         //TO DO:  I can't figure out how to convert back from abi
         //convert_from_abi
@@ -1735,10 +1780,11 @@ CMIDI_API CMIDI_INLINE OSStatus CMClientCreate(const char * clientID, MIDINotify
     }
 #else
    
-    //winrt::init_apartment();
+    winrt::init_apartment();
 
     OutputDebugString(L"CMClientCreate::1\n");
 
+    /*
     // Initialize the Windows Runtime.
     RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);
     if (FAILED(initialize))
@@ -1746,6 +1792,7 @@ CMIDI_API CMIDI_INLINE OSStatus CMClientCreate(const char * clientID, MIDINotify
         assert(1 == 0);
         //return PrintError(__LINE__, initialize);
     }
+    */
 
     // Check to see if Windows MIDI Services is installed and running on this PC
     if (!MidiServicesInitializer::EnsureServiceAvailable())
@@ -1771,7 +1818,7 @@ CMIDI_API CMIDI_INLINE OSStatus CMClientCreate(const char * clientID, MIDINotify
     //Create Session/Application Port
     //session = MidiSession::Create(L"Sample Session");
 
-    CMClient.session = std::make_shared<MidiSession>(MidiSession::Create(L"Sample Session"));
+    CMClient.session = std::make_shared<MidiSession>(MidiSession::Create(L"CMidi Session"));
 
 
     // Convert to an ABI type.

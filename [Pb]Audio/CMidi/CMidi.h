@@ -257,7 +257,7 @@ typedef struct CMSource
 #ifdef __APPLE__
     int32_t         uniqueID; //CoreMIDI
 #else
-    uintptr_t        uniqueID; //WMS hstring
+    uintptr_t       uniqueID; //WMS hstring
 #endif
 }CMSource;
 
@@ -431,29 +431,39 @@ CMIDI_DECLSPEC typedef struct CMClientDriver
 
 }CMClientDriver;
 
+typedef CMClientDriver* (*CMidiClientDriverFunc) (void);
+
 //Load functions from DLL
-static OSStatus cmidi_ext_load(CMClientDriver* client);
+static OSStatus cmidi_ext_load(CMClientDriver* client, HMODULE dll);
 static OSStatus cmidi_ext_load_init(const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock);
 
 #ifdef __APPLE__ //TO DO: Provide an appropriate way to optionally expose static lib function population
 static const CMClientDriver CMidi = { CMClientCreate, CMUpdateInputDevices, CMUpdateOutputDevices, CMGetSource, CMGetDestination, CMCreateInputConnection, NULL, CMDeleteInputConnection, NULL };
 #else
 static CMClientDriver CMidi = { cmidi_ext_load_init };// { CMClientCreate };
+CMIDI_API CMIDI_INLINE CMClientDriver* GetCMidiClientDriver(void);
+
+//Convenience Accessor
+//#define CMidi (*GetCMidiClientDriver())
+
 
 #include <stdio.h>
 #include <tchar.h>
 #include <assert.h>
 
-static OSStatus cmidi_ext_load(CMClientDriver* client)
+static OSStatus cmidi_ext_load(CMClientDriver* client, HMODULE dll)
 {
-    HMODULE cmidi_dll;
+    HMODULE cmidi_dll = dll;
     OSStatus ret = 0;
 
+    if (!dll)
+    {
 #ifdef _DEBUG
-    cmidi_dll = LoadLibraryEx(_T("CMidid.dll"), NULL, 0);
+        cmidi_dll = LoadLibraryEx(_T("CMidid.dll"), NULL, 0);
 #else
-    cmidi_dll = LoadLibraryEx(_T("CMidi.dll"), NULL, 0);
+        cmidi_dll = LoadLibraryEx(_T("CMidi.dll"), NULL, 0);
 #endif
+    }
 
     if (!cmidi_dll)
     {
@@ -481,6 +491,29 @@ static OSStatus cmidi_ext_load(CMClientDriver* client)
 
 #endif
 
+static CMClientDriver* CMidiGetDriverInstance(const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock)
+{
+    HMODULE cmidi_dll;
+
+#ifdef _DEBUG
+    cmidi_dll = LoadLibraryEx(_T("CMidid.dll"), NULL, 0);
+#else
+    cmidi_dll = LoadLibraryEx(_T("CMidi.dll"), NULL, 0);
+#endif
+
+    if (!cmidi_dll)
+    {
+        fprintf(stderr, "\ncmidi_dll.dll not found.\n");
+        return NULL;
+    }
+    CMidiClientDriverFunc driverFunc = (CMidiClientDriverFunc)GetProcAddress(cmidi_dll, "GetCMidiClientDriver");  assert(driverFunc);
+    CMClientDriver* driver = driverFunc(); assert(driver);
+
+    cmidi_ext_load(driver, cmidi_dll);
+
+    return driver;
+}
+
 static OSStatus cmidi_ext_load_init(const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock)
 {
     OSStatus ret = 0;
@@ -488,7 +521,7 @@ static OSStatus cmidi_ext_load_init(const char* clientID, MIDINotifyBlock midiNo
     //CMidi.Init = CMClientCreate;
 #else
     //Load CMidi API functions from DLL
-    ret = cmidi_ext_load(&CMidi);
+    ret = cmidi_ext_load(&CMidi, NULL);
 #endif
     
     //Call the Init function loaded from dll

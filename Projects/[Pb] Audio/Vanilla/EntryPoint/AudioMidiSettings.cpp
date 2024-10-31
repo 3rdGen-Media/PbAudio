@@ -1,4 +1,4 @@
-#include "PbAudioApplication.h"
+#include "AudioMidiSettings.h"
 
 //#include "[Pb]Audio/[Pb]Audio.h"
 
@@ -141,10 +141,10 @@ static HRESULT STDMETHODCALLTYPE AMSDeviceStateChanged(PBADeviceNotificationClie
 
     fprintf(stdout, "  -->New device state is DEVICE_STATE_%s (0x%8.8x)\n", pszState, dwNewState);
 
-    DemoApp* pDemoApp = (DemoApp*)This->context; // reinterpret_cast<DemoApp*>(static_cast<LONG_PTR>(
+    AudioMidiSettings* pAudioMidiSettings = (AudioMidiSettings*)This->context; // reinterpret_cast<AudioMidiSettings*>(static_cast<LONG_PTR>(
 
     //Update UI will reflect if selected device has changed
-    pDemoApp->UpdateOutputDeviceList();
+    pAudioMidiSettings->UpdateOutputDeviceList();
 
 
     return S_OK;
@@ -226,19 +226,19 @@ PBADeviceNotificationCallbacks AMSDeviceNotificationCallbacks = { AMSDeviceState
 
 /******************************************************************
 *                                                                 *
-*  DemoApp::DemoApp constructor                                   *
+*  AudioMidiSettings::AudioMidiSettings constructor                                   *
 *                                                                 *
 *  Initialize member data.                                        *
 *                                                                 *
 ******************************************************************/
 
-DemoApp::DemoApp() :
+AudioMidiSettings::AudioMidiSettings() :
     m_hwnd(NULL)
     //m_midi(NULL)
 {
 }
 
-DemoApp::DemoApp(struct CMClientDriver* midi) :
+AudioMidiSettings::AudioMidiSettings(struct CMClientDriver* midi) :
     m_hwnd(NULL)
     //m_midi(midi)
 {
@@ -253,7 +253,7 @@ DemoApp::DemoApp(struct CMClientDriver* midi) :
 *                                                                 *
 ******************************************************************/
 
-DemoApp::~DemoApp()
+AudioMidiSettings::~AudioMidiSettings()
 {
     // TODO: Release app resource here.
 }
@@ -309,7 +309,7 @@ LRESULT CALLBACK ListViewSubClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
-void DemoApp::CreateDriverModeLabel()
+void AudioMidiSettings::CreateDriverModeLabel()
 {
     driverModeLabel =
         CreateWindow(L"static", L"+",
@@ -357,7 +357,7 @@ void DemoApp::CreateDriverModeLabel()
 }
 
 
-int DemoApp::UpdateDriverModeList()
+int AudioMidiSettings::UpdateDriverModeList()
 {
     //Ask [Pb]Audio for the list of connected Audio Interface Devices
     //_deviceList = PBAudioAvailableDevices();
@@ -393,7 +393,7 @@ int DemoApp::UpdateDriverModeList()
     return selectedIndex;
 }
 
-void DemoApp::CreateDriverModePopupButton()
+void AudioMidiSettings::CreateDriverModePopupButton()
 {
     RECT windowFrame;
     RECT labelFrame;
@@ -444,7 +444,7 @@ void DemoApp::CreateDriverModePopupButton()
 }
 
 
-void DemoApp::CreateOutputDeviceLabel()
+void AudioMidiSettings::CreateOutputDeviceLabel()
 {
 
     RECT windowFrame;
@@ -511,7 +511,7 @@ void DemoApp::CreateOutputDeviceLabel()
 
 }
 
-void DemoApp::CreateTestButton()
+void AudioMidiSettings::CreateTestButton()
 {
     /*
     CreateWindowEx(0,
@@ -587,10 +587,10 @@ void DemoApp::CreateTestButton()
 
 
 
-int DemoApp::UpdateOutputDeviceList()
+int AudioMidiSettings::UpdateOutputDeviceList()
 {
     //Ask [Pb]Audio for the list of connected Audio Interface Devices
-    _deviceList = PBAudioAvailableDevices();
+    _deviceList = PBAudioAvailableDevices(kAudioObjectPropertyScopeOutput);
 
     int outputIndex = 0;
 
@@ -632,7 +632,7 @@ int DemoApp::UpdateOutputDeviceList()
 
 
 
-void DemoApp::CreateOutputPopupButton()
+void AudioMidiSettings::CreateOutputPopupButton()
 {
     RECT windowFrame;
     RECT labelFrame;
@@ -679,7 +679,7 @@ void DemoApp::CreateOutputPopupButton()
     ReleaseDC(outputDeviceLabel, odlDC);
 }
 
-void DemoApp::CreateOutputChannelsLabel()
+void AudioMidiSettings::CreateOutputChannelsLabel()
 {
     RECT windowFrame;
     RECT labelFrame;
@@ -792,7 +792,7 @@ int CreateItem(HWND hwndList, wchar_t* text)
     return ListView_InsertItem(hwndList, &lvi);
 }
 
-void DemoApp::CreateOutputChannelFilterView()
+void AudioMidiSettings::CreateOutputChannelFilterView()
 {
     RECT windowFrame;
     RECT labelFrame;
@@ -853,7 +853,7 @@ void DemoApp::CreateOutputChannelFilterView()
 }
 
 
-void DemoApp::CreateSampleRateLabel()
+void AudioMidiSettings::CreateSampleRateLabel()
 {
     RECT windowFrame;
     RECT labelFrame;
@@ -919,7 +919,7 @@ void DemoApp::CreateSampleRateLabel()
 
 
 
-int DemoApp::UpdateSampleRateList()
+int AudioMidiSettings::UpdateSampleRateList()
 {
     //Ask [Pb]Audio for the list of connected Audio Interface Devices
     //_deviceList = PBAudioAvailableDevices();
@@ -972,7 +972,7 @@ int DemoApp::UpdateSampleRateList()
 }
 
 
-void DemoApp::CreateSampleRatePopupButton()
+void AudioMidiSettings::CreateSampleRatePopupButton()
 {
     RECT windowFrame;
     RECT labelFrame;
@@ -1022,7 +1022,7 @@ void DemoApp::CreateSampleRatePopupButton()
 
 }
 
-void DemoApp::CreateBufferSizeLabel()
+void AudioMidiSettings::CreateBufferSizeLabel()
 {
     RECT windowFrame;
     RECT labelFrame;
@@ -1088,7 +1088,7 @@ void DemoApp::CreateBufferSizeLabel()
 }
 
 
-int DemoApp::UpdateBufferSizeList()
+int AudioMidiSettings::UpdateBufferSizeList()
 {
     //Ask [Pb]Audio for the list of connected Audio Interface Devices
     //_deviceList = PBAudioAvailableDevices();
@@ -1161,7 +1161,7 @@ int DemoApp::UpdateBufferSizeList()
 }
 
 
-void DemoApp::CreateBufferSizePopupButton()
+void AudioMidiSettings::CreateBufferSizePopupButton()
 {
     RECT windowFrame;
     RECT labelFrame;
@@ -1211,7 +1211,7 @@ void DemoApp::CreateBufferSizePopupButton()
 }
 
 
-void DemoApp::CreateMidiInputLabel()
+void AudioMidiSettings::CreateMidiInputLabel()
 {
     RECT windowFrame;
     RECT labelFrame;
@@ -1278,7 +1278,7 @@ void DemoApp::CreateMidiInputLabel()
 }
 
 
-void DemoApp::CreateMidiInputFilterView()
+void AudioMidiSettings::CreateMidiInputFilterView()
 {
     RECT windowFrame;
     RECT labelFrame;
@@ -1386,7 +1386,7 @@ void DemoApp::CreateMidiInputFilterView()
 
 
 
-void DemoApp::buttonToggledAtIndex(int index, HWND sender, bool state, struct CMClientDriver* midi)
+void AudioMidiSettings::buttonToggledAtIndex(int index, HWND sender, bool state, struct CMClientDriver* midi)
 {
     fprintf(stdout, "AudioMidiSettingsView::NSCheckBoxView::buttonToggledAtIndex(%d)\n", index);
 
@@ -1458,7 +1458,7 @@ void DemoApp::buttonToggledAtIndex(int index, HWND sender, bool state, struct CM
 
 
 /*
-void DemoApp::devicePopupButtonClicked(HWND sender)
+void AudioMidiSettings::devicePopupButtonClicked(HWND sender)
 {
     if (sender == self.outputPopupButton)
     {
@@ -1472,7 +1472,7 @@ void DemoApp::devicePopupButtonClicked(HWND sender)
 }
 */
 
-void DemoApp::comboBoxSelectedAtIndex(HWND sender, int selectedIndex, TCHAR* name)
+void AudioMidiSettings::comboBoxSelectedAtIndex(HWND sender, int selectedIndex, TCHAR* name)
 {
     //Output Device Popup Button Clicked
     if (sender == outputDevicePopupButton)
@@ -1489,14 +1489,14 @@ void DemoApp::comboBoxSelectedAtIndex(HWND sender, int selectedIndex, TCHAR* nam
 
 
 
-HRESULT DemoApp::Initialize()
+HRESULT AudioMidiSettings::Initialize()
 {
     HRESULT hr;
 
     // Register the window class.
     WNDCLASSEX wcex = { sizeof(WNDCLASSEX) };
     wcex.style = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc = DemoApp::WndProc;
+    wcex.lpfnWndProc = AudioMidiSettings::WndProc;
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = sizeof(LONG_PTR);
     wcex.hInstance = HINST_THISCOMPONENT;
@@ -1582,7 +1582,7 @@ HRESULT DemoApp::Initialize()
 *                                                                 *
 ******************************************************************/
 
-void DemoApp::RunMessageLoop()
+void AudioMidiSettings::RunMessageLoop()
 {
     MSG msg;
     bool appIsRunning = true;
@@ -1622,19 +1622,19 @@ void DemoApp::RunMessageLoop()
 ******************************************************************/
 
 
-LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK AudioMidiSettings::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     LRESULT result = 0;
 
     if (message == WM_CREATE)
     {
         LPCREATESTRUCT pcs = (LPCREATESTRUCT)lParam;
-        DemoApp* pDemoApp = (DemoApp*)pcs->lpCreateParams;
+        AudioMidiSettings* pAudioMidiSettings = (AudioMidiSettings*)pcs->lpCreateParams;
 
         ::SetWindowLongPtrW(
             hwnd,
             GWLP_USERDATA,
-            PtrToUlong(pDemoApp)
+            PtrToUlong(pAudioMidiSettings)
         );
 
         _hwnd = hwnd;
@@ -1643,7 +1643,7 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
     }
     else
     {
-        DemoApp* pDemoApp = reinterpret_cast<DemoApp*>(static_cast<LONG_PTR>(
+        AudioMidiSettings* pAudioMidiSettings = reinterpret_cast<AudioMidiSettings*>(static_cast<LONG_PTR>(
             ::GetWindowLongPtrW(
                 _hwnd,
                 GWLP_USERDATA
@@ -1651,7 +1651,7 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
         bool wasHandled = false;
 
-        if (pDemoApp)
+        if (pAudioMidiSettings)
         {
             switch (message)
             {
@@ -1677,7 +1677,7 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         fprintf(stdout, "Midi Input List View LVN_ITEMCHANGED[%d] = %d\n", pnmlistview->iItem, checkboxState);
 
                         if (checkboxState != oldCheckboxState) //disregard clicks on the item that didn't actually toggle the checkbox
-                            pDemoApp->buttonToggledAtIndex(pnmlistview->iItem, midiInputFilterView, checkboxState, m_midi);
+                            pAudioMidiSettings->buttonToggledAtIndex(pnmlistview->iItem, midiInputFilterView, checkboxState, m_midi);
                     }
 
                     //if (pnm->code == LVN_ITEMCHANGING) fprintf(stdout, "Midi Input List View LVN_ITEMCHANGING\n");
@@ -1708,7 +1708,7 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     int ItemIndex = SendMessage((HWND)lParam, (UINT)CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
                     (TCHAR)SendMessage((HWND)lParam, (UINT)CB_GETLBTEXT, (WPARAM)ItemIndex, (LPARAM)ListItem);
                     //MessageBox(hwnd, (LPCWSTR)ListItem, TEXT("Item Selected"), MB_OK);
-                    pDemoApp->comboBoxSelectedAtIndex((HWND)lParam, ItemIndex, ListItem);
+                    pAudioMidiSettings->comboBoxSelectedAtIndex((HWND)lParam, ItemIndex, ListItem);
                 }
 
 

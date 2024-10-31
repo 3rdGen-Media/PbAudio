@@ -44,16 +44,16 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 
 /******************************************************************
 *                                                                 *
-*  DemoApp                                                        *
+*  AudioMidiSettings                                                        *
 *                                                                 *
 ******************************************************************/
 
-class DemoApp
+class AudioMidiSettings
 {
 public:
-    DemoApp();
-    DemoApp(struct CMClientDriver *midi);
-    ~DemoApp();
+    AudioMidiSettings();
+    AudioMidiSettings(struct CMClientDriver *midi);
+    ~AudioMidiSettings();
 
     HRESULT Initialize();
     void RunMessageLoop();

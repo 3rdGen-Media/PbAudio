@@ -21,11 +21,8 @@ PBAudioStreamFactory* GetPBAudioStreamFactory(void)
 #error Add Critical Section for your platform
 #endif
     static PBAudioStreamFactory factory = { PBAudioStreamInit, PBAudioStreamStart, PBAudioStreamStop, PBAudioStreamSetOutputDevice };
-    //if (instance == NULL)
-    //	instance = new CXURLInterface();
-
 #ifdef _WIN32
-                //END Critical Section Here
+    //END Critical Section Here
 #endif 
 
     return &factory;
@@ -701,7 +698,7 @@ OSStatus PBAudioStreamStop(PBAStreamContext * streamContext)
 
 #ifdef __APPLE__
 
-#if (CR_TARGET_IOS) || defined(CR_TARGET_TVOS)
+#if (PBA_TARGET_IOS) || defined(PBA_TARGET_TVOS)
 
 #endif
     

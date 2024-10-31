@@ -88,7 +88,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDLL;_PB_AUDIO_BUILD_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VLD_DIR)\include;$(DXSDK_DIR)\include\10.0.14393.0\um;$(DXSDK_DIR)\include\10.0.14393.0\shared;..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VLD_DIR)\include;$(DXSDK_DIR)\include\10.0.22621.0\um;$(DXSDK_DIR)\include\10.0.22621.0\shared;..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -125,7 +125,7 @@ copy .\*.h ..\include\[Pb]Audio
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\include\10.0.14393.0\um;$(DXSDK_DIR)\include\10.0.14393.0\shared;..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\include\10.0.22621.0\um;$(DXSDK_DIR)\include\10.0.22621.0\shared;..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDLL;_PB_AUDIO_BUILD_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

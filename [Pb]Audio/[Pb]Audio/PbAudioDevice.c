@@ -539,7 +539,8 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRate(PBAudioDevi
 {
     OSStatus status = 0;
 
-#if defined(__APPLE__) && TARGET_OS_OSX
+#if defined(__APPLE__)
+#if TARGET_OS_OSX
     UInt32 propertySize = sizeof(Float64);
     AudioObjectPropertyAddress srPropertyAddress = {kAudioDevicePropertyNominalSampleRate, scope, kAudioObjectPropertyElementMain};
     status = AudioObjectGetPropertyData(deviceID, &srPropertyAddress, 0, nil, &propertySize, sampleRate);
@@ -557,6 +558,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRate(PBAudioDevi
     id avSessionSharedInstance = objc_ClassSelector(objc_getClass("AVAudioSession"), sel_registerName("sharedInstance"));
     *sampleRate = objc_InstanceSelectorDouble(avSessionSharedInstance, sel_registerName("sampleRate"));
 #endif
+#endif
 
     return status;
 }
@@ -566,7 +568,8 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRate(PBAudioDevi
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRateCount(PBAudioDevice deviceID, AudioObjectPropertyScope scope, int * nSampleRates)
 {
     OSStatus result = 0;
-#if defined(__APPLE__) && TARGET_OS_OSX
+#if defined(__APPLE__) 
+#if TARGET_OS_OSX
     UInt32 srListSize = 0;
     AudioObjectPropertyAddress srPropertyAddress = {kAudioDevicePropertyAvailableNominalSampleRates, scope, kAudioObjectPropertyElementMain};
 
@@ -587,6 +590,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRateCount(PBAudi
     Float64 sampleRate[3] = {44100., 48000., 96000.};
     *nSampleRates = 3;
 #endif
+#endif
 
     return result;
 }
@@ -595,7 +599,8 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRateCount(PBAudi
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetSampleRate(PBAudioDevice deviceID, AudioObjectPropertyScope scope, double sampleRate)
 {
     OSStatus status = 0;
-#if defined(__APPLE__) && TARGET_OS_OSX
+#if defined(__APPLE__) 
+#if TARGET_OS_OSX
     //Note: Explicitly stopping and starting the stream does not seem to be necessary for sample rate and buffer size changes
     //      and results in additonal warnings 'HALB_IOThread.cpp:326    HALB_IOThread::_Start: there already is a thread'
     volatile bool wasRunning = false;
@@ -650,6 +655,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetSampleRate(PBAudioDevice d
     
     fprintf(stdout, "\nPBAudioDeviceSetSampleRate::AVAudioSession.sampleRate = %g\n", currentRate );
 #endif
+#endif
 
     return status;
 }
@@ -681,7 +687,8 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSizeRange(PBAudioDevice
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSize(PBAudioDevice inDeviceID, uint32_t* bufferSize)
 {
     OSStatus theError = 0;
-#if defined(__APPLE__) && TARGET_OS_OSX
+#if defined(__APPLE__) 
+#if TARGET_OS_OSX
     AudioObjectPropertyAddress theAddress = { kAudioDevicePropertyBufferFrameSize, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMain };
  
     UInt32 frameSize = 0;
@@ -702,6 +709,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSize(PBAudioDevice inDe
     double frac = modf(duration * rate, &integral);
     *bufferSize = (uint32_t)integral + (frac > 0.);
 #endif
+#endif
 
     return theError;
 }
@@ -709,7 +717,8 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSize(PBAudioDevice inDe
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice deviceID, uint32_t bufferSize)
 {
     OSStatus status = 0;
-#if defined(__APPLE__) && TARGET_OS_OSX
+#if defined(__APPLE__) 
+#if TARGET_OS_OSX
     //for each stream
     volatile bool wasRunning  = false;
     //volatile bool wasBypassed = false;
@@ -778,6 +787,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice d
 
     duration = objc_msgSendGetProperty(avSessionSharedInstance, sel_getUid("IOBufferDuration"));
     fprintf(stdout, "\nnPBAudioDeviceSetBufferSize::AVAudioSession.bufferDuration = %g\n", duration );
+#endif
 #endif
 
     return status;

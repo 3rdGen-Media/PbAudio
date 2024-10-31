@@ -119,7 +119,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\include;$(DXSDK_DIR)\include\10.0.14393.0\shared;$(DXSDK_DIR)\include\10.0.14393.0\um;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include;$(DXSDK_DIR)\include\10.0.22621.0\shared;$(DXSDK_DIR)\include\10.0.22621.0\um;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -140,22 +140,16 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="SamplePlayer.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="ToneGenerator.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="Vanilla\EntryPoint\PbAudioApplication.cpp">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
-    </ClCompile>
+    <ClCompile Include="Render\SamplePlayer.c" />
+    <ClCompile Include="Render\ToneGenerator.c" />
+    <ClCompile Include="Vanilla\EntryPoint\AudioMidiSettings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CustomNotificationClient.h" />
     <ClInclude Include="EntryPoint\PbAudioAppInterface.h" />
-    <ClInclude Include="SamplePlayer.h" />
-    <ClInclude Include="ToneGenerator.h" />
-    <ClInclude Include="Vanilla\EntryPoint\PbAudioApplication.h" />
+    <ClInclude Include="Render\SamplePlayer.h" />
+    <ClInclude Include="Render\ToneGenerator.h" />
+    <ClInclude Include="Vanilla\EntryPoint\AudioMidiSettings.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

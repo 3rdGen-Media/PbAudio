@@ -12,6 +12,8 @@
 #pragma mark -- Global Process Handles
 
 //pba_pid_t pba_displaySyncProcess;
+pba_pid_t pba_audioServerProcess;
+
 
 #pragma mark -- Init Main Thread/Run Loop References
 
@@ -29,7 +31,9 @@ DWORD                 pba_tlsIndex;
 #endif
 
 #pragma mark -- Define Global Kernel Queue Events
-pba_kernel_queue_event pba_vBlankNotification = {0};
+//pba_kernel_queue_event pba_vBlankNotification = {0};
+pba_kernel_queue_event pba_audioNotification = {0};
+
 
 #pragma mark --Define Global Kernel Event Queues/Pipes
 
@@ -41,11 +45,13 @@ pba_kernel_queue_event pba_vBlankNotification = {0};
 //int pba_displayEventPipe[2];
 
 //PBAKernelQueue pba_displayEventQueue = { 0 };
+PBAKernelQueue pba_audioEventQueue   = { 0 };
+
 
 //int64_t     pba_mainWindow;
 //crgc_view * pba_mainView;            //Main crgc_view reference
 
-#ifndef CR_TARGET_WIN32
+#ifndef PBA_TARGET_WIN32
 PB_AUDIO_API PB_AUDIO_INLINE uintptr_t pba_event_queue_wait_with_timeout(int kqueue, struct kevent * kev, int16_t eventFilter, uintptr_t timeoutEvent, uintptr_t outOfRangeEvent, uintptr_t eventRangeStart, uintptr_t eventRangeEnd, uint32_t timeout)
 {
     ////NSLog(@"wait for event with timeout");

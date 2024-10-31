@@ -19,18 +19,21 @@
     <Filter Include="Vanilla\EntryPoint">
       <UniqueIdentifier>{95b47433-ea34-4f66-bf1e-86d776a7931a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Render">
+      <UniqueIdentifier>{8718c714-ba77-4cb0-b637-575981d24cc1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EntryPoint\main.c">
       <Filter>EntryPoint</Filter>
     </ClCompile>
-    <ClCompile Include="SamplePlayer.c">
-      <Filter>Header Files</Filter>
+    <ClCompile Include="Render\SamplePlayer.c">
+      <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="ToneGenerator.c">
-      <Filter>Header Files</Filter>
+    <ClCompile Include="Render\ToneGenerator.c">
+      <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Vanilla\EntryPoint\PbAudioApplication.cpp">
+    <ClCompile Include="Vanilla\EntryPoint\AudioMidiSettings.cpp">
       <Filter>Vanilla\EntryPoint</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,17 +41,17 @@
     <ClInclude Include="EntryPoint\PbAudioAppInterface.h">
       <Filter>EntryPoint</Filter>
     </ClInclude>
-    <ClInclude Include="SamplePlayer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ToneGenerator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vanilla\EntryPoint\PbAudioApplication.h">
-      <Filter>Vanilla\EntryPoint</Filter>
-    </ClInclude>
     <ClInclude Include="CustomNotificationClient.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\SamplePlayer.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\ToneGenerator.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Vanilla\EntryPoint\AudioMidiSettings.h">
+      <Filter>Vanilla\EntryPoint</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

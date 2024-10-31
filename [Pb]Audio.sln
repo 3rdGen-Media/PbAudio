@@ -12,6 +12,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "[Pb] Audio", "Projects\[Pb]
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{B1532888-6912-452E-9F7B-75A7AEE77A72}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DS Drums", "Projects\DimSum\DS Drums\DS Drums.vcxproj", "{EBE8C48E-06FA-40FD-95CB-1E19C59C5CF4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -36,12 +38,21 @@ Global
 		{6A9340F6-3E18-43E0-9EC9-4616BC66A7A2}.Release|Win32.Build.0 = Release|Win32
 		{6A9340F6-3E18-43E0-9EC9-4616BC66A7A2}.Release|x64.ActiveCfg = Release|x64
 		{6A9340F6-3E18-43E0-9EC9-4616BC66A7A2}.Release|x64.Build.0 = Release|x64
+		{EBE8C48E-06FA-40FD-95CB-1E19C59C5CF4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EBE8C48E-06FA-40FD-95CB-1E19C59C5CF4}.Debug|Win32.Build.0 = Debug|Win32
+		{EBE8C48E-06FA-40FD-95CB-1E19C59C5CF4}.Debug|x64.ActiveCfg = Debug|x64
+		{EBE8C48E-06FA-40FD-95CB-1E19C59C5CF4}.Debug|x64.Build.0 = Debug|x64
+		{EBE8C48E-06FA-40FD-95CB-1E19C59C5CF4}.Release|Win32.ActiveCfg = Release|Win32
+		{EBE8C48E-06FA-40FD-95CB-1E19C59C5CF4}.Release|Win32.Build.0 = Release|Win32
+		{EBE8C48E-06FA-40FD-95CB-1E19C59C5CF4}.Release|x64.ActiveCfg = Release|x64
+		{EBE8C48E-06FA-40FD-95CB-1E19C59C5CF4}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6A9340F6-3E18-43E0-9EC9-4616BC66A7A2} = {B1532888-6912-452E-9F7B-75A7AEE77A72}
+		{EBE8C48E-06FA-40FD-95CB-1E19C59C5CF4} = {B1532888-6912-452E-9F7B-75A7AEE77A72}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ABE1F56A-0617-417D-8DD6-53246E81181C}

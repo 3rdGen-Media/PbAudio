@@ -64,7 +64,7 @@ extern PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID];
 //CoreRender crPlatform lib includes the necessary platform dependencies for the supported platforms
 //However, you may want to use some headers not provided in crPlatform
 
-#ifdef CR_TARGET_WIN32
+#ifdef PBA_TARGET_WIN32
 
 //#define _DEBUG
 //#define _CRTDBG_MAP_ALLOC
@@ -168,7 +168,7 @@ extern PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID];
 //extern int NSApplicationMain(int argc, const char *__nonnull argv[__nonnull]);
 extern int NSApplicationMain(int argc, const char *_Nonnull argv[_Nonnull]);
 //extern int NSApplicationMain(int argc, const char *__nonnull argv[__nonnull], id principalClassName, id delegateClassName);
-#else// defined(CR_TARGET_IOS) || defined(CR_TARGET_TVOS)
+#else// defined(PBA_TARGET_IOS) || defined(PBA_TARGET_TVOS)
 //define the UIApplicationMain objective-c runtime call or linking will fail
 extern int UIApplicationMain(int argc, char * _Nullable argv[_Nonnull], id _Nullable principalClassName, id delegateClassName);
 //extern int UIApplicationMain(int argc, char * _Nullable argv[_Nonnull], NSString * _Nullable principalClassName, NSString * _Nullable delegateClassName);

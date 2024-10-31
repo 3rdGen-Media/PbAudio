@@ -288,66 +288,6 @@ static PBA_TARGET_PLATFORM_ID PBA_TARGET_OS()
 #pragma mark -- Platform Primitive Types --
 //******************************************************//
 
-#if __APPLE__
-
-//*** 2D Primitives ***//
-typedef CGFloat                 OSFloat;
-typedef CGPoint                 OSPoint;
-
-typedef CGSize                  OSSize;
-typedef CGRect                  OSRect;
-
-//*** Color ***//
-//#define OSColorSize           4
-#define OSColorSize             32                      //Not used
-typedef CGColorRef              OSColorRef;             //CoreGraphics Color Object Reference
-
-//*** Font ***//
-typedef CTFontDescriptorRef     OSLogicalFontRef;
-typedef CTFontRef               OSFontRef;
-
-#else
-
-//Extend LOGFONTW to hold a floating point font size
-typedef struct tagLOGFONTWF
-{
-    LONG  lfHeight;
-    LONG  lfWidth;
-    LONG  lfEscapement;
-    LONG  lfOrientation;
-    LONG  lfWeight;
-    BYTE  lfItalic;
-    BYTE  lfUnderline;
-    BYTE  lfStrikeOut;
-    BYTE  lfCharSet;
-    BYTE  lfOutPrecision;
-    BYTE  lfClipPrecision;
-    BYTE  lfQuality;
-    BYTE  lfPitchAndFamily;
-    WCHAR lfFaceName[LF_FACESIZE];
-    FLOAT fontSize;
-} LOGFONTWF, * PLOGFONTWF, * NPLOGFONTWF, * LPLOGFONTWF;
-
-
-//*** 2D Primitives ***//
-typedef FLOAT                   OSFloat;
-typedef POINT                   OSPoint;
-
-//typedef D2D_SIZE_F              OSSize;
-//typedef D2D_SIZE_F              CGRect;
-
-//*** Color ***//
-//#define OSColorSize           4
-#define OSColorSize             16                  //Determines compile time color float vs byte
-//typedef COLORREF              OSColorType;
-typedef DXGI_RGBA               OSColorType;
-typedef HBRUSH                  OSColorRef;         //GDI Color Object Reference
-
-//*** Font ***//
-typedef LOGFONTWF               OSLogicalFontRef;
-typedef HFONT                   OSFontRef;
-
-#endif
 
 
 //******************************************************//
@@ -359,22 +299,10 @@ typedef HFONT                   OSFontRef;
 #endif
 
 #ifdef PBA_TARGET_WIN32
-//this is just a helper struct for passing these two vars portably
-typedef struct HGLRCHDC { HGLRC hglrc; HDC hdc; } HGLRCHDC;
-typedef HANDLE    CRKernelQueueType;                    //From cr_event_queue.h
-typedef HWND      CRWindowRef;                          //MS Platform Window
-typedef HWND      CRLayerRef;                           //MS Platform Layer (is just a child HWND)
-typedef void (CALLBACK* WNDDRAW)(HDC, RECT);            //MS Platform Draw Callback (HWND WM_ERASEBKGND GDI/GDI+ Hook)
 #elif defined(PBA_TARGET_OSX)
-typedef int       CRKernelQueueType;                    //kqueues are just file descriptors
-//typedef CGSWindow CRWindowRef;                          //OSX Platform Window
-typedef id        CRLayerRef;                           //OSX Platform Layer (is an NSView's CALayer)
-typedef void (CALLBACK* WNDDRAW)(CGContextRef, CGRect); //OSX Cocoa NSView Layer drawRect: CoreGraphics Hook
+typedef int       PBAKernelQueueType;                    //kqueues are just file descriptors
 #else
-typedef int       CRKernelQueueType;                    //kqueues are just file descriptors
-typedef int       CRWindowRef;                          //iOS Window Definition
-typedef id        CRLayerRef;                           //iOS Platform Layer (is a  UIView's CALayer)
-typedef void (CALLBACK* WNDDRAW)(CGContextRef, CGRect); //iOS Cocoa UIView Layer drawRect: CoreGraphics Hook
+typedef int       PBAKernelQueueType;                    //kqueues are just file descriptors
 #endif
 
 //forward declarations

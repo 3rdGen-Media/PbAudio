@@ -9,6 +9,11 @@
 #ifndef pbaudio_time_h
 #define pbaudio_time_h
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //const AudioTimeStamp AETimeStampNone = {};
 #ifdef __APPLE__
 #import <mach/mach_time.h>
@@ -53,5 +58,11 @@ PB_AUDIO_API PB_AUDIO_INLINE double PBACurrentTimeInSeconds(void);
 PB_AUDIO_API PB_AUDIO_INLINE double PBASecondsFromHostTicks(double ticks);
 PB_AUDIO_API PB_AUDIO_INLINE uint64_t PBAHostTicksFromSeconds(double seconds);
 #endif
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* pbaudio_time_h */

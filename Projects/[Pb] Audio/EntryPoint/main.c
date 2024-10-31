@@ -13,7 +13,7 @@
 
 //Window Runloop
 #ifdef USE_CPP_RUNLOOP
-#include "../Vanilla/EntryPoint/PbAudioApplication.h"
+#include "../Vanilla/EntryPoint/AudioMidiSettings.h"
 //CMMNotificationClient g_notificationClient;// = new (std::nothrow) CMMNotificationClient();
 #endif
 
@@ -48,10 +48,10 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
     //local trigger event iterator/cache
     int nTriggerEvents = 0;
     CMTriggerMessage* triggerEvent = NULL;
-    CMTriggerMessage  triggerEvents[MAX_TRIGGER_EVENTS];
-    
+    CMTriggerMessage* triggerEvents[MAX_TRIGGER_EVENTS];
+
     //Thread Queue Message Processing
-#ifdef CR_TARGET_WIN32
+#ifdef PBA_TARGET_WIN32
     // NOTE: it is imperative that PeekMessage() is used rather than GetMessage() when on background render thread
     // listen to the queue in case this thread received a message from the event queue on another thread
     //listen after command buffer has been passed to opengl for the current frame, if we read before this causes dropped frames on resize
@@ -72,14 +72,15 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
         //cache trigger events + values pulled from the queue
         //int condition = (msg.wParam >= cr_control_event_type_max); //cr_control_event_type vs cr_button_event_type
         triggerEvent = (CMTriggerMessage*)(msg.lParam);              //src event memory
-        
+
         //TO DO: cache the event in the note:articulation map
         //trigger_event_frame.events[kev[i].ident] = *controlEvent;  //cache previous events of type
-                
+        triggerEvents[nTriggerEvents] = triggerEvent;
+
         //TO DO: count # of trigger events for each articulation
-                
+
         //Unpack/Process the Triggered Note
-        uint8_t note     = CMNoteNumberFromEventWord(triggerEvent->word);
+        uint8_t note = CMNoteNumberFromEventWord(triggerEvent->word);
         uint8_t velocity = CMNoteVelocityFromEventWord(triggerEvent->word);
         fprintf(stdout, "\nTrigger Event (%llu) Note = %u (%u)\n", msg.wParam, note, velocity);
 
@@ -90,6 +91,7 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
     //nControlEvents -= nButtonEvents;
 
 #else
+
     struct kevent kev[MAX_TRIGGER_EVENTS];
         
     //wait without timeout for trigger input kevent from our kqueue
@@ -133,7 +135,7 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
     //The source format/buffer and target format/buffer can be the same or different
     //Resolve happens internally to the renderpass with a lookup into pb_audio_transforms
 
-    SamplePlayerRenderPass(ioData, frames, timestamp, stream->target, &samplePlayer, triggerEvent, 1);
+    SamplePlayerRenderPass(ioData, frames, timestamp, stream->target, &samplePlayer, (void**)triggerEvents, 1);
 };
 
 
@@ -363,7 +365,7 @@ int StartPlatformEventLoop(int argc, const char * argv[])
 
 #ifdef USE_CPP_RUNLOOP
 
-    DemoApp app(&CMidi); app.Initialize(); app.RunMessageLoop();
+    AudioMidiSettings app(&CMidi); app.Initialize(); app.RunMessageLoop();
 
 #else //Windowless Runloop
 
@@ -380,7 +382,7 @@ int StartPlatformEventLoop(int argc, const char * argv[])
         //if(PeekMessage(&msg, NULL, CR_PLATFORM_EVENT_MSG_LOOP_QUIT, CR_PLATFORM_EVENT_MSG_LOOP_QUIT, PM_REMOVE))
         {
             //observe our custom defined quit message
-            if (msg.message == CR_PLATFORM_EVENT_MSG_LOOP_QUIT)
+            if (msg.message == PBA_EVENT_MSG_LOOP_QUIT)
             {
                 fprintf(stdout, "\nCR_PLATFORM_EVENT_MSG_LOOP_QUIT\n");
                 appIsRunning = false;
@@ -498,10 +500,10 @@ void CRCleanup(void)
     //NOTE: This method should ONLY be called AFTER Message window render/control threads and wait for them to shut down
     //TerminateDisplaySyncProcess(cr_displaySyncProcess); //if there was no display sync process this does nothing
 
-#ifdef CR_TARGET_WIN32
+#ifdef PBA_TARGET_WIN32
     //to stop the simulation post to the message loop running on the main thread
     PostThreadMessage(PBAudio.mainThreadID, PBA_EVENT_MSG_LOOP_QUIT, true, 0);
-#elif defined(CR_TARGET_OSX)
+#elif defined(PBA_TARGET_OSX)
     dispatch_sync(dispatch_get_main_queue(), ^{
         //[[CTApplcation sharedApplication] replyToApplicationShouldTerminate:YES];
         id (*objc_ClassSelector)(Class class, SEL _cmd) = (void*)objc_msgSend;//objc_msgSend(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc")), sel_registerName("init"))
@@ -528,7 +530,7 @@ void CRCleanup(void)
 static void* CRRunLoop(void* opaqueQueue)
 {   
     //fprintf("\ninit app_event_loop\n");
-#ifdef CR_TARGET_WIN32
+#ifdef PBA_TARGET_WIN32
     //Currently does nothing
 #elif defined(__APPLE__)
     int eventQueue = (int)opaqueQueue;
@@ -735,25 +737,6 @@ void StartAudioMessageEventLoop(void)
 
 #endif
     
-    //*** CMidi ***//
-
-#if defined(__APPLE__)
-    //register kevents [for Midi Note On Types] that can be queued to trigger audio on the real-time audio thread
-    uint64_t triggerEvent; CMTriggerEventQueue = kqueue(); //create kqueue
-    for (triggerEvent = 0; triggerEvent < 128; ++triggerEvent)
-    {
-        struct kevent kev;
-        EV_SET(&kev, triggerEvent, EVFILT_USER, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
-        kevent(CMTriggerEventQueue, &kev, 1, NULL, 0, NULL);
-    }
-#else
-
-    
-#endif
-
-    //Load functions from DLL + initialize a CMidi client
-    CMidi.Init(CM_CLIENT_OWNER_ID, CMidiNotifyBlock, CMidiReceiveBlock, NULL);
-
     /***
      * Init [Pb]Audio [Session/Stream] for Scheduling Audio [Buffers] to a Real-Time Thread
      * 
@@ -784,7 +767,7 @@ void StartAudioMessageEventLoop(void)
       //Standalone Engine Process Option: Launch Event Loop on Current Thread that will serve as the Main Event Loop in [Pb]Audio C-Land
       //PBAudioEventLoop((void*)PBAudio.eventQueue.kq);
 
-#ifdef CR_TARGET_WIN32
+#ifdef PBA_TARGET_WIN32
 
     //Shared Application + Engine Process Option:  Launch a single thread that that will serve as the Main Event Loop in [Pb]Audio C-Land
     _beginthreadex(NULL, 0, PBAudioEventLoop, (void*)PBAudio.eventQueue.kq, 0, &(PBAudio.eventThreadID));
@@ -827,6 +810,22 @@ void StartAudioMessageEventLoop(void)
 
     //*** CMidi ***//
 
+#if defined(__APPLE__)
+    //register kevents [for Midi Note On Types] that can be queued to trigger audio on the real-time audio thread
+    uint64_t triggerEvent; CMTriggerEventQueue = kqueue(); //create kqueue
+    for (triggerEvent = 0; triggerEvent < 128; ++triggerEvent)
+    {
+        struct kevent kev;
+        EV_SET(&kev, triggerEvent, EVFILT_USER, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
+        kevent(CMTriggerEventQueue, &kev, 1, NULL, 0, NULL);
+    }
+#else
+
+
+#endif
+
+    //Load functions from DLL + initialize a CMidi client
+    CMidi.Init(CM_CLIENT_OWNER_ID, CMidiNotifyBlock, CMidiReceiveBlock, NULL);
 
 }
  
@@ -847,7 +846,7 @@ int main(int argc, const char * argv[]) {
      * --  Start Kernel Level Display Sync Event Callback/Process to slave each window's dedicated display loop or render callback if desired
      * --  On iOS/tvOS these things will occur through UIApplication and Cocoa will notify CoreRender after creating views/layers so they can be rendered to
      ***/
-#if !defined(CR_TARGET_IOS) && !defined(CR_TARGET_TVOS)
+#if !defined(PBA_TARGET_IOS) && !defined(PBA_TARGET_TVOS)
     //init_crgc_views();      //configure crgc_view options as desired before creating platform window backed by an accelerated graphics context
     //create_crgc_views();    //create platform window and graphics context
 #endif
@@ -861,7 +860,7 @@ int main(int argc, const char * argv[]) {
     //StartDisplaySyncThread();
     /*
     CreateDisplaySyncMessageQueue();
-#if !defined(CR_TARGET_IOS) && !defined(CR_TARGET_TVOS)
+#if !defined(PBA_TARGET_IOS) && !defined(PBA_TARGET_TVOS)
     cr_displaySyncProcess = StartDisplaySyncProcess(CR_REALTIME_PRIORITY_CLASS);      //Launches crTimeServer background process to vBlank events associated with the display
 #endif
     */
@@ -889,7 +888,7 @@ int main(int argc, const char * argv[]) {
      *  What is also really cool is that we can communicate between our Pure Obj-C and Pure C walls by using messaging mechanisms like
      *  NSNotificationCenter/CFNotificationCenter
      ***/
-#ifdef CR_TARGET_OSX
+#ifdef PBA_TARGET_OSX
     RegisterAppNotificationObservers();
     RegisterAudioNotificationObservers();
 #endif

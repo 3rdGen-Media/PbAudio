@@ -478,7 +478,10 @@ typedef struct CMTriggerMessage
     union
     {
         uint32_t          word;
-        uint8_t           status, channel, note, velocity;
+        struct
+        {
+            uint8_t       status, channel, note, velocity;
+        };
     };
     
 }CMTriggerMessage;
@@ -527,8 +530,11 @@ static uint8_t CMNoteVelocityFromEventWord(const uint32_t packetWord)
 typedef union MCUMessage
 {
     CMMessage word;
-    uint8_t   type, status, identifier, value;  //Always MIDI 1.0
-    //uint8_t status, // CC = V-POT (0xB0), PB = FADER (0xE0)
+    struct
+    {
+        uint8_t   type, status, identifier, value;  //Always MIDI 1.0
+        //uint8_t status, // CC = V-POT (0xB0), PB = FADER (0xE0)
+    };
 }MCUMessage;
 
 enum MCUNoteEventEnum

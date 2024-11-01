@@ -146,6 +146,13 @@ namespace WinRT
 #define CMIDI_EXTERN extern
 #endif
 
+#define MAX_IAC_NUM              63
+
+#define CM_MAX_SOURCES           64
+#define CM_MAX_DESTINATIONS      64
+#define CM_MAX_CONNECTIONS       64
+#define CM_MAX_SOFT_CONNECTIONS  64
+
 //Core
 #include "CMidiMessage.h"
 #include "CMidiDriverID.h"
@@ -156,23 +163,14 @@ namespace WinRT
 #include "CMEventQueue.h"
 
 #ifdef __APPLE__
+
 #include <CoreMIDI/MIDIThruConnection.h>             //Core Midi Thru Connections
 #include <CoreMIDI/MIDIServices.h>                   //Core Midi Create Client Ports
-#endif
 
-#define MAX_IAC_NUM              63
-
-#define CM_MAX_SOURCES           64
-#define CM_MAX_DESTINATIONS      64
-#define CM_MAX_CONNECTIONS       64
-#define CM_MAX_SOFT_CONNECTIONS  64
-
-
-#ifdef __APPLE__
 CMIDI_EXTERN const CFStringRef kCMidiSourcesAvailableChangedNotification;
 CMIDI_EXTERN const CFStringRef kCMidiDestinationsAvailableChangedNotification;
-#else
 
+#else
 
 typedef int32_t ItemCount;
 typedef HRESULT OSStatus;
@@ -218,9 +216,6 @@ typedef MIDIReceiveBlock MIDIPortRef;      //C-Style Receive/Send Block Callback
 //Windows: The GUID of the WinRT MidiEndpointConnection
 typedef GUID   MIDIThruConnectionRef;
 
-#endif
-
-#ifndef __APPLE__
 typedef struct MIDIThruConnectionEndpoint
 {
     MIDIEndpointRef endpointRef;
@@ -275,7 +270,7 @@ typedef struct CMConnection
 }CMConnection;
 
 #ifdef __APPLE__
-#define CMConnectionEmpty 0
+#define CMConnectionEmpty  0
 #else
 #define CMConnectionEmpty {0}
 #endif
@@ -397,13 +392,13 @@ CMIDI_API CMIDI_INLINE OSStatus CMClientCreate(const char * clientID, MIDINotify
 
 //#pragma mark -- CTConnection API Method Function Pointer Definitions
 //typedef int (*CTConnectFunc)(struct CTTarget * service, CTConnectionClosure callback);
-typedef OSStatus       (*CMidiClientCreateFunc)  (const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock);
-typedef ItemCount      (*CMidiUpdateCountFunc)       (void);
+typedef       OSStatus       (*CMidiClientCreateFunc)      (const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock);
+typedef       ItemCount      (*CMidiUpdateCountFunc)       (void);
 typedef const CMSource*      (*CMidiSourceFunc)            (int srcIndex);
 typedef const CMDestination* (*CMidiDestinationFunc)       (int dstIndex);
 
-typedef CMConnection*  (*CMidiCreateConnectionFunc)   (uintptr_t uniqueID);
-typedef OSStatus       (*CMidiDeleteConnectionFunc)   (uintptr_t uniqueID);
+typedef       CMConnection*  (*CMidiCreateConnectionFunc)  (uintptr_t uniqueID);
+typedef       OSStatus       (*CMidiDeleteConnectionFunc)  (uintptr_t uniqueID);
 
 //#pragma mark -- Global ReqlClientDriver Object
 CMIDI_DECLSPEC typedef struct CMClientDriver
@@ -434,18 +429,15 @@ CMIDI_DECLSPEC typedef struct CMClientDriver
 typedef CMClientDriver* (*CMidiClientDriverFunc) (void);
 
 //Load functions from DLL
-static OSStatus cmidi_ext_load(CMClientDriver* client, HMODULE dll);
+static OSStatus cmidi_ext_load(CMClientDriver* client, void* dll); //(WIN32: HMODULE, OSX: void*)
 static OSStatus cmidi_ext_load_init(const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock);
 
 #ifdef __APPLE__ //TO DO: Provide an appropriate way to optionally expose static lib function population
 static const CMClientDriver CMidi = { CMClientCreate, CMUpdateInputDevices, CMUpdateOutputDevices, CMGetSource, CMGetDestination, CMCreateInputConnection, NULL, CMDeleteInputConnection, NULL };
 #else
-static CMClientDriver CMidi = { cmidi_ext_load_init };// { CMClientCreate };
+
+static CMClientDriver CMidi = { cmidi_ext_load_init };
 CMIDI_API CMIDI_INLINE CMClientDriver* GetCMidiClientDriver(void);
-
-//Convenience Accessor
-//#define CMidi (*GetCMidiClientDriver())
-
 
 #include <stdio.h>
 #include <tchar.h>
@@ -461,13 +453,13 @@ static OSStatus cmidi_ext_load(CMClientDriver* client, HMODULE dll)
 #ifdef _DEBUG
         cmidi_dll = LoadLibraryEx(_T("CMidid.dll"), NULL, 0);
 #else
-        cmidi_dll = LoadLibraryEx(_T("CMidi.dll"), NULL, 0);
+        cmidi_dll = LoadLibraryEx(_T("CMidi.dll"),  NULL, 0);
 #endif
     }
 
     if (!cmidi_dll)
     {
-        fprintf(stderr, "\ncmidi_dll.dll not found.\n");
+        fprintf(stderr, "\nCMidi DLL failed to load.\n");
         return -1;
     }
 
@@ -489,7 +481,6 @@ static OSStatus cmidi_ext_load(CMClientDriver* client, HMODULE dll)
     return ret;
 }
 
-#endif
 
 static CMClientDriver* CMidiGetDriverInstance(const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock)
 {
@@ -513,6 +504,7 @@ static CMClientDriver* CMidiGetDriverInstance(const char* clientID, MIDINotifyBl
 
     return driver;
 }
+#endif
 
 static OSStatus cmidi_ext_load_init(const char* clientID, MIDINotifyBlock midiNotifyBlock, MIDIReceiveBlock midiReceiveBlock, MIDIReceiveBlock proxyReceiveBlock)
 {

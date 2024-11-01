@@ -37,6 +37,16 @@ using namespace ABI::Windows::Foundation;
 using namespace Microsoft::WRL;
 using namespace Microsoft::WRL::Wrappers;
 
+template <typename T>
+T convert_from_abi(IUnknown* from)
+{
+    T to{ nullptr }; // `T` is a projected type.
+
+    winrt::check_hresult(from->QueryInterface(winrt::guid_of<T>(), winrt::copy_from_abi(from, to)));
+
+    return to;
+}
+
 //Midi2
 #include <winrt/Microsoft.Windows.Devices.Midi2.h>
 #include <winrt/Microsoft.Windows.Devices.Midi2.Diagnostics.h>
@@ -1087,16 +1097,6 @@ ItemCount CMGetNumberOfDevices(void)
     auto endpoints = MidiEndpointDeviceInformation::FindAll(MidiEndpointDeviceInformationSortOrder::Name, MidiEndpointDeviceInformationFilters::AllStandardEndpoints);
     return endpoints.Size();
 #endif
-}
-
-template <typename T>
-T convert_from_abi(IUnknown* from)
-{
-    T to{ nullptr }; // `T` is a projected type.
-
-    winrt::check_hresult(from->QueryInterface(winrt::guid_of<T>(), winrt::copy_from_abi(from, to)));
-
-    return to;
 }
 
 const CMSource* CMGetSource(int srcIndex)

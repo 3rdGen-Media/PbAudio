@@ -1399,6 +1399,8 @@ Float64 HardcodedSampleRates[3] = {44100., 48000., 96000.};
     {
         int selectedIndex = (int)self.sampleRatePopupButton.indexOfSelectedItem;
         PBAudioDeviceSetSampleRate(PBAudio.OutputStreams[0].audioDevice, kAudioObjectPropertyScopeOutput, _SampleRates[selectedIndex].mMinimum);
+
+        [self updateBufferSizeList]; //must repopulate sample rate list strings with durations dependent on sample rate
     }
 #else
     if( [sender isKindOfClass:[UICommand class]] )
@@ -1408,9 +1410,9 @@ Float64 HardcodedSampleRates[3] = {44100., 48000., 96000.};
         int selectedIndex = selectedNum.intValue;
         PBAudioDeviceSetSampleRate(PBAudio.OutputStreams[0].audioDevice, kAudioObjectPropertyScopeOutput, _SampleRates[selectedIndex].mMinimum);
 
-        //Must recreate the menu to reselect items due to "Action\Command is immutable because it is a child of a menu"
-        [self updateSampleRateList];
-        
+        [self updateSampleRateList]; //Must recreate the menu to reselect items due to "Action\Command is immutable because it is a child of a menu"
+        [self updateBufferSizeList]; //must repopulate sample rate list strings with durations dependent on sample rate
+
         //TO DO:  can't get sender to work for UILeaf
         //if( command.sender == self.sampleRatePopupButton )  assert(1==0);
     }

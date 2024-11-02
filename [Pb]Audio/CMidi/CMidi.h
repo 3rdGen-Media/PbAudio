@@ -443,9 +443,9 @@ CMIDI_API CMIDI_INLINE CMClientDriver* GetCMidiClientDriver(void);
 #include <tchar.h>
 #include <assert.h>
 
-static OSStatus cmidi_ext_load(CMClientDriver* client, HMODULE dll)
+static OSStatus cmidi_ext_load(CMClientDriver* client, void* dll)
 {
-    HMODULE cmidi_dll = dll;
+    HMODULE cmidi_dll = (HMODULE)dll;
     OSStatus ret = 0;
 
     if (!dll)
@@ -513,7 +513,7 @@ static OSStatus cmidi_ext_load_init(const char* clientID, MIDINotifyBlock midiNo
     //CMidi.Init = CMClientCreate;
 #else
     //Load CMidi API functions from DLL
-    ret = cmidi_ext_load(&CMidi, NULL);
+    ret = cmidi_ext_load(&CMidi, (HMODULE)NULL);
 #endif
     
     //Call the Init function loaded from dll

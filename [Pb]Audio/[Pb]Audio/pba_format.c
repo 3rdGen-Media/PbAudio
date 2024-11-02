@@ -396,8 +396,8 @@ PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_f32i(void** srcBuffers, voi
         fSampleL = samplesL[i * nBufferChannels];
         fSampleR = samplesL[(((i)*nBufferChannels) + nBufferChannels - 1)];
 
-        fBufferL[i * 2]     = fSampleL;
-        fBufferL[i * 2 + 1] = fSampleR;
+        fBufferL[i * 2]     += fSampleL;
+        fBufferL[i * 2 + 1] += fSampleR;
     } 
 
 }

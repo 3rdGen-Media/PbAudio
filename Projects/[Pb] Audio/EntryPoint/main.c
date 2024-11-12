@@ -21,8 +21,58 @@
 #include "../Render/ToneGenerator.h"
 #include "../Render/SamplePlayer.h"
 
+//AudioBufferList* inputBufferList = NULL;
+
 SamplePlayer  samplePlayer  = {0};
 ToneGenerator toneGenerator = {0};
+
+#pragma mark -- [Pb]Audio Stream InputPass Callbacks
+
+#ifdef __APPLE__
+PBAStreamOutputPass InputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* stream)
+#else
+void CALLBACK InputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, struct PBAStreamContext* stream)
+#endif
+{
+    uint32_t bufferIndex = 0;
+    uint64_t currentBuffer = stream->bufferIndex;
+
+    //get a buffer list from a circular buffer implementation and
+    //update the buffer index for pulling from the circular buffer on the next iteration
+    stream->inputBufferList = stream->bufferList[currentBuffer];
+    stream->bufferIndex = (currentBuffer+1) % stream->nBuffers;
+    
+#ifdef __APPLE__
+    // Invoke the input render callback so that input buffers can be copied to an intermediate AudioBufferList
+    OSStatus result = AudioUnitRender(stream->audioUnit, 0, timestamp, 1, frames, stream->inputBufferList);
+
+    if (result != noErr )
+    {
+        switch(result)
+        {
+            //The buffer is full so wait until a subsequent render pass or use a larger buffer
+            case(kAudioUnitErr_CannotDoInCurrentContext):
+            {
+                //stream->inputTimeStamp.mSampleTime = 0; //prevent passthrough
+                break;
+            }
+            case(kAudio_ParamError):
+            {
+                fprintf(stderr, "\nInputPass::kAudio_ParamError");
+                assert(1==0);
+                break;
+            }
+                
+            default:
+                assert(1==0);
+        }
+    }
+    
+    
+#else
+    
+#endif
+};
 
 #pragma mark -- [Pb]Audio Stream OutputPass Callbacks
 
@@ -130,6 +180,22 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
 #endif
 
     //Outputpass pipeline can be configured w/ custom buffer routing schemes by modifying renderpass input/output here...
+
+    //Input
+    if( stream->inputTimeStamp.mSampleTime > 0 )
+    {
+        //raw byte dst buffer
+        char* byteBufferL = (char*)ioData->mBuffers[0].mData;
+        char* byteBufferR = (char*)ioData->mBuffers[1].mData;
+        char* byteBuffers[2] = {byteBufferL, byteBufferR};
+        
+        char* sampleBufferL = (char*)stream->inputBufferList->mBuffers[19].mData;
+        char* sampleBufferR = (char*)stream->inputBufferList->mBuffers[19].mData;
+        char* sampleBuffers[2] = {sampleBufferL, sampleBufferR};
+        
+        pb_audio_transform[stream->target][stream->target](sampleBuffers, byteBuffers, 2, frames);
+    }
+
     
     //A renderpass has a source resource format (SRV) and a target format (RTV)
     //The source format/buffer and target format/buffer can be the same or different
@@ -137,6 +203,7 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
 
     SamplePlayerRenderPass(ioData, frames, timestamp, stream->target, &samplePlayer, (void**)triggerEvents, 1);
 };
+
 
 
 
@@ -458,10 +525,14 @@ void PBAudioInit(void)
     desiredStreamFormat.mBitsPerChannel    = sizeof(float) * 8;
     desiredStreamFormat.mSampleRate        = 48000;
 #endif
-
+    
     //A stream must first be initialized in order to know the system sample rate setting of the device if a compatible format isn't requested explicitly
     PBAudio.Init(&PBAudio.OutputStreams[0], NULL, kAudioObjectUnknown, SamplerOutputPass);
-    
+
+    //Provide an Input Pass to a stream to enable input on stream init
+    PBAudio.OutputStreams[0].inputPass       = InputPass;
+    //inputBufferList = PBABufferListCreateWithFormat(PBAudio.OutputStreams[0].format, 512);
+
     //Load some audio from disk while converting to the desired format
     //const char * audioFileURL = "../../assets/Audio/WAV/Test/16_48k_PerfectTest.wav";
     //const char * audioFileExt = "wav\0";
@@ -484,11 +555,12 @@ void PBAudioInit(void)
 
     //Initialize Renderpasses
     ToneGeneratorInit(&toneGenerator, 440.f, PBAudio.OutputStreams[0].currentSampleRate);           //Initialize a 32-bit floating point sine wave buffer
-    SamplePlayerInit(&samplePlayer, audioFileURL, audioFileExt, &PBAudio.OutputStreams[0].format);  //Read an audio file from disk to formatted buffer for playback
+    SamplePlayerInit(&samplePlayer, audioFileURL, /*audioFileExt,*/ &PBAudio.OutputStreams[0].format);  //Read an audio file from disk to formatted buffer for playback
     
     //Cache Output Passes
-    OutputPass[TestOutputPassID]    = TestOutputPass;
-    OutputPass[SamplerOutputPassID] = SamplerOutputPass;
+    OutputPass[TestOutputPassID]        = TestOutputPass;
+    OutputPass[SamplerOutputPassID]     = SamplerOutputPass;
+    //OutputPass[PassThroughOutputPassID] = PassThroughOutputPass;
 
     //Register custom "notification client" objects across threads/processes as needed
     //PBAudioRegisterDeviceListeners(&g_notificationClient, NULL);

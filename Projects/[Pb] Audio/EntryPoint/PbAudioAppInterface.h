@@ -48,6 +48,7 @@ static unsigned int        pba_message_event_index                  =  0;       
 typedef enum OutputPassID
 {
     NullOutputPassID,
+    PassThroughOutputPassID,
     TestOutputPassID,
     SamplerOutputPassID,
     MaxOutputPassID

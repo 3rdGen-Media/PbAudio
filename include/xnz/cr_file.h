@@ -150,7 +150,7 @@ typedef enum CRFileError
 	CRFileMapError = -20,
 	CRFileOpenError = -10,
 	CRFileSuccess = 0
-}CTFileError;
+}CRFileError;
 
 typedef struct CRFile
 {
@@ -207,8 +207,8 @@ CR_FILE_API CR_FILE_INLINE void* cr_file_map_to_buffer(char** buffer, size_t fil
 
 /*** CRFileCursor API ***/
 
-CR_FILE_API CR_FILE_INLINE CTFileError CRFileOpenMap(CRFile* file, char* filepath, unsigned long fileSize);
-CR_FILE_API CR_FILE_INLINE CTFileError CRFileMapForWrite(CRFile* file, unsigned long fileSize);
+CR_FILE_API CR_FILE_INLINE CRFileError CRFileOpenMap(CRFile* file, char* filepath, unsigned long fileSize);
+CR_FILE_API CR_FILE_INLINE CRFileError CRFileMapForWrite(CRFile* file, unsigned long fileSize);
 CR_FILE_API CR_FILE_INLINE void		   CRFileCloseMap(CRFile* file, unsigned long fileSize);
 CR_FILE_API CR_FILE_INLINE void		   CRFileClose(CRFile * file);
 
@@ -479,9 +479,9 @@ CR_FILE_API CR_FILE_INLINE int cr_file_create_w(char* filepath)
 ***/
 
 
-CTFileError CRFileMapForWrite(CRFile* file, unsigned long fileSize)
+CRFileError CRFileMapForWrite(CRFile* file, unsigned long fileSize)
 {
-	CTFileError err = CRFileSuccess;
+	CRFileError err = CRFileSuccess;
 #ifdef _WIN32
 	//DWORD dwErr;
 
@@ -547,9 +547,9 @@ CTFileError CRFileMapForWrite(CRFile* file, unsigned long fileSize)
 	return err;
 }
 
-CR_FILE_API CR_FILE_INLINE CTFileError CRFileOpenMap(CRFile* file, char* filepath, unsigned long fileSize)
+CR_FILE_API CR_FILE_INLINE CRFileError CRFileOpenMap(CRFile* file, char* filepath, unsigned long fileSize)
 {
-	CTFileError err;
+	CRFileError err;
 
 	//create/overwrite a file on disk with write privelege 
 	file->fd = cr_file_create_w(filepath);

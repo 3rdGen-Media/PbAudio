@@ -487,7 +487,7 @@ static AUAudioUnitPreset* NewAUPreset(NSInteger number, NSString *name)
 
     //Now that the host stream format is known Renderpasses (ie kernels) can be initialized
     ToneGeneratorInit(&AUToneGenerator, 440.f, _streamContext.sampleRate);                  //Initialize a 32-bit floating point sine wave buffer
-    SamplePlayerInit(&AUSamplePlayer, audioFileURL, audioFileExt, &_streamContext.format);  //Read an audio file from disk to formatted buffer for playback
+    SamplePlayerInit(&AUSamplePlayer, audioFileURL, /*audioFileExt,*/ &_streamContext.format);  //Read an audio file from disk to formatted buffer for playback
     
     //kernel.setMusicalContextBlock(self.musicalContextBlock);
     //kernel.initialize(UInt32(outputChannelCount), _outputBus.format.sampleRate);

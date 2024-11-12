@@ -38,6 +38,14 @@ PB_AUDIO_API PB_AUDIO_INLINE PBABufferList *PBABufferListCreateWithFormat(PBAStr
     return audio;
 }
 
+void PBABufferListFree(PBABufferList *bufferList )
+{
+    for ( int i=0; i<bufferList->mNumberBuffers; i++ )
+    {
+        if ( bufferList->mBuffers[i].mData ) free(bufferList->mBuffers[i].mData);
+    }
+    free(bufferList);
+}
 
 PB_AUDIO_API PB_AUDIO_INLINE PBABufferList *PBABufferListCreate(int frameCount) {
     return PBABufferListCreateWithFormat(_audioFormat, frameCount);

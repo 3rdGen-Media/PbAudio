@@ -79,7 +79,7 @@ typedef struct PBAFile
 
 typedef struct PBAFile* PBAFileRef;
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, const char * fileExt, PBAStreamFormatRef converterFormat, PBAFileRef inputAudioFileRef);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, /*const char * fileExt,*/ PBAStreamFormatRef converterFormat, PBAFileRef inputAudioFileRef);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamReadFrames(PBAFileRef audioFileRef, unsigned long long numFramesToRead, void ** sampleBuffers);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamClose(ExtAudioFileRef inputAudioFileRef);
 

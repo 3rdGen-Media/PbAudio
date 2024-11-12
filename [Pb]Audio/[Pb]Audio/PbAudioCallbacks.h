@@ -39,7 +39,7 @@ static OSStatus PBAudioStreamSubmitBuffers(void *inRefCon, AudioUnitRenderAction
 #ifdef PBA_DEBUG
         uint64_t start = PBACurrentTimeInHostTicks();
 #endif
-          
+    
     //Use the render context callback to allow the client to fill the buffer with renderpasses
     __unsafe_unretained PBAStreamOutputPass outputpass = streamContext->outputpass;
     //outputpass(ioData, inNumberFrames, &timestamp, streamContext);
@@ -47,9 +47,10 @@ static OSStatus PBAudioStreamSubmitBuffers(void *inRefCon, AudioUnitRenderAction
     // Clearing the output buffer is critical for DSP routines unless such routines inherently overwrite the buffer at all times
     // WARNING:  Errant format changes upon stream reconfiguration (eg changing buffer size) can crash by writing incorrect # of bytes
     PBABufferListSilenceWithFormat(ioData, &streamContext->format, 0, inNumberFrames);
-    
+
     //Run Renderpass Pipeline
     outputpass(ioData, inNumberFrames, &timestamp, streamContext);
+
     
     //if ( !streamContext->bypass && outputpass )
     //{
@@ -66,27 +67,58 @@ static OSStatus PBAudioStreamSubmitBuffers(void *inRefCon, AudioUnitRenderAction
 }
 
 
-static OSStatus PBAIOAudioUnitInputCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)
+static OSStatus PBAudioInputAvailableCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)
 {
     // Grab timestamp
     //__unsafe_unretained AEIOAudioUnit * THIS = (__bridge AEIOAudioUnit *)inRefCon;
     __unsafe_unretained PBAStreamContext * streamContext = (PBAStreamContext *)inRefCon;
 
     AudioTimeStamp timestamp = *inTimeStamp;
-    printf("PBAIOAudioUnitInputCallback\n");
-
-#if TARGET_OS_IPHONE
-    if ( streamContext->latencyCompensation ) {
-        timestamp.mHostTime -= PBAHostTicksFromSeconds(streamContext->inputLatency);
-    }
-#endif
+    //fprintf(stdout, "PBAudioInputAvailableCallback (%g)\n", timestamp.mSampleTime);
     
-    //THIS->_inputTimestamp = timestamp;
+#if TARGET_OS_IPHONE
+    if ( streamContext->latencyCompensation ) timestamp.mHostTime -= PBAHostTicksFromSeconds(streamContext->inputLatency);
+#endif
+
     streamContext->inputTimeStamp = timestamp;
+    assert(inBusNumber == 1);
+                
+    //Use the render context callback to allow the client to fill the buffer with renderpasses
+    __unsafe_unretained PBAStreamOutputPass inputpass = streamContext->inputPass;
+    
+    //Run Renderpass Pipeline
+    inputpass(ioData, inNumberFrames, &timestamp, streamContext);
+
     return noErr;
 }
 
 
+static void PBAudioStreamDeviceChanged(void *inRefCon, AudioUnit inUnit, AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement)
+{
+    __unsafe_unretained PBAStreamContext * streamContext = (PBAStreamContext *)inRefCon;
+    fprintf(stdout, "PBAudioStreamDeviceChanged\n");
+    
+    //Distribute the notification to registered PBAudio 'Engine' Process Clients
+    dispatch_async(dispatch_get_main_queue(), ^{
+        
+        //CFNumberRef deviceID = CFNumberCreate(NULL, kCFNumberSInt32Type, &inObjectID);
+        //[NSNotificationCenter.defaultCenter postNotificationName:AEAudioDeviceDefaultInputDeviceChangedNotification object:nil];
+        
+        // populate an notification
+        CFDictionaryKeyCallBacks   keyCallbacks    = {0, NULL, NULL, CFCopyDescription, CFEqual, NULL};
+        CFDictionaryValueCallBacks valueCallbacks  = {0, NULL, NULL, CFCopyDescription, CFEqual};
+        CFMutableDictionaryRef dictionary = CFDictionaryCreateMutable(kCFAllocatorDefault, 1, &keyCallbacks, &valueCallbacks);
+        CFDictionaryAddValue(dictionary, CFSTR("DeviceStream"),   inRefCon);
+        //CFDictionaryAddValue(dictionary, CFSTR("OutputDeviceID"), deviceID);
+
+        // post a notification
+        CFNotificationCenterPostNotification(CFNotificationCenterGetLocalCenter(), kPBAStreamDeviceChangedNotification, NULL, dictionary, true);
+        
+        CFRelease(dictionary);
+        //CFRelease(deviceID);
+    });
+
+}
 
 static void PBAIOAudioUnitStreamFormatChanged(void *inRefCon, AudioUnit inUnit, AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement)
 {

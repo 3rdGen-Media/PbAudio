@@ -137,7 +137,7 @@ void        SamplePlayerRenderPass      (struct PBABufferList*     ioData, uint3
 //#endif
 
 
-void SamplePlayerInit(SamplePlayer* player, const char * audioFileURL, const char * audioFileEXT, PBAStreamFormatRef converterFormat)
+void SamplePlayerInit(SamplePlayer* player, const char * audioFileURL, /*const char * audioFileEXT,*/ PBAStreamFormatRef converterFormat)
 {
     //Choose an Output Source for the Stream (Playback from PCM File)
     //g_sourceBuffer = (char*)&(audioEvent.audioData[0]);
@@ -154,7 +154,7 @@ void SamplePlayerInit(SamplePlayer* player, const char * audioFileURL, const cha
     uint32_t nSourceBufferChannels = 1;
 #endif
     
-    PBAFileStreamOpen(audioFileURL, audioFileEXT, converterFormat, &player->sourceAudioFile);
+    PBAFileStreamOpen(audioFileURL, /*audioFileEXT,*/ converterFormat, &player->sourceAudioFile);
     //g_sourceBuffer = (float*)malloc( sourceAudioFile.samples * sizeof(float) * _PBAMasterStream.format.mChannelsPerFrame );
     
     fprintf(stdout, "sourceAudioFile length of file in frames:   %llu", player->sourceAudioFile.numFrames);

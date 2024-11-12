@@ -24,6 +24,8 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2020 3rdGen Multimedia. All rights reserved.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app requires access to external device inputs for recording.</string>
 	<key>NSPrincipalClass</key>
 	<string>PbAudioApplication</string>
 	<key>NSSupportsAutomaticTermination</key>

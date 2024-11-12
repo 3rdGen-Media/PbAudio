@@ -11,7 +11,8 @@
 #define pbaudio_stream_h
 
 //OS Includes for Creating an "Audio Stream"
-
+#define PBA_MAX_INFLIGHT_BUFFERS 128
+#define PBA_TOTAL_BUFFER_SIZE    4096
 
 #ifdef __APPLE__
 #import <AudioToolbox/AudioToolbox.h>
@@ -106,6 +107,7 @@ static const IID _IID_IAudioRenderClient    = { 0xF294ACFC, 0x3146, 0x4483, { 0x
 struct PBAStreamContext; //fwd
 
 #ifdef __APPLE__
+PB_AUDIO_EXTERN const CFStringRef kPBAStreamDeviceChangedNotification;     //Device property was changed on the audio unit
 PB_AUDIO_EXTERN const CFStringRef kPBAStreamFormatChangedNotification;     //Format was changed as a Result of UpdateStream
 PB_AUDIO_EXTERN const CFStringRef kPBAStreamSampleRateChangedNotification; //Sample Rate Was Changed As a Result of UpdateStream
 PB_AUDIO_EXTERN const CFStringRef kPBASampleRateChangedNotification;       //Sample Rate Was Changed As a Result of DeviceSetlRate
@@ -200,28 +202,37 @@ typedef struct PBAStreamContext
 	
 #elif defined(__APPLE__)
     AudioUnit _Nullable        audioUnit;
+    //AudioUnit _Nullable        inputUnit;
+    
     AudioDeviceID              audioDevice;
+    //AudioDeviceID              inputDevice;
 #endif
 	
-
     PBAStreamFormat             format;
     PBAStreamFormatSampleType   target;
 
     PBAStreamOutputPass         outputpass;
+    PBAStreamOutputPass         inputPass;
+
     PBATimeStamp                inputTimeStamp;
+    PBABufferList*              inputBufferList; //current buffer list being written to by input pass
     
-    double                      sampleRate;
-    double                      currentSampleRate;	//what is difference between currentSampleRate and sampleRate?
+    PBABufferList*              bufferList[PBA_MAX_INFLIGHT_BUFFERS];
+    volatile uint64_t           bufferIndex;  //active command buffer list
+    volatile uint64_t           nBuffers;     //active # buffer lists in circular buffer
+
+    //volatile uint64_t           rbIndex, wbIndex;     //active command buffer indices for reading and writing
+    volatile uint64_t           iChannels, oChannels; //channels enabled marix
+    
+    double                      sampleRate, currentSampleRate;
     double                      inputLatency, outputLatency; //iOS only
     int                         nInputChannels, nOutputChannels;
-    //int                         maxInputChannels;
     
     //TO DO:  make these bitflags
-	bool                        inputEnabled, outputEnabled;
+	bool                        inputEnabled, outputEnabled, passthroughEnabled;
     bool                        running, bypass;
     bool                        hasSetInitialStreamFormat;
     bool                        latencyCompensation;// iOS only
-    
     bool                        respectDefault;
 
 }PBAStreamContext;

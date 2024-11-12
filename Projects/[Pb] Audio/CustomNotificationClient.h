@@ -126,6 +126,17 @@ static void PBAudioDeviceDefaultOutputChangedNotificationCallback(CFNotification
     
 }
 
+static void PBAudioStreamDeviceChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
+{
+    assert(userInfo);
+
+    PBAStreamContext * DeviceStream = (PBAStreamContext*)CFDictionaryGetValue(userInfo, CFSTR("DeviceStream"));     assert(DeviceStream);
+    //CFNumberRef        DeviceRef    =       (CFNumberRef)CFDictionaryGetValue(userInfo, CFSTR("OutputDeviceID")); assert(DeviceRef);
+    //BOOL success = CFNumberGetValue( DeviceRef, kCFNumberSInt32Type, &outputDeviceID); assert(success);
+    
+    fprintf(stdout, "\nPBAudioStreamDeviceChangedNotificationCallback (DeviceID: %lu)\n", (unsigned int)DeviceStream->audioDevice);
+}
+
 static void PBAudioStreamFormatChangedNotificationCallback(CFNotificationCenterRef center, void * observer, CFStringRef name, const void * object, CFDictionaryRef userInfo)
 {
     AudioDeviceID outputDeviceID; PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &outputDeviceID);
@@ -222,6 +233,10 @@ static void RegisterAudioNotificationObservers(void)
     //self.deviceAvailabilityObserverToken =
     CFNotificationCenterAddObserver(center, NULL, PBAudioDevicesAvailableChangedNotificationCallback,
                                     CFSTR("PBADeviceAvailableDevicesChangedNotification"),
+                                    NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+    
+    CFNotificationCenterAddObserver(center, NULL, PBAudioStreamDeviceChangedNotificationCallback,
+                                    CFSTR("PBAudioStreamDeviceChangedNotification"),
                                     NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
     
     CFNotificationCenterAddObserver(center, NULL, PBAudioStreamSampleRateChangedNotificationCallback,

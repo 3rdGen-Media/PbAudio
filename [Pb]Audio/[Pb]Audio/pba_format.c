@@ -430,6 +430,7 @@ PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_f32(void** srcBuffers, void
 
 PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32_f32(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
 {
+    /*
     uint64_t channel;
     for(channel = 0; channel < nBufferChannels; channel++)
     {
@@ -440,6 +441,23 @@ PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32_f32(void** srcBuffers, void*
         float* fBufferL = (float*)dstBuffers[channel];
         
         memcpy(fBufferL, samplesL, nFrames * sizeof(float));
+    }
+    */
+
+    uint64_t i = 0;
+
+    //src
+    float* samplesL = (float*)(srcBuffers[0]);
+    float* samplesR = (float*)(srcBuffers[1]);
+    
+    //dest
+    float* fBufferL = (float*)dstBuffers[0];
+    float* fBufferR = (float*)dstBuffers[1];
+
+    for (i = 0; i < nFrames; i++)
+    {
+        fBufferL[i] += samplesL[i];
+        fBufferR[i] += samplesR[i];
     }
 }
 

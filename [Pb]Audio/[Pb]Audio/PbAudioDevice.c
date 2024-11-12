@@ -104,9 +104,14 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioRegisterDeviceListeners(struct PBAD
 #if TARGET_OS_OSX
     //Note:  The client streamContext passed to PbAudio.Init() is passed as Listener inClientData property0
     //TO DO: Error Checking?
+    //TO DO: Remove property listeners on shutdown
     AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDefaultInputDevice,  kAudioObjectPropertyScopeGlobal}, PBAudioDeviceDefaultInputChanged,     context);
     AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyScopeGlobal}, PBAudioDeviceDefaultOutputChanged,    context);
     AudioObjectAddPropertyListener(kAudioObjectSystemObject, &(AudioObjectPropertyAddress){kAudioHardwarePropertyDevices,             kAudioObjectPropertyScopeGlobal}, PBAudioDeviceAvailableDevicesChanged, context);
+    
+    AudioUnitAddPropertyListener( ((PBAStreamContext*)context)->audioUnit, kAudioOutputUnitProperty_CurrentDevice, PBAudioStreamDeviceChanged, context );
+    
+    
 #else //#if TARGET_OS_IPHONE || TARGET_OS_TVOS
         
         // Watch for session interruptions
@@ -222,9 +227,9 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDefaultDevice(AudioObjectPropertySe
     
     result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &addr, 0, NULL, &size, pDevice);
     
-    if ( !PBACheckOSStatus(result, "kAudioHardwarePropertyDefaultOutputDevice") || *pDevice == kAudioObjectUnknown )
+    if ( !PBACheckOSStatus(result, "PBAudioDefaultDevice::kAudioHardwarePropertyDefaultInOutDevice") || *pDevice == kAudioObjectUnknown )
     {
-        fprintf(stderr, ", Unable to get default audio unit output device\n"); assert(1==0);
+        fprintf(stderr, ", Unable to get default audio unit device\n"); assert(1==0);
         //return nil;
     }
 #else
@@ -717,8 +722,10 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceBufferSize(PBAudioDevice inDe
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice deviceID, uint32_t bufferSize)
 {
     OSStatus status = 0;
-#if defined(__APPLE__) 
+    int i=0;
+#if defined(__APPLE__)
 #if TARGET_OS_OSX
+    
     //for each stream
     volatile bool wasRunning  = false;
     //volatile bool wasBypassed = false;
@@ -729,6 +736,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice d
     uint32_t mBytesPerFrame  = streamContext->format.mBytesPerFrame;
     uint32_t mBitsPerChannel = streamContext->format.mBitsPerChannel;
 
+    //Stop the Audio Unit Stream
     if( streamContext->audioDevice == deviceID && streamContext->audioUnit && streamContext->running)
     {
         PBAudioStreamStop(streamContext); wasRunning = true;
@@ -740,8 +748,8 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice d
     if ( !PBACheckOSStatus(status, "kAudioDevicePropertyBufferFrameSize") )
     {
         fprintf(stderr, ", Unable to set PropertyData(kAudioDevicePropertyBufferFrameSize)\n");
-        //return nil;
         assert(1==0);
+        return status;
     }
     
     // Set the maximum frames per slice to render
@@ -762,8 +770,18 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice d
         
         streamContext->target = PBAStreamFormatGetType(&streamContext->format); //enumerate a sample packing protocol for the given format
 
+        if( streamContext->inputEnabled )
+        {
+            uint64_t nBuffers = PBA_TOTAL_BUFFER_SIZE / bufferSize;
+            for(i=0; i<PBA_MAX_INFLIGHT_BUFFERS; i++)
+            {
+                if(streamContext->bufferList[i])  PBABufferListFree(streamContext->bufferList[i]);
+                if( i < nBuffers ) streamContext->bufferList[i] = PBABufferListCreateWithFormat(streamContext->format, bufferSize);
+            }
+            streamContext->nBuffers = nBuffers; streamContext->bufferIndex = 0;
 
-
+        }
+        
         if ( wasRunning ) PBAudioStreamStart(streamContext);
 
     }

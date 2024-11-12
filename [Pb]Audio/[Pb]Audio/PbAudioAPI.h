@@ -25,8 +25,17 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamStart(PBAStreamContext * stre
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamStop(PBAStreamContext * streamContext);
 PB_AUDIO_API PB_AUDIO_INLINE void     PBAudioStreamSetBypass(PBAStreamContext * streamContext, bool bypass);
 
+
+//[Stream] Device API
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus       PBAudioStreamSetInputState(PBAStreamContext* streamContext, UInt32 state);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamSetPassThroughState(PBAStreamContext* streamContext, UInt32 state);
+
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamGetInputDevice(PBAStreamContext * streamContext, PBAudioDevice* deviceID);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamSetInputDevice(PBAStreamContext * streamContext, PBAudioDevice deviceID);
+
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamGetOutputDevice(PBAStreamContext * streamContext, PBAudioDevice* deviceID);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioDevice deviceID);
+
 
 //#pragma mark -- CTConnection API Method Function Pointer Definitions
 //typedef int (*CTConnectFunc)(struct CTTarget * service, CTConnectionClosure callback);
@@ -45,6 +54,7 @@ typedef struct PBAudioStreamFactory
     PBAStreamFunc            Stop;
 
     //Hardware API
+    PBAStreamDeviceFunc      SetInputDevice;
     PBAStreamDeviceFunc      SetOutputDevice;
 
     //We expose a per instance pool of audio stream containers that can be used 

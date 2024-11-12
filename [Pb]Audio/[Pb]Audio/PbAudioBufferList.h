@@ -35,6 +35,8 @@ typedef struct PBABufferList
 #ifdef __APPLE__
 PB_AUDIO_API PB_AUDIO_INLINE PBABufferList *PBABufferListCreateWithFormat(PBAStreamFormat audioFormat, int frameCount);
 PB_AUDIO_API PB_AUDIO_INLINE PBABufferList *PBABufferListCreate(int frameCount);
+PB_AUDIO_API PB_AUDIO_INLINE void PBABufferListFree(PBABufferList *bufferList);
+
 
 /*
 AudioBufferList *AEAudioBufferListCreateWithContentsOfFile(NSString * filePath, AudioStreamBasicDescription audioFormat) {
@@ -80,6 +82,118 @@ AudioBufferList *AEAudioBufferListCreateWithContentsOfFile(NSString * filePath, 
 }
 */
 
+/*!
+ * Create an audio buffer list on the stack, using the default audio format.
+ *
+ *  This is useful for creating buffers for temporary use, without needing to perform any
+ *  memory allocations. It will create a local AudioBufferList* variable on the stack, with
+ *  a name given by the first argument, and initialise the buffer according to the given
+ *  audio format.
+ *
+ *  The created buffer will have NULL mData pointers and 0 mDataByteSize: you will need to
+ *  assign these to point to a memory buffer.
+ *
+ * @param name Name of the variable to create on the stack
+ */
+#define PBABufferListCreateOnStack(name) \
+    AEAudioBufferListCreateOnStackWithFormat(name, AEAudioDescription)
+
+/*!
+ * Create an audio buffer list on the stack, with a custom audio format.
+ *
+ *  This is useful for creating buffers for temporary use, without needing to perform any
+ *  memory allocations. It will create a local AudioBufferList* variable on the stack, with
+ *  a name given by the first argument, and initialise the buffer according to the given
+ *  audio format.
+ *
+ *  The created buffer will have NULL mData pointers and 0 mDataByteSize: you will need to
+ *  assign these to point to a memory buffer.
+ *
+ * @param name Name of the variable to create on the stack
+ * @param audioFormat The audio format to use
+ */
+#define PBABufferListCreateOnStackWithFormat(name, audioFormat, channels) \
+    int name ## _numberBuffers = audioFormat.mFormatFlags & kAudioFormatFlagIsNonInterleaved \
+                                    ? channels : 1; \
+    char name ## _bytes[sizeof(AudioBufferList)+(sizeof(AudioBuffer)*(name ## _numberBuffers-1))]; \
+    memset(&name ## _bytes, 0, sizeof(name ## _bytes)); \
+    AudioBufferList * name = (AudioBufferList*)name ## _bytes; \
+    name->mNumberBuffers = name ## _numberBuffers; \
+    for ( int i=0; i<name->mNumberBuffers; i++ ) { \
+        name->mBuffers[i].mNumberChannels \
+            = audioFormat.mFormatFlags & kAudioFormatFlagIsNonInterleaved ? 1 : channels; \
+    }
+
+/*!
+ * Create a stack copy of the given audio buffer list and offset mData pointers
+ *
+ *  This is useful for creating buffers that point to an offset into the original buffer,
+ *  to fill later regions of the buffer. It will create a local AudioBufferList* variable
+ *  on the stack, with a name given by the first argument, copy the original AudioBufferList
+ *  structure values, and offset the mData and mDataByteSize variables.
+ *
+ *  Note that only the AudioBufferList structure itself will be copied, not the data to
+ *  which it points.
+ *
+ * @param name Name of the variable to create on the stack
+ * @param sourceBufferList The original buffer list to copy
+ * @param offsetFrames Number of frames of noninterleaved float to offset mData/mDataByteSize members
+ */
+#define PBABufferListCopyOnStack(name, sourceBufferList, offsetFrames) \
+    PBABufferListCopyOnStackWithByteOffset(name, sourceBufferList, offsetFrames * AEAudioDescription.mBytesPerFrame)
+
+/*!
+ * Create a stack copy of the given audio buffer list and offset mData pointers, with offset in bytes
+ *
+ *  This is useful for creating buffers that point to an offset into the original buffer,
+ *  to fill later regions of the buffer. It will create a local AudioBufferList* variable
+ *  on the stack, with a name given by the first argument, copy the original AudioBufferList
+ *  structure values, and offset the mData and mDataByteSize variables.
+ *
+ *  Note that only the AudioBufferList structure itself will be copied, not the data to
+ *  which it points.
+ *
+ * @param name Name of the variable to create on the stack
+ * @param sourceBufferList The original buffer list to copy
+ * @param offsetBytes Number of bytes to offset mData/mDataByteSize members
+ */
+#define PBABufferListCopyOnStackWithByteOffset(name, sourceBufferList, offsetBytes) \
+    const AudioBufferList * name ## _sourceBuffer = (sourceBufferList); \
+    const UInt32 name ## _offsetBytes = (UInt32)(offsetBytes); \
+    char name ## _bytes[sizeof(AudioBufferList)+(sizeof(AudioBuffer)*(name ## _sourceBuffer->mNumberBuffers-1))]; \
+    memcpy(name ## _bytes, name ## _sourceBuffer, sizeof(name ## _bytes)); \
+    AudioBufferList * name = (AudioBufferList*)name ## _bytes; \
+    for ( int i=0; i<name->mNumberBuffers; i++ ) { \
+        name->mBuffers[i].mData = (char*)name->mBuffers[i].mData + name ## _offsetBytes; \
+        name->mBuffers[i].mDataByteSize -= name ## _offsetBytes; \
+    }
+
+/*!
+ * Create a stack copy of an audio buffer list that points to a subset of its channels
+ *
+ * @param name Name of the variable to create on the stack
+ * @param sourceBufferList The original buffer list to copy
+ * @param channelSet The subset of channels
+ */
+#define PBABufferListCopyOnStackWithChannelSubset(name, sourceBufferList, channelSet) \
+    int name ## _bufferCount = MIN(sourceBufferList->mNumberBuffers-1, channelSet.lastChannel) - \
+                               MIN(sourceBufferList->mNumberBuffers-1, channelSet.firstChannel) + 1; \
+    char name ## _bytes[sizeof(AudioBufferList)+(sizeof(AudioBuffer)*(name ## _bufferCount-1))]; \
+    AudioBufferList * name = (AudioBufferList*)name ## _bytes; \
+    name->mNumberBuffers = name ## _bufferCount; \
+    memcpy(name->mBuffers, &sourceBufferList->mBuffers[MIN(sourceBufferList->mNumberBuffers-1, channelSet.firstChannel)], \
+        sizeof(AudioBuffer) * name ## _bufferCount);
+
+/*!
+ * Create a copy of an audio buffer list
+ *
+ *  Note: Do not use this utility from within the Core Audio thread (such as inside a render
+ *  callback). It may cause the thread to block, inducing audio stutters.
+ *
+ * @param original The original AudioBufferList to copy
+ * @return The new, copied audio buffer list
+ */
+//AudioBufferList *AEAudioBufferListCopy(const AudioBufferList *original);
 
 #endif
 

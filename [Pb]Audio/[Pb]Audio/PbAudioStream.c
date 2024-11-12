@@ -22,10 +22,10 @@
 
 
 #ifdef __APPLE__
+const CFStringRef kPBAStreamDeviceChangedNotification        = CFSTR("PBAudioStreamDeviceChangedNotification");
 const CFStringRef kPBAudioDidUpdateStreamFormatNotification  = CFSTR("PBAudioDidUpdateStreamFormatNotification");
 //const CFStringRef kPBAStreamFormatChangedNotification      = CFSTR("kPBAStreamFormatChangedNotification");
 const CFStringRef kPBAStreamSampleRateChangedNotification    = CFSTR("PBAudioStreamSampleRateChangedNotification");
-
 const CFStringRef kPBAudioSessionRouteChangedNotification    = CFSTR("PBAudioSessionRouteChangedNotification");
 #else
 
@@ -34,11 +34,11 @@ const CFStringRef kPBAudioSessionRouteChangedNotification    = CFSTR("PBAudioSes
 void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRate)
 {
 
-    bool running = streamContext->running;
+    bool running     = streamContext->running;
     bool stoppedUnit = false;
-    bool hasChanges = false;
-    bool iaaInput = false;
-    bool iaaOutput = false;
+    bool hasChanges  = false;
+    bool iaaInput    = false;
+    bool iaaOutput   = false;
     //double priorSampleRate = streamContext->currentSampleRate;
 
     fprintf(stdout, "PBAUpdateStreamFormat...\n");
@@ -61,15 +61,14 @@ void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRa
 #endif
     bool hasSampleRateChanges = false;
 
-    if ( streamContext->outputEnabled ) {
-        // Get the current output sample rate and number of output channels
+    if ( streamContext->outputEnabled )
+    {
+        // Get the output format of the output bus Get the current output sample rate and number of output channels
         AudioStreamBasicDescription asbd;
         UInt32 size = sizeof(asbd);
         PBACheckOSStatus(AudioUnitGetProperty(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, &size), "AudioUnitGetProperty(kAudioUnitProperty_StreamFormat)");
-        if ( iaaOutput ) 
-        {
-            asbd.mChannelsPerFrame = 2;
-        }
+        
+        if ( iaaOutput ) asbd.mChannelsPerFrame = 2;
         
         bool hasOutputChanges     = false;
 
@@ -98,21 +97,22 @@ void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRa
             asbd = _audioFormat;
             //asbd.mFormatFlags = streamContext->format.mFormatFlags;
             asbd.mChannelsPerFrame = streamContext->nOutputChannels;
-            asbd.mSampleRate = streamContext->currentSampleRate;
+            asbd.mSampleRate       = streamContext->currentSampleRate;
+            
+            //Set the input format fo the output bus
             PBACheckOSStatus(AudioUnitSetProperty(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof(asbd)), "AudioUnitSetProperty(kAudioUnitProperty_StreamFormat)");
         }
         
         //set the output format onm our stream context
         memcpy(&(streamContext->format), &asbd, sizeof(PBAStreamFormat));
-    }
+    } else streamContext->nOutputChannels = 0;
     
     if ( streamContext->inputEnabled ) 
     {
-        // Get the current input number of input channels
-        AudioStreamBasicDescription asbd;
-        UInt32 size = sizeof(asbd);
+        // Get the input format of the input bus to Get the current input number of input channels
+        AudioStreamBasicDescription asbd; UInt32 size = sizeof(asbd);
         PBACheckOSStatus(AudioUnitGetProperty(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 1, &asbd, &size),
-                        "AudioUnitGetProperty(kAudioUnitProperty_StreamFormat)");
+        "AudioUnitGetProperty(kAudioUnitProperty_StreamFormat)");
         
         if ( iaaInput ) asbd.mChannelsPerFrame = 2;
         
@@ -125,7 +125,8 @@ void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRa
             streamContext->nInputChannels = channels;
         }
         
-        if ( !streamContext->outputEnabled ) {
+        if ( !streamContext->outputEnabled )
+        {
             double newSampleRate = sampleRate == 0 ? asbd.mSampleRate : sampleRate;
             if ( fabs(streamContext->currentSampleRate - newSampleRate) > DBL_EPSILON )
             {
@@ -136,23 +137,25 @@ void PBAudioStreamUpdateFormat(PBAStreamContext * streamContext, double sampleRa
         
         if ( streamContext->nInputChannels > 0 && (hasInputChanges || streamContext->hasSetInitialStreamFormat) ) 
         {
-            if ( running && !stoppedUnit )
-            {
-                PBACheckOSStatus(AudioOutputUnitStop(streamContext->audioUnit), "AudioOutputUnitStop");
-                stoppedUnit = true;
-            }
+            //if ( running && !stoppedUnit )
+            //{
+            //    PBACheckOSStatus(AudioOutputUnitStop(streamContext->audioUnit), "AudioOutputUnitStop");
+            //    stoppedUnit = true;
+            //}
             
             // Set the stream format
             asbd = _audioFormat;
             asbd.mChannelsPerFrame = streamContext->nInputChannels;
-            asbd.mSampleRate = streamContext->currentSampleRate;
+            asbd.mSampleRate       = streamContext->currentSampleRate;
+            
+            //Set the output format of the input bus
             PBACheckOSStatus(AudioUnitSetProperty(streamContext->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &asbd, sizeof(asbd)), "AudioUnitSetProperty(kAudioUnitProperty_StreamFormat)");
         } 
         else
         {
             memset(&(streamContext->inputTimeStamp), 0, sizeof(streamContext->inputTimeStamp));
         }
-    }
+    } else streamContext->nInputChannels = 0;
         
     streamContext->target = PBAStreamFormatGetType(&streamContext->format); //enumerate a sample packing protocol for the given format
 

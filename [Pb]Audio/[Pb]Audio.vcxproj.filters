@@ -39,7 +39,7 @@
     <ClInclude Include="[Pb]Audio\PbAudioExt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="[Pb]Audio\pba_dsp_waveforms.h">
+    <ClInclude Include="[Pb]Audio\pba_dsp_routines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="[Pb]Audio\pba_error.h">
@@ -76,6 +76,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\xnz\xnz_aif_codec.h">
+      <Filter>xnz</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xnz\xnz_flac_codec.h">
       <Filter>xnz</Filter>
     </ClInclude>
   </ItemGroup>

@@ -116,23 +116,23 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
     //    memset(&msg, 0, sizeof(MSG));
     //}
 
-    //Next look for events scheduled to queue of type CMTriggerMessage
-    while (PeekMessage(&msg, (HWND)-1, PBA_EVENT_NOTE_TRIGGER, PBA_EVENT_NOTE_TRIGGER, PM_REMOVE))// && n < cr_control_event_type_max)
+    //Next look for [midi note + cc] events scheduled to queue of type CMTriggerMessage
+    while (PeekMessage(&msg, (HWND)-1, PBA_EVENT_MSG_BASE_ID + 1, PBA_EVENT_MSG_BASE_ID + 128, PM_REMOVE))// && n < cr_control_event_type_max)
     {
         //cache trigger events + values pulled from the queue
         //int condition = (msg.wParam >= cr_control_event_type_max); //cr_control_event_type vs cr_button_event_type
         triggerEvent = (CMTriggerMessage*)(msg.lParam);              //src event memory
 
         //TO DO: cache the event in the note:articulation map
-        //trigger_event_frame.events[kev[i].ident] = *controlEvent;  //cache previous events of type
-        triggerEvents[nTriggerEvents] = triggerEvent;
+        triggerEvents[nTriggerEvents] = triggerEvent; //cache previous events of type
 
         //TO DO: count # of trigger events for each articulation
 
         //Unpack/Process the Triggered Note
         uint8_t note = CMNoteNumberFromEventWord(triggerEvent->word);
         uint8_t velocity = CMNoteVelocityFromEventWord(triggerEvent->word);
-        fprintf(stdout, "\nTrigger Event (%llu) Note = %u (%u)\n", msg.wParam, note, velocity);
+
+        //fprintf(stdout, "\nTrigger Event (%llu) Note = %u (%u)\n", msg.wParam, note, velocity);
 
         memset(&msg, 0, sizeof(MSG));
         nTriggerEvents++; // += !condition;
@@ -193,7 +193,7 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
         char* sampleBufferR = (char*)stream->inputBufferList->mBuffers[19].mData;
         char* sampleBuffers[2] = {sampleBufferL, sampleBufferR};
         
-        pb_audio_transform[stream->target][stream->target](sampleBuffers, byteBuffers, 2, frames);
+        pb_audio_transform[stream->target][stream->target]((void**)sampleBuffers, (void**)byteBuffers, 2, frames);
     }
 
     
@@ -348,7 +348,7 @@ void CMidiReceiveBlock(const MIDIEventList * evtlist, void* srcConnRefCon)
                         //  2.  I don't understand how custom broadcast messages work yet
                         //  3.  A given thread's queue can be produced to/consumed from with PostThreadMessage/PeekMessage API
                         //PostThreadMessage(eventQueue, CR_SCENE_CONTROL_EVENT, sceneEvent->type, sceneEvent);
-                        PostThreadMessage((DWORD)PBAudio.OutputStreams[0].audioThreadID, PBA_EVENT_NOTE_TRIGGER, triggerMessage->timestamp, (LPARAM)triggerMessage);
+                        PostThreadMessage((DWORD)PBAudio.OutputStreams[0].audioThreadID, PBA_EVENT_MSG_BASE_ID + note, triggerMessage->timestamp, (LPARAM)triggerMessage);
 #else
                         struct kevent kev;
                         EV_SET(&kev, note, EVFILT_USER, 0, NOTE_TRIGGER, 0, triggerMessage);

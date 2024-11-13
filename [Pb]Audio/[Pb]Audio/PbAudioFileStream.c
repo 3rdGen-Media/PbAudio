@@ -389,7 +389,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char * fileURL, /*
         inputAudioFileRef->form = XNG_AUDIO_FORM_AIF;
 
     }
-    //else if (strcmp(fileExt, "wav") == 0 || strcmp(fileExt, "WAV") == 0)    //load aiff
+    //else if (strcmp(fileExt, "wav") == 0 || strcmp(fileExt, "WAV") == 0)    //load wav
     else if( memcmp(inputAudioFileRef->file.buffer, "RIFF", 4) == 0 )
     {
         xnz_wav_open(&inputAudioFileRef->wav, NULL);//fileURL);
@@ -524,7 +524,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamReadFrames(PBAFileRef audioFi
 
 IMFAttributes* sourceReaderConfiguration;// Windows Media Foundation Source Reader Configuration
 
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char* fileURL, const char* fileExt, PBAStreamFormatRef converterFormat, PBAFileRef inputAudioFileRef)//PBAStreamContext * streamContext, PBAStreamLatencyReport * report, double renderTime, double bufferDuration);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char* fileURL, /*const char* fileExt,*/ PBAStreamFormatRef converterFormat, PBAFileRef inputAudioFileRef)//PBAStreamContext * streamContext, PBAStreamLatencyReport * report, double renderTime, double bufferDuration);
 {
 #ifndef XNZ_AUDIO
     OSStatus hr;
@@ -652,13 +652,34 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char* fileURL, con
     if (fileFormat)                { CoTaskMemFree(fileFormat); fileFormat = NULL;                               }
     if (sourceReaderConfiguration) { CALL(Release, sourceReaderConfiguration); sourceReaderConfiguration = NULL; }
 #else
+
+    if( fileURL )
+    {
+        inputAudioFileRef->file.fd   = cr_file_open(fileURL);
+        inputAudioFileRef->file.size = cr_file_size(inputAudioFileRef->file.fd);
+        inputAudioFileRef->file.path = (char*)fileURL;
+        
+        fprintf(stderr, "\nPBAFileStreamOpen::File Size =  %lu bytes\n", inputAudioFileRef->file.size);
+        
+        //2 MAP THE FILE TO BUFFER FOR READING
+#ifndef _WIN32
+        inputAudioFileRef->file.buffer = (char*)cr_file_map_to_buffer(&(inputAudioFileRef->file.buffer), inputAudioFileRef->file.size, PROT_READ, MAP_SHARED | MAP_NORESERVE, inputAudioFileRef->file.fd, 0);
+        if (madvise(inputAudioFileRef->file.buffer, (size_t)inputAudioFileRef->file.size, MADV_SEQUENTIAL | MADV_WILLNEED) == -1) {
+            printf("\nread madvise failed\n");
+        }
+#else
+        inputAudioFileRef->file.mFile = cr_file_map_to_buffer(&(inputAudioFileRef->file.buffer), inputAudioFileRef->file.size, PROT_READ, MAP_SHARED | MAP_NORESERVE, inputAudioFileRef->file.fd, 0);
+#endif
+    }
+    else assert(inputAudioFileRef->file.buffer);
     
-    if (strcmp(fileExt, "aif") == 0 || strcmp(fileExt, "AIF") == 0   ||    //load aiff
-        strcmp(fileExt, "aiff") == 0 || strcmp(fileExt, "AIFF") == 0 ||    //load aiff
-        strcmp(fileExt, "aifc") == 0 || strcmp(fileExt, "AIFC") == 0)      //load aiff
+    //if (strcmp(fileExt, "aif")  == 0 || strcmp(fileExt, "AIF") == 0  ||    //load aiff
+    //    strcmp(fileExt, "aiff") == 0 || strcmp(fileExt, "AIFF") == 0 ||    //load aiff
+    //    strcmp(fileExt, "aifc") == 0 || strcmp(fileExt, "AIFC") == 0)      //load aiff
+    if (memcmp(inputAudioFileRef->file.buffer, "FORM", 4) == 0)
     {
         //printf("\nLoading PNG:    %s\n", filepath);
-        xnz_aif_open(&inputAudioFileRef->aif, fileURL);
+        xnz_aif_open(&inputAudioFileRef->aif, NULL); //fileURL);
 
         //record source format
         //memcpy(&inputAudioFileRef->sourceFormat, ((char*)inputAudioFileRef->aif.fmt) + sizeof(xnz_wav_chunk), inputAudioFileRef->aif.fmt->chunkSize);
@@ -687,9 +708,10 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char* fileURL, con
         inputAudioFileRef->form = XNG_AUDIO_FORM_AIF;
 
     }
-    else if (strcmp(fileExt, "wav") == 0 || strcmp(fileExt, "WAV") == 0)    //load aiff
+    //else if (strcmp(fileExt, "wav") == 0 || strcmp(fileExt, "WAV") == 0)    //load wav
+    else if (memcmp(inputAudioFileRef->file.buffer, "RIFF", 4) == 0)
     {
-        xnz_wav_open(&inputAudioFileRef->wav, fileURL);
+        xnz_wav_open(&inputAudioFileRef->wav, NULL);// fileURL);
 
         //record source format
         memcpy(&inputAudioFileRef->sourceFormat, ((char*)inputAudioFileRef->wav.fmt) + sizeof(xnz_wav_chunk), inputAudioFileRef->wav.fmt->chunkSize);
@@ -703,9 +725,10 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAFileStreamOpen(const char* fileURL, con
 
         inputAudioFileRef->form = XNG_AUDIO_FORM_WAV;
     }
-    else if (strcmp(fileExt, "flac") == 0 || strcmp(fileExt, "FLAC") == 0)    //load flac
+    //else if (strcmp(fileExt, "flac") == 0 || strcmp(fileExt, "FLAC") == 0)    //load flac
+    else if (memcmp(inputAudioFileRef->file.buffer, "fLaC", 4) == 0)
     {
-        xnz_flac_open(&inputAudioFileRef->flac, (char*)fileURL);
+        xnz_flac_open(&inputAudioFileRef->flac, NULL);// (char*)fileURL);
 
         inputAudioFileRef->sourceFormat.wFormatTag      = inputAudioFileRef->flac.streaminfo.nChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM;
         inputAudioFileRef->sourceFormat.nChannels       = inputAudioFileRef->flac.streaminfo.nChannels;

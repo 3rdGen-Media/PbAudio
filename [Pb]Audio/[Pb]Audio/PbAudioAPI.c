@@ -224,11 +224,12 @@ OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * f
 
     streamContext->iChannels = streamContext->oChannels = 0; //channels enabled matrix
     
-    //Get handle to default output audio device
-    if( streamContext->audioDevice == kAudioObjectUnknown ) PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &streamContext->audioDevice );
 
 #ifdef __APPLE__
-    
+
+        //Get handle to default output audio device
+        if (streamContext->audioDevice == kAudioObjectUnknown) PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &streamContext->audioDevice);
+
         //Determine if the requested output device has input channels available
         int inputChannelCount = PBAudioDeviceChannelCount(streamContext->audioDevice, kAudioObjectPropertyScopeInput);
 
@@ -362,10 +363,7 @@ OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * f
     PBAudioDeviceInitCOM();
 
     //Get the Default or Desired Audio Hardware Device Endpoint
-    if (streamContext->audioDevice == kAudioObjectUnknown)
-    {
-        PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &(streamContext->audioDevice));
-    }
+    if (streamContext->audioDevice == kAudioObjectUnknown) PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &(streamContext->audioDevice));
     else assert(1 == 0);
 
     //if (streamContext->audioClient) CALL(Release, streamContext->audioClient); streamContext->audioClient = NULL;
@@ -808,21 +806,26 @@ OSStatus PBAudioStreamGetOutputDevice(PBAStreamContext * streamContext, PBAudioD
     return result;
 }
 
-OSStatus PBAudioStreamSetPassThroughState(PBAStreamContext* streamContext, UInt32 state)
+OSStatus PBAudioStreamSetPassThroughState(PBAStreamContext* streamContext, uint32_t state)
 {
     streamContext->passthroughEnabled = state;
     return noErr;
 }
 
-OSStatus PBAudioStreamSetInputState(PBAStreamContext* streamContext, UInt32 state)
+OSStatus PBAudioStreamSetInputState(PBAStreamContext* streamContext, uint32_t state)
 {
-    OSStatus result = AudioUnitSetProperty(streamContext->audioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &state, sizeof(state));
+    OSStatus result = 0;
+#ifdef __APPLE__
+    result = AudioUnitSetProperty(streamContext->audioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &state, sizeof(state));
     if ( !PBACheckOSStatus(result, "AudioUnitSetProperty(kAudioOutputUnitProperty_EnableIO)") )
     {
         //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:userInfo:@{ NSLocalizedDescriptionKey: @"Unable to enable/disable input" }];
         fprintf(stderr, "PBAudioStreamSetOutputDevice::Unable to enable/disable input\n");
         return result;
     }
+#else
+    assert(1 == 0);
+#endif
     
     streamContext->inputEnabled = state;
     return result;

@@ -27,8 +27,8 @@ PB_AUDIO_API PB_AUDIO_INLINE void     PBAudioStreamSetBypass(PBAStreamContext * 
 
 
 //[Stream] Device API
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus       PBAudioStreamSetInputState(PBAStreamContext* streamContext, UInt32 state);
-PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamSetPassThroughState(PBAStreamContext* streamContext, UInt32 state);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus       PBAudioStreamSetInputState(PBAStreamContext* streamContext, uint32_t state);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamSetPassThroughState(PBAStreamContext* streamContext, uint32_t state);
 
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamGetInputDevice(PBAStreamContext * streamContext, PBAudioDevice* deviceID);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamSetInputDevice(PBAStreamContext * streamContext, PBAudioDevice deviceID);

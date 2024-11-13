@@ -136,7 +136,7 @@ extern "C" {
 #include "[Pb]Audio/pba_time.h"
 #include "[Pb]Audio/pba_format.h"
 #include "[Pb]Audio/pba_error.h"
-#include "[Pb]Audio/pba_dsp_waveforms.h"
+#include "[Pb]Audio/pba_dsp_routines.h"
 
 
 //now include our C primitive data types and functionality

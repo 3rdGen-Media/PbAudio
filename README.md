@@ -10,7 +10,7 @@
 * <a href="https://github.com/3rdGen-Media/PbAudio/blob/master/%5BPb%5DAudio/%5BPb%5DAudio/PbAudioFileStream.h">File Stream API</a> for Async Resource Loading
 * Extendable <a href="https://github.com/3rdGen-Media/PbAudio/blob/master/%5BPb%5DAudio/CMidi/CMidiMessage.h">Control Message Protcol</a> for client-server IPC
 * <a href="https://github.com/3rdGen-Media/PbAudio/tree/master/%5BPb%5DAudio/CMidi">MIDI 2.0 Interop</a> for Trigger Event Scheduling
-* Plug-in Support for DAW Integration <a href="https://github.com/3rdGen-Media/PbAudio/blob/master/Projects/%5BPb%5D%20Audio/Render/PBAudioUnit.m">(AudioUnit</a>,  <s>VST</s>)
+* Plug-in Support for DAW Integration (<s>AAX</s>, <a href="https://github.com/3rdGen-Media/PbAudio/blob/master/Projects/%5BPb%5D%20Audio/Render/PBAudioUnit.m">AudioUnit</a>, <s>CLAP</s>, <s>VST</s>)
 * Graphics Pipeline/Vertical Retrace Synchronization
 
 ### Spacial Audio System
@@ -25,4 +25,4 @@
 
 While the [Pb]Audio library exists primarily to supplement applications built within accelerated graphics environments and, as such, feature development will be driven primarily to support audio in the context of 3D rendering and animation the '[Pb] Audio' project demonstrates the feature-set(s) and API usage of the [Pb]Audio library in the context of a cross-platform application, where associated UI and rendering are minimally implemented sans integration with an accelerated graphics pipeline.
 
-
+<img align="center" src="https://github.com/3rdGen-Media/PbAudio/blob/master/Projects/%5BPb%5D%20Audio/Assets/Images/MainWindow.png"/>

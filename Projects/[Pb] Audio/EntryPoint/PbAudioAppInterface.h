@@ -33,7 +33,8 @@
 #pragma mark -- CMidi Message Queue
 
 //static const long         kInFlightTriggerEventFrames             = 3;
-#define                   MAX_TRIGGER_EVENTS                          32    //# elements in circular message buffer (bounded by min audio buffer size)
+#define                   MAX_TRIGGER_EVENTS                          256   //# elements in circular message buffer (2 for each midi note)
+                                                                            //(bounded by min audio buffer size and/or max words per midi event packet)
 static CMTriggerMessage   trigger_events[MAX_TRIGGER_EVENTS]        = {0};  //circular message buffer
 static unsigned int       cm_trigger_event_index                    =  0;   //circular message buffer head
 

@@ -51,7 +51,7 @@ void CALLBACK ToneGeneratorRenderPass(struct PBABufferList * ioData, uint32_t fr
         
     //Michael Tyson uses this to do some pthread locking... pthread locks are bullshit
     //Never ever lock a real-time thread!!!
-    //AEManagedValueCommitPendingUpdates();0
+    //AEManagedValueCommitPendingUpdates();
         
 //#ifdef DEBUG
 //    uint64_t start = PBACurrentTimeInHostTicks();
@@ -76,11 +76,8 @@ void CALLBACK ToneGeneratorRenderPass(struct PBABufferList * ioData, uint32_t fr
     remainingSamples = (uint32_t)(generator->SineWave.length - generator->WaveSampleOffset);//audioEvent.audioData.size() - playbackSampleOffset;
     if(  remainingSamples > 0 && remainingSamples < samplesToCopy ) samplesToCopy = remainingSamples;
 
-    //Debug output
-    //printf("samplesToCopy = %d\n", samplesToCopy);
-    //printf("remainingSamples = %d\n", remainingSamples);
-    //printf("g_playbackSampleOffset = %d\n", g_playbackSampleOffset );
-
+    generator->WaveSampleOffset += samplesToCopy;
+    
     float rate = generator->rate;
     static float position = 0.f;
 
@@ -158,10 +155,10 @@ void ToneGeneratorInit(ToneGenerator* source, float freq, float sampleRate)
 #endif
     
     //Generate an Output Source for the Stream (Playback from FLoating Point Sine Wave Buffer)
-    uint64_t renderDataLengthInSamples = (uint64_t)sampleRate * 5;
+    uint64_t renderDataLengthInSamples = (uint64_t)sampleRate * 3;
     source->SineWave.length = renderDataLengthInSamples;
     
-    source->SineWave.length = sampleRate*5.f;
+    source->SineWave.length = sampleRate*3.f;
     double currentSampleRate = PBAudio.OutputStreams[0].currentSampleRate;
     GenerateSineSamplesFloat(&source->SineWave.buffer, source->SineWave.length, freq, nSineBufferChannels, currentSampleRate, 0.25f, NULL);
     ToneGeneratorSetFrequency(source, freq, sampleRate);
@@ -169,7 +166,9 @@ void ToneGeneratorInit(ToneGenerator* source, float freq, float sampleRate)
 
 void ToneGeneratorDestroy(ToneGenerator* source)
 {
-    free(*source->SineWave.buffer);
-    *(source->SineWave.buffer) = NULL;
-
+    if(*(source->SineWave.buffer))
+    {
+        free(*(source->SineWave.buffer));
+        *(source->SineWave.buffer) = NULL;
+    }
 }

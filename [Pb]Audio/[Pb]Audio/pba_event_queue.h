@@ -421,7 +421,7 @@ static const char * pba_process_ext = "";
 static const char * kPBAMainEventQueue     = "cr.3rdgen.[Pb]Audio.MainEventQueue";       //an identifier that can be used with pba_mainEventQueue
 //static const char * kCRPlatformEventQueue = "cr.3rdgen.crPlatform.pba_platformEventQueue";  //an identifier that can be used with pba_platformEventQueue
 //static const char * kCRDisplayEventQueue  = "cr.3rdgen.crPlatform.pba_DisplayEventQueue";   //an identifier that can be used with pba_DisplayEventQueue
-//static const char * kCRResourceEventQueue = "cr.3rdgen.crPlatform.pba_ResourceEventQueue";  //an identifier that can be used with pba_DisplayEventQueue
+static const char * kPBAResourceEventQueue  = "cr.3rdgen.[Pb]Audio.ResourceEventQueue";  //an identifier that can be used with pba_DisplayEventQueue
 
 //extern           pba_kernel_queue_id pba_platformEventQueue;  //a global kqueue singleton for injecting events into the platform event loop [if one exists, and it should]
 //PB_AUDIO_EXTERN  pba_kernel_queue_id PBAudioEventQueue;       //a global kqueue singleton for the main Core Render application event loop

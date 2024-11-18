@@ -503,6 +503,12 @@ void CMidiNoteInitWithPacket(CMidiNote* note, MIDIEventPacket * packet);
 }
 */
 
+static uint8_t CMChannelNumberFromEventWord(const uint32_t packetWord)
+{
+    //return (packet->wordCount > 0) ? packet->data[1] : 0;
+    return (packetWord >> 16) & 0x000000ff;
+}
+
 static uint8_t CMNoteNumberFromEventWord(const uint32_t packetWord)
 {
     //return (packet->wordCount > 0) ? packet->data[1] : 0;

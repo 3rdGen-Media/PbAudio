@@ -20,6 +20,7 @@
 		C74FE65025566A700027F864 /* PbAudioFileStream.h in Headers */ = {isa = PBXBuildFile; fileRef = C74FE64E25566A700027F864 /* PbAudioFileStream.h */; };
 		C74FE65125566A700027F864 /* PbAudioFileStream.c in Sources */ = {isa = PBXBuildFile; fileRef = C74FE64F25566A700027F864 /* PbAudioFileStream.c */; };
 		C74FE65B25567E3C0027F864 /* PbAudioFileStream.c in Sources */ = {isa = PBXBuildFile; fileRef = C74FE64F25566A700027F864 /* PbAudioFileStream.c */; };
+		C751EF432CE535BA00230EF0 /* pba_dsp_routines.h in Headers */ = {isa = PBXBuildFile; fileRef = C751EF422CE535BA00230EF0 /* pba_dsp_routines.h */; };
 		C784864124AFEC1D009522F0 /* PbAudioBufferList.c in Sources */ = {isa = PBXBuildFile; fileRef = C784864024AFEC1D009522F0 /* PbAudioBufferList.c */; };
 		C784864224AFEC3F009522F0 /* PbAudioBufferList.c in Sources */ = {isa = PBXBuildFile; fileRef = C784864024AFEC1D009522F0 /* PbAudioBufferList.c */; };
 		C7A536492C8F241E002460E7 /* CMEndian.h in Headers */ = {isa = PBXBuildFile; fileRef = C7A5363C2C8F241E002460E7 /* CMEndian.h */; };
@@ -56,9 +57,8 @@
 		C7B909652C96423A0031B02E /* PbAudioRenderPass.c in Sources */ = {isa = PBXBuildFile; fileRef = C7B909642C96423A0031B02E /* PbAudioRenderPass.c */; };
 		C7B909662C96423A0031B02E /* PbAudioRenderPass.h in Headers */ = {isa = PBXBuildFile; fileRef = C7B909632C96423A0031B02E /* PbAudioRenderPass.h */; };
 		C7B909782C99AEA10031B02E /* CMEventQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = C7B909772C99AEA10031B02E /* CMEventQueue.c */; };
-		C7E04F082C942A8800FC9EC2 /* pba_dsp_waveforms.h in Headers */ = {isa = PBXBuildFile; fileRef = C7E04F062C942A8800FC9EC2 /* pba_dsp_waveforms.h */; };
-		C7E04F092C942A8800FC9EC2 /* pba_dsp_waveforms.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E04F072C942A8800FC9EC2 /* pba_dsp_waveforms.c */; };
-		C7E04F0A2C942A8800FC9EC2 /* pba_dsp_waveforms.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E04F072C942A8800FC9EC2 /* pba_dsp_waveforms.c */; };
+		C7E04F092C942A8800FC9EC2 /* pba_dsp_routines.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E04F072C942A8800FC9EC2 /* pba_dsp_routines.c */; };
+		C7E04F0A2C942A8800FC9EC2 /* pba_dsp_routines.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E04F072C942A8800FC9EC2 /* pba_dsp_routines.c */; };
 		C7E41DB82C90259D0047DC69 /* pba_event_queue.h in Headers */ = {isa = PBXBuildFile; fileRef = C7E41DB62C90259D0047DC69 /* pba_event_queue.h */; };
 		C7E41DB92C90259D0047DC69 /* pba_event_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = C7E41DB72C90259D0047DC69 /* pba_event_queue.c */; };
 		C7E41DBC2C90279E0047DC69 /* pba_target_os.h in Headers */ = {isa = PBXBuildFile; fileRef = C7E41DBA2C90279E0047DC69 /* pba_target_os.h */; };
@@ -83,6 +83,7 @@
 		C74FE64E25566A700027F864 /* PbAudioFileStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PbAudioFileStream.h; sourceTree = "<group>"; };
 		C74FE64F25566A700027F864 /* PbAudioFileStream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioFileStream.c; sourceTree = "<group>"; };
 		C74FE66325574AAF0027F864 /* PbAudioByteUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PbAudioByteUtils.h; sourceTree = "<group>"; };
+		C751EF422CE535BA00230EF0 /* pba_dsp_routines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pba_dsp_routines.h; sourceTree = "<group>"; };
 		C784864024AFEC1D009522F0 /* PbAudioBufferList.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PbAudioBufferList.c; sourceTree = "<group>"; };
 		C7A5363C2C8F241E002460E7 /* CMEndian.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CMEndian.h; sourceTree = "<group>"; };
 		C7A5363D2C8F241E002460E7 /* CMidi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CMidi.c; sourceTree = "<group>"; };
@@ -114,8 +115,7 @@
 		C7B909642C96423A0031B02E /* PbAudioRenderPass.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PbAudioRenderPass.c; sourceTree = "<group>"; };
 		C7B9096E2C9877C20031B02E /* CMEventQueue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CMEventQueue.h; sourceTree = "<group>"; };
 		C7B909772C99AEA10031B02E /* CMEventQueue.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CMEventQueue.c; sourceTree = "<group>"; };
-		C7E04F062C942A8800FC9EC2 /* pba_dsp_waveforms.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pba_dsp_waveforms.h; sourceTree = "<group>"; };
-		C7E04F072C942A8800FC9EC2 /* pba_dsp_waveforms.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pba_dsp_waveforms.c; sourceTree = "<group>"; };
+		C7E04F072C942A8800FC9EC2 /* pba_dsp_routines.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pba_dsp_routines.c; sourceTree = "<group>"; };
 		C7E41DB62C90259D0047DC69 /* pba_event_queue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pba_event_queue.h; sourceTree = "<group>"; };
 		C7E41DB72C90259D0047DC69 /* pba_event_queue.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pba_event_queue.c; sourceTree = "<group>"; };
 		C7E41DBA2C90279E0047DC69 /* pba_target_os.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pba_target_os.h; sourceTree = "<group>"; };
@@ -178,8 +178,8 @@
 				C7AEB49224AD7C3B0081D08A /* pba_error.c */,
 				C7AEB47524A96C750081D08A /* pba_time.h */,
 				C7AEB49024AD7BC10081D08A /* pba_time.c */,
-				C7E04F062C942A8800FC9EC2 /* pba_dsp_waveforms.h */,
-				C7E04F072C942A8800FC9EC2 /* pba_dsp_waveforms.c */,
+				C751EF422CE535BA00230EF0 /* pba_dsp_routines.h */,
+				C7E04F072C942A8800FC9EC2 /* pba_dsp_routines.c */,
 				C784864024AFEC1D009522F0 /* PbAudioBufferList.c */,
 				C7AEB46F24A96C750081D08A /* PbAudioBufferList.h */,
 				C7AEB47424A96C750081D08A /* PbAudioBufferStack.h */,
@@ -241,12 +241,12 @@
 				C7E41DC42C9058530047DC69 /* PbAudioDevice.h in Headers */,
 				C74FE65025566A700027F864 /* PbAudioFileStream.h in Headers */,
 				C7AEB47B24A96C750081D08A /* pba_format.h in Headers */,
-				C7E04F082C942A8800FC9EC2 /* pba_dsp_waveforms.h in Headers */,
 				C7A536532C8F241E002460E7 /* CMidiEndpoint.h in Headers */,
 				C7AEB47724A96C750081D08A /* PbAudioBufferList.h in Headers */,
 				C7AEB47C24A96C750081D08A /* PbAudioBufferStack.h in Headers */,
 				C7B909662C96423A0031B02E /* PbAudioRenderPass.h in Headers */,
 				C7AEB47624A96C750081D08A /* PbAudioStream.h in Headers */,
+				C751EF432CE535BA00230EF0 /* pba_dsp_routines.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -341,7 +341,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\nmkdir -p ../include/CMidi/;\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\ncp -rvf ./CMidi/\\CMEndian.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiControl.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDevice.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDriverID.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiEndpoint.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiMessage.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMEventQueue.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidi.h ../include/CMidi/\n\ncp -rvf ./[Pb]Audio/\\cr_file ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_target_os.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_event_queue.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_time.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_dsp_waveforms.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_format.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_error.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioDevice.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioByteUtils.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFileStream.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioRenderPass.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
+			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\nmkdir -p ../include/CMidi/;\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\ncp -rvf ./CMidi/\\CMEndian.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiControl.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDevice.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDriverID.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiEndpoint.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiMessage.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMEventQueue.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidi.h ../include/CMidi/\n\ncp -rvf ./[Pb]Audio/\\cr_file ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_target_os.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_event_queue.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_time.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_dsp_routines.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_format.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_error.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioDevice.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioByteUtils.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFileStream.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioRenderPass.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
 		};
 		C7AEB47F24A96E580081D08A /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -358,7 +358,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\nmkdir -p ../include/CMidi/;\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\ncp -rvf ./CMidi/\\CMEndian.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiControl.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDevice.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDriverID.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiEndpoint.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiMessage.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMEventQueue.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidi.h ../include/CMidi/\n\ncp -rvf ./[Pb]Audio/\\cr_file ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_target_os.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_event_queue.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_time.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_dsp_waveforms.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_format.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_error.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioDevice.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioByteUtils.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFileStream.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioRenderPass.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
+			shellScript = "#create include dir for crUtils if it doesn't exist before the copy phase\n#if [!-d ../include/CoreRender/crUtils ]; then\n#mkdir ../include/CoreRender/crUtils\n#fi\n#just use mkdir -p option\nmkdir -p ../include/CMidi/;\nmkdir -p ../include/[Pb]Audio/[Pb]Audio;\n\ncp -rvf ./CMidi/\\CMEndian.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiControl.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDevice.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiDriverID.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiEndpoint.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidiMessage.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMEventQueue.h ../include/CMidi/\ncp -rvf ./CMidi/\\CMidi.h ../include/CMidi/\n\ncp -rvf ./[Pb]Audio/\\cr_file ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_target_os.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_event_queue.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_time.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_dsp_routines.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\pba_format.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\pba_error.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioBufferList.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioBufferStack.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioCallbacks.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioDevice.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioStream.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioAPI.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioByteUtils.h ../include/[Pb]Audio/[Pb]Audio/\ncp -rvf ./[Pb]Audio/\\PbAudioFileStream.h ../include/[Pb]Audio/[Pb]Audio/\n\ncp -rvf ./[Pb]Audio/\\PbAudioRenderPass.h ../include/[Pb]Audio/[Pb]Audio/\n\n#find ./crUtils '.h' -exec cp -vuni '{}' \"../include/CoreRender/crUtils\" \";\"\ncp -rvf [Pb]Audio.h ../include/[Pb]Audio/\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -374,7 +374,7 @@
 				C7B909782C99AEA10031B02E /* CMEventQueue.c in Sources */,
 				C7A5364E2C8F241E002460E7 /* CMidiDevice.c in Sources */,
 				C7AEB48A24AD70590081D08A /* PbAudioAPI.c in Sources */,
-				C7E04F092C942A8800FC9EC2 /* pba_dsp_waveforms.c in Sources */,
+				C7E04F092C942A8800FC9EC2 /* pba_dsp_routines.c in Sources */,
 				C7E41DBD2C90279E0047DC69 /* pba_target_os.c in Sources */,
 				C7B909652C96423A0031B02E /* PbAudioRenderPass.c in Sources */,
 				C7A536502C8F241E002460E7 /* CMidiDriverID.c in Sources */,
@@ -408,7 +408,7 @@
 				C7AEB49624AD82570081D08A /* pba_time.c in Sources */,
 				C7AEB49724AD82570081D08A /* pba_format.c in Sources */,
 				C7AEB48E24AD76E70081D08A /* PbAudioAPI.c in Sources */,
-				C7E04F0A2C942A8800FC9EC2 /* pba_dsp_waveforms.c in Sources */,
+				C7E04F0A2C942A8800FC9EC2 /* pba_dsp_routines.c in Sources */,
 				C7AEB48F24AD76E80081D08A /* PbAudioStream.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

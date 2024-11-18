@@ -337,6 +337,8 @@ OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * f
     
         if(inputChannelCount > 0)
         {
+            streamContext->inputTimeStamp.mSampleTime = 0; //conditional in output pass
+
             //Get the [input] device buffer size so buffer list for capturing input can be reallocated with the correct format + num channels
             UInt32 bufferSize = 0; PBAudioDeviceBufferSize(streamContext->audioDevice, &bufferSize);
 
@@ -344,7 +346,7 @@ OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * f
 
             for(int i=0; i<PBA_MAX_INFLIGHT_BUFFERS; i++)
             {
-                if(streamContext->bufferList[i])  PBABufferListFree(streamContext->bufferList[i]);
+                if(streamContext->bufferList[i])  { PBABufferListFree(streamContext->bufferList[i]); streamContext->bufferList[i] = NULL; }
                 if( i < nBuffers ) streamContext->bufferList[i] = PBABufferListCreateWithFormat(streamContext->format, bufferSize);
             }
             streamContext->nBuffers = nBuffers; streamContext->bufferIndex = 0;
@@ -841,12 +843,17 @@ OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioD
 #ifdef __APPLE__
     if( streamContext->audioUnit )
     {
-        volatile bool wasRunning   = streamContext->running;
-        volatile bool inputEnabled = streamContext->inputEnabled;
-        
-        //Stop Audio Unit
-        if(wasRunning) PBAudioStreamStop(streamContext);
+        volatile bool wasRunning     = streamContext->running;
+        volatile bool inputEnabled   = streamContext->inputEnabled;
+        volatile bool wasPassthrough = streamContext->passthroughEnabled;
 
+        //Stop Audio Unit
+        if(wasRunning)
+        {
+            PBAudioStreamSetPassThroughState(streamContext, false); //disable input passthrough
+            PBAudioStreamStop(streamContext);
+        }
+        
         //leave input enabled if the new output device support input channels, otherwise disable it
         int inputChannelCount = PBAudioDeviceChannelCount(deviceID, kAudioObjectPropertyScopeInput);
         
@@ -857,8 +864,8 @@ OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioD
             //however, input is always on audio unit prior to (re)setting the output device, since the new device may not support input
             if( inputEnabled )
             {
-                PBAudioStreamSetPassThroughState(streamContext, false);
-                      PBAudioStreamSetInputState(streamContext, false);
+                //PBAudioStreamSetPassThroughState(streamContext, false);
+                PBAudioStreamSetInputState(streamContext, false);
             }
         }
         
@@ -881,7 +888,9 @@ OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioD
         {
             //Update input var state, this is critical for PBAudioStreamUpdateFormat
                   PBAudioStreamSetInputState(streamContext, true);
-            PBAudioStreamSetPassThroughState(streamContext, true);
+            //PBAudioStreamSetPassThroughState(streamContext, false);
+
+            streamContext->inputTimeStamp.mSampleTime = 0; //conditional in output pass
 
             AudioFormatFlags flags = streamContext->format.mFormatFlags; //cache the old format flags... see HACK below
             PBAudioStreamUpdateFormat(streamContext, 0);                 //Update the stream format again to pick up the input format changes
@@ -894,7 +903,7 @@ OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioD
             uint64_t nBuffers = PBA_TOTAL_BUFFER_SIZE / bufferSize;
             for(int i=0; i<PBA_MAX_INFLIGHT_BUFFERS; i++)
             {
-                if(streamContext->bufferList[i])  PBABufferListFree(streamContext->bufferList[i]);
+                if(streamContext->bufferList[i])  { PBABufferListFree(streamContext->bufferList[i]); streamContext->bufferList[i] = NULL; }
                 if( i < nBuffers ) streamContext->bufferList[i] = PBABufferListCreateWithFormat(streamContext->format, bufferSize);
             }
             streamContext->nBuffers = nBuffers; streamContext->bufferIndex = 0;
@@ -902,7 +911,11 @@ OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioD
         }
         
         //Restart Audio Unit
-        if ( wasRunning ) PBAudioStreamStart(streamContext);
+        if ( wasRunning )
+        {
+            PBAudioStreamStart(streamContext);
+            PBAudioStreamSetPassThroughState(streamContext, wasPassthrough); //restore input passthrough state
+        }
     }
 #else
 

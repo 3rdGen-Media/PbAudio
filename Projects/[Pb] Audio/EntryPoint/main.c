@@ -26,15 +26,20 @@
 SamplePlayer  samplePlayer  = {0};
 ToneGenerator toneGenerator = {0};
 
+#define PBA_INPUT_ENABLED 1
+
+
 #pragma mark -- [Pb]Audio Stream InputPass Callbacks
 
-#ifdef __APPLE__
+#ifdef PBA_INPUT_ENABLED
+
+#ifdef __BLOCKS__
 PBAStreamOutputPass InputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* stream)
 #else
 void CALLBACK InputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, struct PBAStreamContext* stream)
 #endif
 {
-    uint32_t bufferIndex = 0;
+    //static int closeBuffer   = 0;
     uint64_t currentBuffer = stream->bufferIndex;
 
     //get a buffer list from a circular buffer implementation and
@@ -68,26 +73,18 @@ void CALLBACK InputPass(struct PBABufferList* ioData, uint32_t frames, const str
         }
     }
     
-    
 #else
     
 #endif
 };
+
+#endif
 
 #pragma mark -- [Pb]Audio Stream OutputPass Callbacks
 
 PBAStreamOutputPass _Nullable OutputPass[MaxOutputPassID] = {0};
 
-#ifdef __APPLE__
-PBAStreamOutputPass TestOutputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* stream)
-#else
-void CALLBACK TestOutputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, struct PBAStreamContext* stream)
-#endif
-{
-    ToneGeneratorRenderPass(ioData, frames, timestamp, stream->target, &toneGenerator, NULL, 0);
-};
-
-#ifdef __APPLE__
+#ifdef __BLOCKS__
 PBAStreamOutputPass SamplerOutputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* stream)
 #else
 void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, struct PBAStreamContext* stream)
@@ -96,25 +93,12 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
     pba_platform_event_msg msg = {0}; //this is like kev
 
     //local trigger event iterator/cache
-    int nTriggerEvents = 0;
+    int i, nTriggerEvents = 0;
     CMTriggerMessage* triggerEvent = NULL;
-    CMTriggerMessage* triggerEvents[MAX_TRIGGER_EVENTS];
-
-    //Thread Queue Message Processing
+    static CMTriggerMessage*  triggerEvents[256];
+    
+    //Start of Frame Events
 #ifdef PBA_TARGET_WIN32
-    // NOTE: it is imperative that PeekMessage() is used rather than GetMessage() when on background render thread
-    // listen to the queue in case this thread received a message from the event queue on another thread
-    //listen after command buffer has been passed to opengl for the current frame, if we read before this causes dropped frames on resize
-    //but it also means events won't be processed until the following frame, which in most cases is generally ok
-    //passing NULL for second parameter ensures that messages for the platform window AND non-window thread messages will be processed
-    //maximum of 10000 messages per queue
-
-    //First look for messages in the range of PBA_XXX_EVENT_MSG Type
-    //if (PeekMessage(&msg, -1, CR_PLATFORM_WINDOW_EVENT_MSG_PAUSE, CR_PLATFORM_WINDOW_EVENT_MSG_CLOSE, PM_REMOVE))
-    //{
-    //    crgc_view_handle_render_thead_message(view, msg.message, msg.wParam, msg.lParam);
-    //    memset(&msg, 0, sizeof(MSG));
-    //}
 
     //Next look for [midi note + cc] events scheduled to queue of type CMTriggerMessage
     while (PeekMessage(&msg, (HWND)-1, PBA_EVENT_MSG_BASE_ID + 1, PBA_EVENT_MSG_BASE_ID + 128, PM_REMOVE))// && n < cr_control_event_type_max)
@@ -122,14 +106,14 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
         //cache trigger events + values pulled from the queue
         //int condition = (msg.wParam >= cr_control_event_type_max); //cr_control_event_type vs cr_button_event_type
         triggerEvent = (CMTriggerMessage*)(msg.lParam);              //src event memory
-
+        
         //TO DO: cache the event in the note:articulation map
         triggerEvents[nTriggerEvents] = triggerEvent; //cache previous events of type
 
         //TO DO: count # of trigger events for each articulation
-
+                
         //Unpack/Process the Triggered Note
-        uint8_t note = CMNoteNumberFromEventWord(triggerEvent->word);
+        uint8_t note     = CMNoteNumberFromEventWord(triggerEvent->word);
         uint8_t velocity = CMNoteVelocityFromEventWord(triggerEvent->word);
 
         //fprintf(stdout, "\nTrigger Event (%llu) Note = %u (%u)\n", msg.wParam, note, velocity);
@@ -138,21 +122,20 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
         nTriggerEvents++; // += !condition;
     }
 
-    //nControlEvents -= nButtonEvents;
-
 #else
-
-    struct kevent kev[MAX_TRIGGER_EVENTS];
+    
+    struct kevent kev[256];
         
     //wait without timeout for trigger input kevent from our kqueue
     struct timespec _ts; struct timespec *ts = NULL;
     ts = &_ts; ts->tv_sec = 0; ts->tv_nsec = 0;
     
     //read axis control events + button control events from the control queue
-    nTriggerEvents = kevent(CMTriggerEventQueue, NULL, 0, &kev[0], MAX_TRIGGER_EVENTS, ts);
+    nTriggerEvents = kevent(CMTriggerEventQueue, NULL, 0, &kev[0], 256, ts);
+    
     //while (nTriggerEvents > 0)
     {
-        int i; for(i=0;i<nTriggerEvents;i++)
+        for(i=0;i<nTriggerEvents;i++)
         {
             if (kev[i].filter == EVFILT_USER)
             {
@@ -160,19 +143,21 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
                 triggerEvent = (CMTriggerMessage*)(kev[i].udata);
                 
                 //TO DO: cache the event in the note:articulation map
-                //trigger_event_frame.events[kev[i].ident] = *controlEvent; //cache previous events of type
+                triggerEvents[i] = triggerEvent; //cache previous events of type
                 
                 //TO DO: count # of trigger events for each articulation
                 
-                //Unpack/Process the Triggered Note
-                uint8_t note     = CMNoteNumberFromEventWord(triggerEvent->word);
-                uint8_t velocity = CMNoteVelocityFromEventWord(triggerEvent->word);
-                fprintf(stdout, "\nTrigger Event (%lu) Note = %u (%u)\n", kev[i].ident, note, velocity);
-                
+                //Unpack/Process the Triggered Event for Debug
+                //if( triggerEvent->cursor.offset < 1 )
+                //{
+                //    uint8_t note     = CMNoteNumberFromEventWord(triggerEvent->word);
+                //    uint8_t velocity = CMNoteVelocityFromEventWord(triggerEvent->word);
+                //    fprintf(stdout, "\nTrigger Event Began (%lu) Note = %u (%u)\n", kev[i].ident, note, velocity);
+                //}
             }
         }
         
-        //Note: renderpasses must follow this loop if they reschedule events
+        //Note: renderpasses must follow this loop if they reschedule events like so...
         //nTriggerEvents = kevent(CMTriggerEventQueue, NULL, 0, &kev[0], MAX_TRIGGER_EVENTS, ts);
         //assert(nTriggerEvents == 0); //ensure we aren't overwriting trigger events wrt the current frame buffer size
     }
@@ -181,20 +166,51 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
 
     //Outputpass pipeline can be configured w/ custom buffer routing schemes by modifying renderpass input/output here...
 
-    //Input
-    if( stream->inputTimeStamp.mSampleTime > 0 )
+    //Outputpass pipeline can be configured w/ custom buffer routing schemes by modifying renderpass input/output here...
+
+#ifdef PBA_INPUT_ENABLED
+
+    //Process Input
+    if( stream->passthroughEnabled && stream->inputTimeStamp.mSampleTime > 0 )
     {
-        //raw byte dst buffer
+        //raw byte dst buffer (active mix/main outs)
+
         char* byteBufferL = (char*)ioData->mBuffers[0].mData;
         char* byteBufferR = (char*)ioData->mBuffers[1].mData;
         char* byteBuffers[2] = {byteBufferL, byteBufferR};
         
+        /*
         char* sampleBufferL = (char*)stream->inputBufferList->mBuffers[19].mData;
         char* sampleBufferR = (char*)stream->inputBufferList->mBuffers[19].mData;
         char* sampleBuffers[2] = {sampleBufferL, sampleBufferR};
+
+        pb_audio_transform[stream->target][stream->target](sampleBuffers, byteBuffers, 2, frames);
+        */
         
-        pb_audio_transform[stream->target][stream->target]((void**)sampleBuffers, (void**)byteBuffers, 2, frames);
+        
+        //if(stream->iChannels > 2 ) assert(1==0);
+        
+        //input channel pairs
+        for(i=0; i<stream->inputBufferList->mNumberBuffers; i+=2)
+        {
+            uint8_t L = i+0;
+            uint8_t R = i+1;
+            
+            uint8_t lIndex = (stream->iChannels >> (i+0)) & 0x01;
+            uint8_t rIndex = (stream->iChannels >> (i+1)) & 0x01;
+            
+            if( rIndex && !lIndex) { L = R; lIndex = rIndex; }
+
+            char* sampleBufferL = (char*)stream->inputBufferList->mBuffers[lIndex * L].mData;
+            char* sampleBufferR = (char*)stream->inputBufferList->mBuffers[rIndex * R].mData;
+            char* sampleBuffers[2] = {sampleBufferL, sampleBufferR};
+
+            if(lIndex + rIndex) pb_audio_transform[stream->target][stream->target](sampleBuffers, byteBuffers, lIndex + rIndex, frames);
+        }
+        
     }
+
+#endif
 
     
     //A renderpass has a source resource format (SRV) and a target format (RTV)
@@ -204,8 +220,22 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
     SamplePlayerRenderPass(ioData, frames, timestamp, stream->target, &samplePlayer, (void**)triggerEvents, 1);
 };
 
+#ifdef __BLOCKS__
+PBAStreamOutputPass TestOutputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* stream)
+#else
+void CALLBACK TestOutputPass(struct PBABufferList* ioData, uint32_t frames, const struct PBATimeStamp* timestamp, struct PBAStreamContext* stream)
+#endif
+{
+    ToneGeneratorRenderPass(ioData, frames, timestamp, stream->target, &toneGenerator, NULL, 0);
+    
+    //Reset after Duration
+    if(toneGenerator.WaveSampleOffset >= toneGenerator.SineWave.length)
+    {
+        stream->outputpass = SamplerOutputPass;//OutputPass[SamplerOutputPassID];
+        toneGenerator.WaveSampleOffset = 0;
+    }
 
-
+};
 
 #pragma mark -- CMidi API Callbacks
 
@@ -335,16 +365,17 @@ void CMidiReceiveBlock(const MIDIEventList * evtlist, void* srcConnRefCon)
 
                         //Distribute the message to a realtime audio thread that can be dequeued on next buffer cycle
                         //Client can decide which granularity to use for the queue's message filter during queue creation
+                        uint8_t           eventIdentifier = cm_trigger_event_index;
                         CMTriggerMessage * triggerMessage = &trigger_events[cm_trigger_event_index++]; cm_trigger_event_index = cm_trigger_event_index % MAX_TRIGGER_EVENTS;
                         
                         triggerMessage->timestamp         = packet->timeStamp;
                         triggerMessage->cursor.offset     = 0;
-                        triggerMessage->word              = packet->words[wordIndex];
+                        triggerMessage->word              = packet->words[wordIndex] | (eventIdentifier << 16); //overwrite channel octet with event id
                         
 #ifdef _WIN32
                         //Unlike kqueue which can be globally subscribed to by a single anonymous consumer
                         //Win32 needs to Queue Messages directly to a Thread, IOCP Port, or Broadcast Type
-                        //  1.  IOCP Ports are going to force the thread to wait... no good
+                        //  1.  IOCP Ports are going to force the thread to wait and wake for the event... no good
                         //  2.  I don't understand how custom broadcast messages work yet
                         //  3.  A given thread's queue can be produced to/consumed from with PostThreadMessage/PeekMessage API
                         //PostThreadMessage(eventQueue, CR_SCENE_CONTROL_EVENT, sceneEvent->type, sceneEvent);
@@ -507,6 +538,7 @@ void PBAudioInit(void)
     PBAStreamFormat desiredStreamFormat;
     memset(&desiredStreamFormat, 0, sizeof(desiredStreamFormat));
 
+    //Example:  Configure a custom client format...
 #ifdef defined(_WIN32)                     //WAVEFORMATEXTENSIBLE
     desiredStreamFormat.wFormatTag         = WAVE_FORMAT_PCM;
     desiredStreamFormat.nChannels          = 2;
@@ -529,38 +561,30 @@ void PBAudioInit(void)
     //A stream must first be initialized in order to know the system sample rate setting of the device if a compatible format isn't requested explicitly
     PBAudio.Init(&PBAudio.OutputStreams[0], NULL, kAudioObjectUnknown, SamplerOutputPass);
 
+#ifdef PBA_INPUT_ENABLED
     //Provide an Input Pass to a stream to enable input on stream init
     PBAudio.OutputStreams[0].inputPass       = InputPass;
+
+    //Compatible AudioBuffer List Memory for receiving input is managed gratis by [Pb]Audio (see InputPass)
     //inputBufferList = PBABufferListCreateWithFormat(PBAudio.OutputStreams[0].format, 512);
+#endif
 
-    //Load some audio from disk while converting to the desired format
-    //const char * audioFileURL = "../../assets/Audio/WAV/Test/16_48k_PerfectTest.wav";
-    //const char * audioFileExt = "wav\0";
-
+    //build path to source audio file
     const char* home = RESOURCE_HOME ? getenv(RESOURCE_HOME) : "\0";
     char   audioFileURL[256] = "\0";
 
     static const char* TEST_FILE = RESOURCE_DIR "/AudioAssets/Test/FLAC/subset/28 - high resolution audio, default settings.flac";
-    //const char* audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/Unknown Artist/Unknown Album/Print#45.aif";//"../../assets/Audio/AIF/Print#45.aif";
-    //const char * audioFileURL = "/Users/jmoulton/Music/iTunes/iTunes Media/Music/ArticulationLayers/65 Drum Samples/56442_Surfjira_Snare_HeadShot_Hard.wav";
 
-    const char* audioFileExt = "flac\0";
-    //const char * audioFileExt = "aif\0";
-    //const char * audioFileExt = "wav\0";
-
-    //mtl->textures[pbrTextureIndex]->name = (char*)malloc(strlen(texturePaths[pbrTextureIndex]) + strlen(home) + 1);
-    //mtl->textures[pbrTextureIndex]->name[0] = '\0';
     strcpy(audioFileURL, home);
     strcat(audioFileURL, TEST_FILE);
 
     //Initialize Renderpasses
     ToneGeneratorInit(&toneGenerator, 440.f, PBAudio.OutputStreams[0].currentSampleRate);           //Initialize a 32-bit floating point sine wave buffer
-    SamplePlayerInit(&samplePlayer, audioFileURL, /*audioFileExt,*/ &PBAudio.OutputStreams[0].format);  //Read an audio file from disk to formatted buffer for playback
+    SamplePlayerInit(&samplePlayer, audioFileURL, &PBAudio.OutputStreams[0].format);  //Read an audio file from disk to formatted buffer for playback
     
     //Cache Output Passes
     OutputPass[TestOutputPassID]        = TestOutputPass;
     OutputPass[SamplerOutputPassID]     = SamplerOutputPass;
-    //OutputPass[PassThroughOutputPassID] = PassThroughOutputPass;
 
     //Register custom "notification client" objects across threads/processes as needed
     //PBAudioRegisterDeviceListeners(&g_notificationClient, NULL);
@@ -569,6 +593,7 @@ void PBAudioInit(void)
 void CRCleanup(void)
 {
     fprintf(stderr, "\nCRCleanup!\n");
+    
     //NOTE: This method should ONLY be called AFTER Message window render/control threads and wait for them to shut down
     //TerminateDisplaySyncProcess(cr_displaySyncProcess); //if there was no display sync process this does nothing
 
@@ -885,7 +910,7 @@ void StartAudioMessageEventLoop(void)
 #if defined(__APPLE__)
     //register kevents [for Midi Note On Types] that can be queued to trigger audio on the real-time audio thread
     uint64_t triggerEvent; CMTriggerEventQueue = kqueue(); //create kqueue
-    for (triggerEvent = 0; triggerEvent < 128; ++triggerEvent)
+    for (triggerEvent = 0; triggerEvent < MAX_TRIGGER_EVENTS; ++triggerEvent)
     {
         struct kevent kev;
         EV_SET(&kev, triggerEvent, EVFILT_USER, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);

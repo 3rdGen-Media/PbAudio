@@ -726,20 +726,24 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice d
 #if defined(__APPLE__)
 #if TARGET_OS_OSX
     
-    //for each stream
-    volatile bool wasRunning  = false;
-    //volatile bool wasBypassed = false;
 
     PBAStreamContext * streamContext = &PBAudio.OutputStreams[0];
     //PBAudioStreamSetBypass(streamContext, true);
-    
+
+    //for each stream
+    volatile bool wasRunning     = false;
+    volatile bool wasBypassed    = false;
+    volatile bool wasPassthrough = false;
+
     uint32_t mBytesPerFrame  = streamContext->format.mBytesPerFrame;
     uint32_t mBitsPerChannel = streamContext->format.mBitsPerChannel;
 
     //Stop the Audio Unit Stream
     if( streamContext->audioDevice == deviceID && streamContext->audioUnit && streamContext->running)
     {
-        PBAudioStreamStop(streamContext); wasRunning = true;
+        wasBypassed    = streamContext->bypass;             PBAudioStreamSetBypass(streamContext, true);            //bypass output renderpasses
+        wasPassthrough = streamContext->passthroughEnabled; PBAudioStreamSetPassThroughState(streamContext, false); //disable input passthrough
+        PBAudioStreamStop(streamContext); wasRunning  = true;
     }
     
     UInt32 propertySize = sizeof(UInt32);
@@ -772,18 +776,24 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetBufferSize(PBAudioDevice d
 
         if( streamContext->inputEnabled )
         {
+            streamContext->inputTimeStamp.mSampleTime = 0; //conditional in output pass
+            
             uint64_t nBuffers = PBA_TOTAL_BUFFER_SIZE / bufferSize;
             for(i=0; i<PBA_MAX_INFLIGHT_BUFFERS; i++)
             {
-                if(streamContext->bufferList[i])  PBABufferListFree(streamContext->bufferList[i]);
+                if(streamContext->bufferList[i])  { PBABufferListFree(streamContext->bufferList[i]); streamContext->bufferList[i] = NULL; }
                 if( i < nBuffers ) streamContext->bufferList[i] = PBABufferListCreateWithFormat(streamContext->format, bufferSize);
             }
             streamContext->nBuffers = nBuffers; streamContext->bufferIndex = 0;
 
         }
         
-        if ( wasRunning ) PBAudioStreamStart(streamContext);
-
+        if ( wasRunning )
+        {
+            PBAudioStreamStart(streamContext);
+            PBAudioStreamSetBypass(streamContext, wasBypassed);              //restore output bypass state
+            PBAudioStreamSetPassThroughState(streamContext, wasPassthrough); //restore input passthrough state
+        }
     }
     
     //PBAudioStreamSetBypass(streamContext, wasBypassed);

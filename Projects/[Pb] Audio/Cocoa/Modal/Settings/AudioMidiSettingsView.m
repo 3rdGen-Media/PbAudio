@@ -992,6 +992,7 @@ Float64 HardcodedSampleRates[3] = {44100., 48000., 96000.};
         message->system.status           = enabled ? CMStatusStart : CMStatusStop;
         message->system.uniqueID         = CMClient.sources[index].uniqueID;
             
+        NSLog(@"sourceKey = %@", sourceKey);
         /*
         //TO DO:  introduce some error checking to this function pipeline
         CMInputConnection * inputConnection = [CMInputConnection createInputConnection:sourceKey];// Params:thruParams];

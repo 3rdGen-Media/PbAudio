@@ -360,10 +360,14 @@ OSStatus CMDeleteInputConnectionAtIndex(int connectionIndex)
 
 #endif
 
-    ItemCount nShiftConnections = CMClient.numInputConnections - connectionIndex;
-    if( nShiftConnections > 1) memmove(&CMClient.inputConnections[connectionIndex], &CMClient.inputConnections[connectionIndex+1], nShiftConnections);
+    //Note: recently fixed the logic here for correct list connection removal
+    ItemCount nShiftConnections = (CMClient.numInputConnections-1) - connectionIndex;
+    if( nShiftConnections > 0) memmove(&CMClient.inputConnections[connectionIndex], &CMClient.inputConnections[connectionIndex+1], nShiftConnections * sizeof(CMConnection));
 
     CMClient.numInputConnections--;
+    
+    //Debug
+    //fprintf(stdout, "CMDeleteInputConnectionAtIndex (%lu): \n\n%d\n", CMClient.numInputConnections, (int32_t)connectionIndex);
 
     return cmError;
 }
@@ -400,6 +404,8 @@ OSStatus CMDeleteInputConnection(uintptr_t UniqueID)
         fprintf(stdout, "CMDeleteInputConnection::Compare B: \n\n%S\n", (wchar_t*)inputIDKey);
         if (sourceLen == inputLen && _wcsicmp((wchar_t*)inputIDKey, sourceID) == 0)
 #elif defined(__APPLE__)
+        fprintf(stdout, "CMDeleteInputConnection::Compare A: \n\n%d\n", (int32_t)UniqueID);
+        fprintf(stdout, "CMDeleteInputConnection::Compare B: \n\n%d\n", CMClient.inputConnections[connectionIndex].source.uniqueID);
         if(CMClient.inputConnections[connectionIndex].source.uniqueID == UniqueID)
 #endif
         {
@@ -412,6 +418,9 @@ OSStatus CMDeleteInputConnection(uintptr_t UniqueID)
 #ifdef _WIN32
     CMUpdateInputDevices();
 #endif
+
+    //Debug
+    //fprintf(stdout, "CMDeleteInputConnection (%lu): \n\n%d\n", CMClient.numInputConnections, (int32_t)UniqueID);
 
     //assert(1==0);
     return cmError;
@@ -1086,6 +1095,10 @@ CMConnection* CMCreateInputConnection(uintptr_t uniqueID)//MIDIThruConnectionEnd
     //Create the input connection in our array of connections using inputIDKey for DOM hashing
     CMConnection * conn = CMCreateInputConnectionAtIndex((const char*)inputIDKey, sourceEndpoint, sourceIndex, CMClient.numInputConnections);
     CMClient.numInputConnections++;
+    
+    //Debug
+    //fprintf(stdout, "CMCreateInputConnection (%lu): \n\n%d\n", CMClient.numInputConnections, (int32_t)uniqueID);
+
     return conn;
 }
 

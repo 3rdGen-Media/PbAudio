@@ -130,6 +130,19 @@ static NSString * const NSToolbarAddItemIdentifier      = @"AddToolbarItem";
     self.modalView.window.title = [NSString stringWithFormat:@"Audio/Midi Setup"];
     //self.modalView.titleLabel.stringValue = [NSString stringWithFormat:@"New Midi Route"];
     
+    /*
+    //Override window close button action
+    NSButton *closeButton = [self.modalView.window standardWindowButton:NSWindowCloseButton];
+    //[closeButton setHidden:YES];
+    [closeButton setTarget:self]; // alternatively you can make it self.windowController
+    [closeButton setAction:@selector(dismissModalWindow)];
+    */
+    
+    CGPoint windowCenter = CGPointMake( self.window.frame.origin.x + self.window.frame.size.width/2., self.window.frame.origin.y + self.window.frame.size.height/2.);
+    CGRect  windowFrame = self.modalViewController.view.window.frame;
+    windowFrame.origin = CGPointMake(windowCenter.x - windowFrame.size.width/2., windowCenter.y - windowFrame.size.height/2);
+    [self.modalView.window setFrame: windowFrame display:YES];
+    
     [self.modalView.window makeKeyAndOrderFront:self];     // Show the window
 #else
     
@@ -398,6 +411,9 @@ Mostly base on Apple sample code: https://developer.apple.com/documentation/appk
     self.window.title = @"Main Window"; //self.window.titlebarAppearsTransparent = YES;
     self.window.backgroundColor = nil;//[NSColor blackColor]; //Use magenta to identify/debug platform window default layer, black for release builds
     [self.window makeKeyAndOrderFront:self];
+        
+    CGPoint origin = CGPointMake(NSScreen.mainScreen.frame.size.width/2. - NSScreen.mainScreen.frame.size.width/4., -NSScreen.mainScreen.frame.size.height/4.);
+    [self.window setFrame:CGRectMake(origin.x, origin.y, self.window.frame.size.width, self.window.frame.size.height) display:YES];
 #else
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.backgroundColor = nil;//[UIColor magentaColor]; //Use magenta to identify/debug platform window default layers, nil for release builds

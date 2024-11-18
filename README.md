@@ -8,7 +8,7 @@
 * Lock-Free, Wait-Free <a href="https://github.com/3rdGen-Media/PbAudio/blob/master/%5BPb%5DAudio/%5BPb%5DAudio/pba_event_queue.h">Event Queueing</a> to Audio Threads
 * Immediate-Mode <a href="https://github.com/3rdGen-Media/PbAudio/blob/master/%5BPb%5DAudio/%5BPb%5DAudio/PbAudioRenderPass.h">Renderpass</a> Pipeline Abstraction
 * <a href="https://github.com/3rdGen-Media/PbAudio/blob/master/%5BPb%5DAudio/%5BPb%5DAudio/PbAudioFileStream.h">File Stream API</a> for Async Resource Loading
-* Extendable <a href="https://github.com/3rdGen-Media/PbAudio/blob/master/%5BPb%5DAudio/CMidi/CMidiMessage.h">Control Message Protcol</a> for client-server IPC
+* Extendable <a href="https://github.com/3rdGen-Media/PbAudio/blob/master/%5BPb%5DAudio/CMidi/CMidiMessage.h">Control Message Protocol</a> for client-server IPC
 * <a href="https://github.com/3rdGen-Media/PbAudio/tree/master/%5BPb%5DAudio/CMidi">MIDI 2.0 Interop</a> for Trigger Event Scheduling
 * Plug-in Support for DAW Integration (<s>AAX</s>, <a href="https://github.com/3rdGen-Media/PbAudio/blob/master/Projects/%5BPb%5D%20Audio/Render/PBAudioUnit.m">AudioUnit</a>, <s>CLAP</s>, <s>VST</s>)
 * Graphics Pipeline/Vertical Retrace Synchronization

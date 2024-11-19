@@ -23,6 +23,6 @@
 
 ### Sample App
 
-While the [Pb]Audio library exists primarily to supplement applications built within accelerated graphics environments and, as such, feature development will be driven primarily to support audio in the context of 3D rendering and animation the '[Pb] Audio' project demonstrates the feature-set(s) and API usage of the [Pb]Audio library in the context of a cross-platform application, where associated UI and rendering are minimally implemented sans integration with an accelerated graphics pipeline.
+While the [Pb]Audio library exists primarily to supplement applications built within accelerated graphics environments such that feature development will be driven primarily to support audio in the context of 3D rendering and animation, the '[Pb] Audio' reference project demonstrates the feature-set(s) and API usage of the [Pb]Audio library in the context of a cross-platform application, where associated UI and rendering are minimally implemented sans integration with an accelerated graphics pipeline.
 
 <img align="center" src="https://github.com/3rdGen-Media/PbAudio/blob/master/Projects/%5BPb%5D%20Audio/Assets/Images/MainWindow.png"/>

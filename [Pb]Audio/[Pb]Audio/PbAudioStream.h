@@ -176,8 +176,10 @@ typedef struct {
 typedef enum PBADriverMode
 {
     PBA_DRIVER_SHARED     = AUDCLNT_SHAREMODE_SHARED,
-    PBA_DRIVER_EXCLUSIVE  = AUDCLNT_SHAREMODE_EXCLUSIVE,
-    //PBA_DRIVER_VENDOR,
+    //PBA_DRIVER_EXCLUSIVE  = AUDCLNT_SHAREMODE_EXCLUSIVE,
+#ifndef __APPLE__
+    PBA_DRIVER_VENDOR,
+#endif
     PBA_NUM_DRIVER_MODES
 }PBADriverMode;
 
@@ -185,29 +187,40 @@ typedef struct PBAStreamContext
 {
 #ifdef _WIN32	
 
+    //System [WinMM] Device
     IMMDevice			      *audioDevice;
     IMMNotificationClient     *notifyClient;
 
+    //System [WASAPI] Driver 
     IAUDIOCLIENT              *audioClient;
     IAudioRenderClient	      *renderClient;
 
-    AUDCLNT_SHAREMODE          shareMode;
+    //Vendor [ASIO] Driver
+    PBAudioDriver              driver;           //opaque vendor driver
+    PBAudioDriverID            driverID;         //vendor driver id
 
-    //For now we will only allow output to a single recognized hw device
-    HANDLE                     hEvent;
-    unsigned int               audioThreadID;
+    AUDCLNT_SHAREMODE          shareMode;        //driver mode
+    HANDLE                     hEvent;           //WASAPI event
 
-	REFERENCE_TIME             devicePeriod;
-	UINT32	                   bufferFrameCount;
-	
+    //Thread [Queue] IDs
+    unsigned int               audioThreadID;    //WASAPI 'Pro Audio' Thread
+    unsigned int               driverThreadID;   //Vendor [ASIO] Driver Thread
+
+    //Platform Specific Stream Properties
+    REFERENCE_TIME             devicePeriod;
+    UINT32	                   bufferFrameCount; //# samples per frame
+
 #elif defined(__APPLE__)
+
     AudioUnit _Nullable        audioUnit;
     //AudioUnit _Nullable        inputUnit;
     
     AudioDeviceID              audioDevice;
     //AudioDeviceID              inputDevice;
+
 #endif
 	
+    //Cross-Platform, Cross-Driver Stream Properties
     PBAStreamFormat             format;
     PBAStreamFormatSampleType   target;
 
@@ -218,21 +231,21 @@ typedef struct PBAStreamContext
     PBABufferList*              inputBufferList; //current buffer list being written to by input pass
     
     PBABufferList*              bufferList[PBA_MAX_INFLIGHT_BUFFERS];
-    volatile uint64_t           bufferIndex;  //active command buffer list
-    volatile uint64_t           nBuffers;     //active # buffer lists in circular buffer
+    volatile uint64_t           bufferIndex;          //active command bufferlist
+    volatile uint64_t           nBuffers;             //active # bufferlists in circular buffer
 
-    //volatile uint64_t           rbIndex, wbIndex;     //active command buffer indices for reading and writing
-    volatile uint64_t           iChannels, oChannels; //channels enabled marix
+    //volatile uint64_t         rbIndex, wbIndex;     //active command buffer indices for reading and writing
+    volatile uint64_t           iChannels, oChannels; //channels enabled matrix
     
     double                      sampleRate, currentSampleRate;
-    double                      inputLatency, outputLatency; //iOS only
+    double                      inputLatency, outputLatency; //iOS, ASIO only
     int                         nInputChannels, nOutputChannels;
     
     //TO DO:  make these bitflags
-	bool                        inputEnabled, outputEnabled, passthroughEnabled;
-    bool                        running, bypass;
+    volatile bool               inputEnabled, outputEnabled, passthroughEnabled;
+    volatile bool               running, bypass;
     bool                        hasSetInitialStreamFormat;
-    bool                        latencyCompensation;// iOS only
+    bool                        latencyCompensation; //iOS, ASIO only
     bool                        respectDefault;
 
 }PBAStreamContext;

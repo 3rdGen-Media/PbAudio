@@ -222,6 +222,7 @@ OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * f
     streamContext->outputpass     = outputpass; //set the master render callback for the device stream
     streamContext->respectDefault = false;      //Enable for apps that want to use the system selected default audio device at all times
 
+    streamContext->driverID  = -1; //no active vendor driver assigned
     streamContext->iChannels = streamContext->oChannels = 0; //channels enabled matrix
     
 
@@ -364,6 +365,11 @@ OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * f
     //So [Pb]Audio can create a stream against a hardware device
     PBAudioDeviceInitCOM();
 
+    //assume any device has at least 2 output channels
+    //(these values will be updated after the stream has been configured depending on the active driver mode)
+    streamContext->nInputChannels  = 0;
+    streamContext->nOutputChannels = 2;
+
     //Get the Default or Desired Audio Hardware Device Endpoint
     if (streamContext->audioDevice == kAudioObjectUnknown) PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &(streamContext->audioDevice));
     else assert(1 == 0);
@@ -491,17 +497,21 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
 
 	//Task is used to elevate thread to ProAudio Latency
 	HANDLE hTask = NULL;
-	DWORD taskIndex = 0;	
-	//PBAStreamContext * clientStream = (PBAStreamContext*)stream;
-	
-	char * buffer = NULL;
-	
-	//for render callback
+    DWORD taskIndex = 0;
+    HANDLE threadID = GetCurrentThread();
+
+	//Interleaved Buffer for WinMM Driver Mode Render
 	PBABuffer interleavedBuffer = { streamContext->format.nChannels, streamContext->format.wBitsPerSample/8, NULL};
 	PBABufferList bufferList = {1, &interleavedBuffer};
 
-	HANDLE threadID = GetCurrentThread();
-	
+    if (streamContext->driver) //streamContext->shareMode == PBA_DRIVER_VENDOR)
+    {
+        //Start Vendor (ASIO) Driver and Return (because it will callback on its own managed thread)
+        hr = PBAudioDriverStart(streamContext->driver);
+        if (hr == 0) streamContext->running = true;     //Set stream state to indicate started
+        return hr;
+    }
+
     //Elevate to 'Pro Audio' Thread Priority
     if (GetThreadPriority(threadID) != THREAD_PRIORITY_TIME_CRITICAL)
     {
@@ -513,23 +523,32 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
         hTask = AvSetMmThreadCharacteristics(TEXT("Pro Audio"), &taskIndex);
         if (hTask == NULL)
         {
-            hr = E_FAIL;
-            printf("**** AvSetMmThreadCharacteristics (Pro Audio) failed!\n");
+            hr = E_FAIL; fprintf(stderr, "**** AvSetMmThreadCharacteristics (Pro Audio) failed!\n");
             assert(1 == 0);
             return -1;
         }
     }
+    
+    //pro audio thread terminate condition
+    if (!streamContext->audioClient)
+    {
+        //Repurpose the audio buffer ready event ?
+        //TO DO:  pulse event that shutdown is waiting on 
 
+        // kill this thread and its resources (CRT allocates them)
+        _endthreadex(0);
+        return 0;
+    }
     //create the render client for the stream
     hr = CALL(GetService, streamContext->audioClient, __riid(IAudioRenderClient), (void**)&(streamContext->renderClient));
     if (FAILED(hr)) { fprintf(stderr, "**** Error 0x%x returned by GetService\n", hr); assert(1 == 0);  return -1; }
    
-    //hr = clientStream->audioClient->Start();  // Start playing (ie start the device io callback).
-	hr = CALL(Start, streamContext->audioClient);
+    // Start scheduling audio (ie start the device io callback).
+	hr = CALL(Start, streamContext->audioClient); 
     if (FAILED(hr)) 
     { 
-        printf("**** Error 0x%x returned by Start (pAudioClient)\n", hr); 
-        //assert(1 == 0);
+        fprintf(stderr, "**** Error 0x%x returned by Start (pAudioClient)\n", hr); 
+
         assert(hr != AUDCLNT_E_NOT_INITIALIZED);
         assert(hr != AUDCLNT_E_NOT_STOPPED);
         assert(hr != AUDCLNT_E_EVENTHANDLE_NOT_SET);
@@ -539,43 +558,44 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
         return -1; 
     }
 
-    //TO DO : set this somewhere
+    //set stream status to running if it gets this far on the 'pro audio' thread
     streamContext->running = true;
 
-	//RENDER LOOP
-	hr = S_OK;
-	
-	//Start the render loop that waits for the event to trigger
-	// Each loop fills one of the two buffers.
+    UINT32 bufferFrameCount = streamContext->bufferFrameCount;
+    hr = S_OK;
+
+    //RENDER LOOP
+
+	//Start the render loop that waits for the event to trigger. Each loop fills one of the two buffers.
 	//TO DO:  Can we eliminate the loop altogether and just have the callback trigger when the event does?
-    while ( flags != AUDCLNT_BUFFERFLAGS_SILENT)
+    while (flags != AUDCLNT_BUFFERFLAGS_SILENT)
     {
 	    // Wait for next buffer event to be signaled.
         DWORD retval = WaitForSingleObject(streamContext->hEvent, 2000);
         if (retval != WAIT_OBJECT_0)
         {
-            // Event handle timed out after a 2-second wait.
-            //hr = clientStream->audioClient->Stop();
-            hr = CALL(Stop, streamContext->audioClient);
+            // Event handle timed out after a 2-second wait. Stop the 'audio unit' and break out of RENDER LOOP'
+            if(streamContext->audioClient) hr = CALL(Stop, streamContext->audioClient);
 			hr = ERROR_TIMEOUT;
 			break;
 		}
 
 		//printf("Requesting %d buffer samples...\n", clientStream->bufferFrameCount);
 
-		// Grab the next empty buffer from the audio device.
-		hr = CALL(GetBuffer, streamContext->renderClient, streamContext->bufferFrameCount, &((BYTE*)(interleavedBuffer.mData)) );
+		// Grab the next empty buffer to be scheduled
+		hr = CALL(GetBuffer, streamContext->renderClient, bufferFrameCount, &((BYTE*)(interleavedBuffer.mData)) );
 	
+        //GetBuffer Retry/Continue Conditions
+        //Microsoft loves to leave this cryptic little holes in their sample code demonstrating their APIs...
 		//BUFFER_TOO_LARGE actually means we are asking the audio client for more buffer space than is currently available!
-		//Microsoft loves to leave this cryptic little holes in their sample code demonstrating their APIs
 		if( hr == AUDCLNT_E_BUFFER_TOO_LARGE )  { continue; };
         if (hr == AUDCLNT_E_DEVICE_INVALIDATED) { break;    }; //device sample rate changed via system
 
-        //if (FAILED(hr)) { fprintf(stderr, "\n**** Error 0x%x returned by GetBuffer\n", hr); break; }
+        //GetBuffer Failure Conditions
         if (FAILED(hr))
         {
             fprintf(stderr, "\n**** Error 0x%x returned by GetBuffer\n", hr); 
-            //assert(1 == 0);
+
             assert(hr != AUDCLNT_E_BUFFER_ERROR);
             assert(hr != AUDCLNT_E_BUFFER_SIZE_ERROR);
             assert(hr != AUDCLNT_E_OUT_OF_ORDER);
@@ -584,13 +604,17 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
             assert(hr != AUDCLNT_E_SERVICE_NOT_RUNNING);
             assert(hr != E_POINTER);
 
-
             return -1;
         }
 
-		//Calculate the frames available (only if we choose to render to a portion of the buffer at a time in shared mode)
-		UINT FramesAvailable = 0;
-		UINT PaddingFrames = 0;
+        //HACK: If PbAudioStreamSetOutputDriver decides to revert to last configured WASAPI stream there seems to be 
+        //      a race condition around the 'running' parameter causing it to end up in the off state after entering the render loop
+        streamContext->running = true;
+
+
+		// Calculate the frames available (only if we choose to render to a portion of the buffer at a time in shared mode)
+		//UINT FramesAvailable = 0;
+		//UINT PaddingFrames = 0;
 		
         // Get padding in existing buffer
 		//hr = CALL(GetCurrentPadding, streamContext->audioClient, &PaddingFrames );
@@ -604,20 +628,19 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
 
 
         // Clearing the output buffer is critical for DSP routines unless such routines inherently overwrite the buffer
-        PBABufferListSilenceWithFormat(&bufferList, &streamContext->format, 0, streamContext->bufferFrameCount);
+        PBABufferListSilenceWithFormat(&bufferList, &streamContext->format, 0, bufferFrameCount);
 
 		//Execute the client render callback
-		streamContext->outputpass(&bufferList, streamContext->bufferFrameCount, NULL, streamContext);
+		streamContext->outputpass(&bufferList, bufferFrameCount, NULL, streamContext);
 
-		//Release the buffer to send it down the audio pipeline for device playback
-		//hr = clientStream->renderClient->ReleaseBuffer(clientStream->bufferFrameCount, flags);
-	    hr = CALL(ReleaseBuffer, streamContext->renderClient, streamContext->bufferFrameCount, flags);
+		//Release the 'client ownership' of buffer to send it down the audio pipeline for device playback
+	    hr = CALL(ReleaseBuffer, streamContext->renderClient, bufferFrameCount, flags);
 		if (FAILED(hr)) { fprintf(stderr, "\n**** Error 0x%x returned by ReleaseBuffer\n", hr); break; }
 	}
 
-
     //stream audioclient + renderclient housekeeping
-    streamContext->running = false;
+    //Note: The running status was wrapped in a condition to make sure it isn't disabled when an ASIO driver is active
+    if(!streamContext->driver) streamContext->running = false;
     CALL(Release, streamContext->renderClient); streamContext->renderClient = NULL;
 
     fprintf(stdout, "\nPBAudioStreamStart ended.\n");
@@ -634,6 +657,9 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
         if (streamContext->audioClient)
         {
             wasRunning = streamContext->running;
+            
+            //TO DO: this will never get entered because running status is disabled above
+            //Is it unnecessary?  Why did I put it here in the first place then?
             if (wasRunning)
             {
                 HRESULT hr = PBAudioStreamStop(streamContext);
@@ -656,15 +682,15 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
             */
 
             //Delete + Recreate IAudioClient against new device
-            CALL(Release, streamContext->audioClient);  streamContext->audioClient = NULL;
-            CALL(Release, streamContext->audioDevice);  streamContext->audioDevice = NULL;
+            CALL(Release, streamContext->audioClient); streamContext->audioClient = NULL;
+            CALL(Release, streamContext->audioDevice); streamContext->audioDevice = NULL;
 
             //There is a minimum delay of one buffer length needed for the system to clean up/recreate the default audio device 
-            //before it can be recreated such that SetEventHandlle won't complain. Wait for the last buffer to play before stopping.
-            Sleep((DWORD)((float)streamContext->bufferFrameCount / (float)streamContext->format.nSamplesPerSec * 1000.f * 2.f));
-
+            //before it can be recreated such that SetEventHandle won't complain. Wait for the last buffer to play before stopping.
+            Sleep((DWORD)((float)bufferFrameCount / (float)streamContext->format.nSamplesPerSec * 1000.f * 2.f));
         }
 
+        //attempt to recover by recreatiing  the stream against the system default device
         PBAudioDefaultDevice(kAudioHardwarePropertyDefaultOutputDevice, &(streamContext->audioDevice));
 
         //Create the equivalent of an audioUnit for the device stream
@@ -675,13 +701,13 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
 
         //TO DO:  how to handle exclusive mode streams
 
+        //Reinitialize the audioclient stream + format  to get buffer size in samples
         //An IAudioClient object supports exactly one connection to the audio engine or audio hardware. This connection lasts for the lifetime of the IAudioClient object.
         streamContext->bufferFrameCount = (UINT32)PBAInitAudioStreamWithFormat(streamContext, NULL, streamContext->shareMode);
 
         fprintf(stdout, "PBAudioStreamSetOutputDevice::bufferSizeInSamples = %u\n", streamContext->bufferFrameCount);
 
-        // Create a platform event handle and register it for
-        // buffer-event notifications.
+        // (Re)Create a platform event handle and register it for buffer-event notifications.
         assert(streamContext->hEvent);
         //streamContext->hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
         //if (streamContext->hEvent == NULL) { fprintf(stderr, "**** PBAudioStreamInit::CreateEvent Failed\n"); return -1; }
@@ -695,24 +721,33 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
 
     }; 
     
-    //if the stream ended because the cient was recreated due to a device change recursively restart processing on the stream
-    PBAudioStreamStart(streamContext);
+    //reentrant if the stream ended because the client was recreated due to a device change recursively restart processing on the stream
+    if(!streamContext->driver) return PBAudioStreamStart(streamContext);
+
+    // kill this thread and its resources (CRT allocates them)
+    _endthreadex(0);
 
     //Cleanup Motherfucker!
+    //TO DO: revert thread priority?
+    //TO DO: What else?
+    //TO DO: Can this code ever be reached?
+
     /*
     if (clientStream->hEvent != NULL)
     {
         CloseHandle(clientStream->hEvent);
     }
+
     if (hTask != NULL)
     {
         AvRevertMmThreadCharacteristics(hTask);
     }
+
     //CoTaskMemFree(pwfx);
     PBA_COM_RELEASE(_PBADeviceEnumerator)
-        PBA_COM_RELEASE(clientStream->audioDevice)
-        PBA_COM_RELEASE(clientStream->audioClient)C
-        PBA_COM_RELEASE(clientStream->renderClient)
+    PBA_COM_RELEASE(clientStream->audioDevice)
+    PBA_COM_RELEASE(clientStream->audioClient)C
+    PBA_COM_RELEASE(clientStream->renderClient)
     */
 #endif
 
@@ -748,31 +783,40 @@ OSStatus PBAudioStreamStop(PBAStreamContext * streamContext)
     
 #elif defined(_WIN32)
 
-    assert(streamContext->audioClient);// @"You must call setup: on this instance before starting or stopping it");
     assert(streamContext->running);
 
-    //Stop client
-    result = CALL(Stop, streamContext->audioClient);
-
-    if (FAILED(result))
+    if (streamContext->driver) //streamContext->shareMode == PBA_DRIVER_VENDOR)
     {
-        //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:result userInfo:@{ NSLocalizedDescriptionKey: @"Unable to start IO unit" }];
-        fprintf(stderr, ", Unable to stop IO client\n");
-        assert(1 == 0);
-        return result;
+        //Stop Vendor (ASIO) Driver
+        result = PBAudioDriverStop(streamContext->driver);
+    }
+    else
+    {
+        assert(streamContext->audioClient);// @"You must call setup: on this instance before starting or stopping it");
+
+        //Stop WASAPI AudioClient
+        result = CALL(Stop, streamContext->audioClient);
+
+        if (FAILED(result))
+        {
+            //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:result userInfo:@{ NSLocalizedDescriptionKey: @"Unable to start IO unit" }];
+            fprintf(stderr, ", Unable to stop IO client\n");
+            assert(1 == 0);
+            return result;
+        }
+
+        result = CALL(Reset, streamContext->audioClient);
+
+        if (FAILED(result))
+        {
+            //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:result userInfo:@{ NSLocalizedDescriptionKey: @"Unable to start IO unit" }];
+            fprintf(stderr, ", Unable to reset IO client\n");
+            assert(1 == 0);
+            return result;
+        }
     }
 
-    result = CALL(Reset, streamContext->audioClient);
-
-    if (FAILED(result))
-    {
-        //if ( error ) *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:result userInfo:@{ NSLocalizedDescriptionKey: @"Unable to start IO unit" }];
-        fprintf(stderr, ", Unable to reset IO client\n");
-        assert(1 == 0);
-        return result;
-    }
-
-
+    //Set stream state to indicate stopped
     streamContext->running = false;
 
 #endif
@@ -780,6 +824,81 @@ OSStatus PBAudioStreamStop(PBAStreamContext * streamContext)
     return result;
 
     
+}
+
+
+//kAsioResetRequest: Stop, Dispose Buffers, Destruct, (Re)Construct, (Re)Initialize
+//Is nearly identical to PBAudioStreamSetOutputDriver
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamReset(PBAStreamContext* streamContext)
+{
+    OSStatus result = 0;
+
+    //deviceID might be an integer or pointer depending on the platform
+    fprintf(stdout, "PBAudioStreamReset\n");
+
+#ifdef __APPLE__
+    assert(1 == 0);
+#else
+
+    volatile bool wasRunning = false;// streamContext->running;
+    
+    //stop active stream system or vendor driver
+    if (streamContext->audioClient)
+    {
+        assert(1 == 0);  //this path doesn't mean anything for non-ASIO drivers
+        wasRunning = streamContext->running;
+        if (wasRunning) result = PBAudioStreamStop(streamContext);
+
+        //Delete + Recreate IAudioClient against new device
+        CALL(Release, streamContext->audioClient); streamContext->audioClient = NULL;
+        streamContext->audioDevice = NULL; //remove active device reference on stream
+        //CALL(Release, streamContext->audioDevice); streamContext->audioDevice = NULL;
+        //CALL(Release, streamContext->renderClient); streamContext->renderClient = NULL;
+    }
+    else if (streamContext->driver)
+    {
+        CoInitialize(0);
+
+        PBAudioDriverID driverID = streamContext->driverID;                        //store driver id; it will be overwritten by PBAudioDriverShutdown
+        wasRunning = streamContext->running;
+        if (wasRunning) result = PBAudioStreamStop(streamContext);                 //IASIO::stop
+        PBAudioDriverDisposeBuffers(streamContext->driver);                        //IASIO::dispose_buffers
+        PBAudioDriverShutdown(&streamContext->driver, &streamContext->driverID);   //IASIO::close, then release IASO com object
+    
+        //overwrite driver mode on stream
+        streamContext->shareMode = PBA_DRIVER_VENDOR;
+
+        //Load the Vendor [ASIO] Driver
+        PBAudioDriverID selectedDriverID = driverID;
+        if (PBAudioLoadVendorDriver(&streamContext->driver, streamContext->driverID, &selectedDriverID) == 0)
+        {
+            //Record active driver id on stream
+            streamContext->driverID = selectedDriverID;
+
+            //Initialize the Vendor [ASIO] Driver
+            if (PBAudioInitVendorDriver(streamContext->driver, streamContext) == 0)
+            {
+                //debug by checking if control panel can open
+                //PBAudioDriverControlPanel(streamContext->driver); 
+
+                //Start the Vendor [ASIO] driver
+                if (wasRunning) PBAudioStreamStart(streamContext); //IASIO::start
+
+            }
+            else assert(1 == 0); //if the asio driver was created but there was no physical device to initialize against
+        }
+        else assert(1 == 0);
+    
+        CoUninitialize();
+
+    }
+
+#endif
+
+    //streamContext->shareMode = PBA_DRIVER_VENDOR;
+    //streamContext->driverID  = driverID;
+
+    return result;
 }
 
 
@@ -833,7 +952,7 @@ OSStatus PBAudioStreamSetInputState(PBAStreamContext* streamContext, uint32_t st
     return result;
 }
 
-OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioDevice deviceID)
+OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext* streamContext, PBAudioDevice deviceID)
 {
     OSStatus result = 0;
     
@@ -917,25 +1036,43 @@ OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioD
             PBAudioStreamSetPassThroughState(streamContext, wasPassthrough); //restore input passthrough state
         }
     }
+
+    streamContext->audioDevice = deviceID;
+
 #else
 
-    volatile bool wasRunning = false;// streamContext->running;
+    volatile bool wasRunning = false;
+    volatile bool needsStart = false;
 
     //guard against calling this method unnecessarily
     assert(streamContext->audioDevice != deviceID);
 
+    //stop active stream system or vendor driver
     if (streamContext->audioClient)
     {
         wasRunning = streamContext->running;
-        if (wasRunning)
-        {
-            HRESULT hr = PBAudioStreamStop(streamContext);
+        if (wasRunning) result = PBAudioStreamStop(streamContext);
 
-        }
         //Delete + Recreate IAudioClient against new device
         CALL(Release, streamContext->audioClient);  streamContext->audioClient  = NULL;
         //CALL(Release, streamContext->renderClient); streamContext->renderClient = NULL;
     }
+    else if (streamContext->driver)
+    {
+        wasRunning = streamContext->running;
+        if (wasRunning) result = PBAudioStreamStop(streamContext);                 //IASIO::stop
+        PBAudioDriverDisposeBuffers(streamContext->driver);                        //IASIO::displose_buffers
+        PBAudioDriverShutdown(&streamContext->driver, &streamContext->driverID);   //IASIO::close, then release IASO com object
+        needsStart = true;                                                         //restart the winmm "pro audio" thread
+    }
+
+    //overwrite driver mode on stream
+    streamContext->shareMode = PBA_DRIVER_SHARED;
+
+    //assume any device has at least 2 output channels
+    //(these values will be updated using IMMDevice API after the stream has been configured)
+    streamContext->nInputChannels  = 0;
+    streamContext->nOutputChannels = 2;
 
     //Create the equivalent of an audioUnit for the device stream
     PBAudioActivateDevice(deviceID, &streamContext->audioClient);
@@ -962,15 +1099,115 @@ OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioD
     HRESULT hr = CALL(SetEventHandle, streamContext->audioClient, streamContext->hEvent);
 	if (FAILED(hr)) { fprintf(stderr, "**** Error 0x%x returned by SetEventHandle\n", hr); return -1; }
 
-    //Audio Render Thread will automatically restart processing on the stream (
+    streamContext->audioDevice = deviceID;
+
+    //Audio Render Thread will automatically restart processing on the stream render thread
     //if (wasRunning) PBAudioStreamStart(streamContext);
 
+    //restart the stream's winmm pro audio thread
+    if (needsStart)  _beginthreadex(NULL, 0, (_beginthreadex_proc_type)PBAudio.Start, streamContext, 0, &(streamContext->audioThreadID));
+
 #endif
-    
-    streamContext->audioDevice = deviceID;
 
     return result;
 }
+
+#ifndef __APPLE__
+
+OSStatus PBAudioStreamSetOutputDriver(PBAStreamContext* streamContext, PBAudioDriverID driverID)
+{
+    OSStatus result = 0;
+
+    //deviceID might be an integer or pointer depending on the platform
+    fprintf(stdout, "PBAudioStreamSetOutputDriver (AudioDriverID: %ld)\n", (PBAudioDriverID)driverID);
+
+#ifdef __APPLE__
+    assert(1 == 0); //In the long long ago, CoreAudio made ASIO obsolete on Darwin Platforms
+#else
+
+    volatile bool wasRunning = false;// streamContext->running;
+
+    PBAudioDevice   prevDevice   = NULL;
+    void*           prevDriver   = NULL;
+    PBAudioDriverID prevDriverID = -1;
+
+    //guard against calling this method unnecessarily
+    assert(streamContext->driverID != driverID);
+
+    //stop active stream system or vendor driver
+    if (streamContext->audioClient) 
+    {
+        wasRunning = streamContext->running;
+        if (wasRunning) result = PBAudioStreamStop(streamContext);
+
+        prevDevice = streamContext->audioDevice;
+
+        //Delete + Recreate IAudioClient against new device
+        CALL(Release, streamContext->audioClient); streamContext->audioClient = NULL;
+        streamContext->audioDevice = NULL; //remove active device reference on stream
+        //CALL(Release, streamContext->audioDevice); streamContext->audioDevice = NULL;
+        //CALL(Release, streamContext->renderClient); streamContext->renderClient = NULL;
+    }
+    else if (streamContext->driver)
+    {
+        prevDriver = streamContext->driver;
+        wasRunning = streamContext->running;
+        if (wasRunning) result = PBAudioStreamStop(streamContext);                 //IASIO::stop
+        PBAudioDriverDisposeBuffers(streamContext->driver);                        //IASIO::dispose_buffers
+        PBAudioDriverShutdown(&streamContext->driver, &streamContext->driverID);   //IASIO::close, then release IASO com object
+    }
+
+    //overwrite driver mode on stream
+    streamContext->shareMode = PBA_DRIVER_VENDOR;
+
+    if (driverID < 0) return result;
+
+    //Load the Vendor [ASIO] Driver
+    PBAudioDriverID selectedDriverID = driverID;
+    if (driverID > -1 && PBAudioLoadVendorDriver(&streamContext->driver, streamContext->driverID, &selectedDriverID) == 0)
+    {
+        //Record active driver id on stream
+        streamContext->driverID = selectedDriverID; 
+
+        //Initialize the Vendor [ASIO] Driver
+        if (PBAudioInitVendorDriver(streamContext->driver, streamContext) == 0 )
+        {
+            //debug by checking if control panel can open
+            //PBAudioDriverControlPanel(streamContext->driver); 
+
+            //Start the Vendor [ASIO] driver
+            if (wasRunning) PBAudioStreamStart(streamContext); //IASIO::start
+        }
+        else //if the asio driver was created but there was no physical device to initialize against (observed with UAD drivers)
+        {
+            //Destroy the IASIO driver that failed to init
+            PBAudioDriverShutdown(&streamContext->driver, &streamContext->driverID);
+
+            //Restore the last configured device audioClient or IASIO driver
+            //Since we are restoring we don't really care about observing the return codes
+            if (prevDevice) PBAudioStreamSetOutputDevice(streamContext, prevDevice);
+            if (prevDriver && prevDriverID > -1)
+            {
+                selectedDriverID = prevDriverID;
+                if (PBAudioLoadVendorDriver(&streamContext->driver, streamContext->driverID, &selectedDriverID) != 0) return -1;
+                if (PBAudioInitVendorDriver(streamContext->driver, streamContext) != 0) return -1;
+                if (wasRunning) PBAudioStreamStart(streamContext); //IASIO::start
+            }
+
+            return -1;
+        }
+    }
+    else assert(1 == 0);
+
+#endif
+
+    //streamContext->shareMode = PBA_DRIVER_VENDOR;
+    //streamContext->driverID  = driverID;
+
+    return result;
+}
+
+#endif
 
 
 

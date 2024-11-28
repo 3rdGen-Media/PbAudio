@@ -23,6 +23,7 @@ extern "C" {
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * format, PBAudioDevice deviceID, PBAStreamOutputPass outputpass);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamStart(PBAStreamContext * streamContext);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamStop(PBAStreamContext * streamContext);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamReset(PBAStreamContext* streamContext);
 PB_AUDIO_API PB_AUDIO_INLINE void     PBAudioStreamSetBypass(PBAStreamContext * streamContext, bool bypass);
 
 
@@ -35,6 +36,12 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamSetInputDevice(PBAStreamConte
 
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamGetOutputDevice(PBAStreamContext * streamContext, PBAudioDevice* deviceID);
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamSetOutputDevice(PBAStreamContext * streamContext, PBAudioDevice deviceID);
+
+//Stream Driver API
+#ifndef __APPLE__
+//PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamGetOutputDriver(PBAStreamContext* streamContext, PBAudioDriverID driverID);
+PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioStreamSetOutputDriver(PBAStreamContext* streamContext, PBAudioDriverID driverID);
+#endif
 
 
 //#pragma mark -- CTConnection API Method Function Pointer Definitions

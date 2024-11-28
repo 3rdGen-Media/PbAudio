@@ -110,8 +110,8 @@ extern "C" {
 
 //typically, this should be defined by the project file, but you can define it here to explicitly enable
 //memory alignment sanity checking for release builds
-//#define PB_AUDIO_DEBUG
-
+//#define PBA_DEBUG
+#define XNZ_AUDIO
 
 //END CONFIGURATION -- DON'T EDIT ANYTHING ELSE BEYOND THIS POINT
 
@@ -121,28 +121,28 @@ extern "C" {
 #include <string.h>
 #include <errno.h>
 
-
 #if defined(_WIN32) && defined(_DEBUG)
 #include <vld.h>
 #endif
 
-//#define PBA_DEBUG
-
 //SIMD datatypes are processor/platform specific includes
+//--Nothing to see here yet
 
-#define XNZ_AUDIO
 
+//Base Dependencies
 #include "[Pb]Audio/pba_target_os.h"
 #include "[Pb]Audio/pba_time.h"
 #include "[Pb]Audio/pba_format.h"
 #include "[Pb]Audio/pba_error.h"
 #include "[Pb]Audio/pba_dsp_routines.h"
 
-
-//now include our C primitive data types and functionality
+//System/Vendor Extensions
 #ifdef _WIN32
 #include "[Pb]Audio/PbAudioExt.h"
+#include "[Pb]Audio/PbAudioDriver.h"
 #endif
+
+//C primitive data types and functionality
 #include "[Pb]Audio/PbAudioBufferList.h"
 #include "[Pb]Audio/PbAudioBufferStack.h"
 #include "[Pb]Audio/PbAudioCallbacks.h"
@@ -153,7 +153,6 @@ extern "C" {
 
 //API
 #include "[Pb]Audio/PbAudioAPI.h"
-
 
 //Utils
 #include "[Pb]Audio/PbAudioByteUtils.h"

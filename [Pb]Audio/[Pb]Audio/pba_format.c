@@ -157,8 +157,8 @@ void pba_transform_s16i_f32i(void** srcBuffers, void** dstBuffers, uint64_t nBuf
         fSampleR = ((float)iSampleR) / 32768.f;
 
         //place sample in output stream
-        fBufferL[i * 2]     = fSampleL;
-        fBufferL[i * 2 + 1] = fSampleR;
+        fBufferL[i * 2]     += fSampleL;
+        fBufferL[i * 2 + 1] += fSampleR;
 
     }
 
@@ -362,7 +362,7 @@ PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_s32i_f32i(void** srcBuffers, voi
         int32_t iSampleL, iSampleR;
         float   fSampleL, fSampleR;
 
-        //place 24 bit le signed integer in most significant bytes of a 32 bit le signed integer
+        //place 32 bit le signed integer a 32-bit float
         iSampleL = samplesL[i * nBufferChannels];
         iSampleR = samplesL[(((i)*nBufferChannels) + nBufferChannels - 1)];
 
@@ -375,6 +375,41 @@ PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_s32i_f32i(void** srcBuffers, voi
 
 }
 
+
+
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_s32i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
+{
+    //raw byte source buffer
+    float* fBufferL = (float*)srcBuffers[0];
+    //char* samplesR = (sourceBuffers[0]);// + frameIndex*2]
+
+    //dest
+    int32_t* samplesL = (int32_t*)(dstBuffers[0]);// + frameIndex*2]
+    int32_t* samplesR = (int32_t*)(dstBuffers[0]);// + frameIndex*2]
+
+    //float* fBufferR = (float*)dstBuffers[1];
+
+    assert(1 == 0);
+
+    for (int i = 0; i < nFrames; i++)
+    {
+        int32_t iSampleL, iSampleR;
+        float   fSampleL, fSampleR;
+
+        fSampleL = fBufferL[i * nBufferChannels];
+        fSampleR = fBufferL[(((i)*nBufferChannels) + nBufferChannels - 1)];
+
+        iSampleL = (int32_t)(fSampleL * 2147483647.f);
+        iSampleR = (int32_t)(fSampleR * 2147483647.f);
+
+        samplesL[i] = iSampleL;
+        samplesR[i] = iSampleL;
+
+        //samplesL[i * 2]     = iSampleL;
+        //samplesL[i * 2 + 1] = iSampleR;
+    }
+
+}
 
 PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_f32i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
 {
@@ -396,9 +431,37 @@ PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_f32i(void** srcBuffers, voi
         fSampleL = samplesL[i * nBufferChannels];
         fSampleR = samplesL[(((i)*nBufferChannels) + nBufferChannels - 1)];
 
-        fBufferL[i * 2]     += fSampleL;
-        fBufferL[i * 2 + 1] += fSampleR;
+        fBufferL[i * 2]     = fSampleL;
+        fBufferL[i * 2 + 1] = fSampleR;
     } 
+
+}
+
+
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_s32(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
+{
+    //raw float (interleaved) source buffer
+    float* fBufferL = (float*)srcBuffers[0];
+    //float* fBuffeR$ = (float*)srcBuffers[1];
+
+    //raw int32 (noninterleaved) dest buffer(s)
+    int32_t* samplesL = (int32_t*)(dstBuffers[0]);// + frameIndex*2]
+    int32_t* samplesR = (int32_t*)(dstBuffers[1]);// + frameIndex*2]
+
+    for (int i = 0; i < nFrames; i++)
+    {
+        int32_t iSampleL, iSampleR;
+        float   fSampleL, fSampleR;
+
+        fSampleL = fBufferL[i * nBufferChannels];
+        fSampleR = fBufferL[(((i)*nBufferChannels) + nBufferChannels - 1)];
+
+        iSampleL = (int32_t)(fSampleL * 2147483647.f);
+        iSampleR = (int32_t)(fSampleR * 2147483647.f);
+
+        samplesL[i] = iSampleL;
+        samplesR[i] = iSampleR;
+    }
 
 }
 

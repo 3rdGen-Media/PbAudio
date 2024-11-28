@@ -186,6 +186,7 @@ OSStatus PBAudioDeviceInitCOM()
 }
 
 
+#define PBA_COM_ADDREF(punk)  if ((punk) != NULL) { CALL(AddRef, punk); }
 #define PBA_COM_RELEASE(punk) if ((punk) != NULL) { CALL(Release, punk); (punk) = NULL; }
 
 
@@ -249,7 +250,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDefaultDevice(AudioObjectPropertySe
 
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioActivateDevice(IMMDevice* device, IAUDIOCLIENT** audioClient)
 {
-    //Active a version 1 Aucio Client
+    //Active a version 1 Audio Client
 #ifdef IAUDIOCLIENT3
     HRESULT hr = CALL(Activate, device, __riid(IAudioClient3), CLSCTX_ALL, NULL, (void**)audioClient);
 #else
@@ -342,7 +343,9 @@ PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(AudioObje
 
 #else
 
-    IMMDeviceCollection* deviceCollection = NULL;
+    volatile PBAudioDevice AudioDevices[PBA_MAX_DEVICES]   = {0};  //tmp stack memory device list
+    volatile uint8_t       AudioDeviceMap[PBA_MAX_DEVICES] = {0};  //map indices of cached list to indices of new device list
+    IMMDeviceCollection*   deviceCollection                = NULL; //temporary COM Object will be released within this function
 
     //Obtain Device Collection
     result = CALL(EnumAudioEndpoints, _PBADeviceEnumerator, eRender, DEVICE_STATE_ACTIVE | DEVICE_STATE_DISABLED, &deviceCollection);
@@ -352,8 +355,12 @@ PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(AudioObje
     result = CALL(GetCount, deviceCollection, &deviceCount);
     if (FAILED(result)) { fprintf(stderr, "**** Error 0x%x returned by IMMDeviceCollectin::GetCount\n", result); assert(1 == 0); }
 
-    UINT deviceIndex = 0;
+    UINT i, deviceIndex = 0;
 
+    //create temporary audio device array on stack
+    //PBAudioDevice* AudioDevices = (PBAudioDevice*)malloc(deviceCount * sizeof(PBAudioDevice));
+
+    /*
     //clear any existing memory
     for (deviceIndex; deviceIndex < PBA_MAX_DEVICES; deviceIndex++)
     {
@@ -363,13 +370,70 @@ PB_AUDIO_API PB_AUDIO_INLINE PBAudioDeviceList PBAudioAvailableDevices(AudioObje
             PBA_COM_RELEASE(_AudioDevices[deviceIndex]);
         }
     }
+    */
 
-    //Get each IMMDevice*
+    //Get each IMMDevice* from the IMMDeviceCollection
     for (deviceIndex=0; deviceIndex < deviceCount; deviceIndex++)
     {
-        result = CALL(Item, deviceCollection, deviceIndex, &_AudioDevices[deviceIndex]); assert(_AudioDevices[deviceIndex]);
+        PBAudioDevice device = NULL;
+        result = CALL(Item, deviceCollection, deviceIndex, &device); assert(device);
         if (FAILED(result)) { fprintf(stderr, "**** Error 0x%x returned by IMMDeviceCollection::Item\n", result); assert(1 == 0); }
+
+        //Store the device retrieved from the IMMDeviceCollection in temporary stack list
+        AudioDevices[deviceIndex] = device;
+
+        //Get the name of the IMMDevice* retrieved from the IMMDevice Collection
+        uint32_t idLen1 = 128; char id1[128] = "\0"; PBAudioDeviceID(AudioDevices[deviceIndex], id1, &idLen1);
+
+        //Iterate the list of all cached IMMDevice*
+        for (i=0; i < PBA_MAX_DEVICES; i++)
+        {
+            //If a previous cached AudioDevice at this index is present in the list...
+            if (_AudioDevices[i])
+            {
+                //Get the name of the cached IMMDevice*
+                uint32_t idLen2 = 128; char id2[128] = "\0"; PBAudioDeviceID(_AudioDevices[i], id2, &idLen2);
+
+                //Compare the name opf the cached audio device against the name of the newly allocated device
+                if (memcmp(id1, id2, idLen1) == 0) 
+                { 
+                    //Release the new audio device memory
+                    PBA_COM_RELEASE(device);
+
+                    //Replace with the cached audio device memory
+                    AudioDevices[deviceIndex] = _AudioDevices[i];
+
+                    //Update the map
+                    AudioDeviceMap[i] = deviceIndex+1; //increment by 1 to allow check against > 0
+
+                    //Move on to retrieve the next IMMDevice from the IMMDeviceCollection
+                    break;
+                }
+            }
+        }
     }
+
+    //Release any cached devices whose list indices were not mapped
+    for (deviceIndex = 0; deviceIndex < _DeviceCount; deviceIndex++)
+    {
+        //Consult the map and Release cached IMMDevice* if a mapped index is not present
+        if (AudioDeviceMap[deviceIndex] == 0) PBA_COM_RELEASE(_AudioDevices[deviceIndex]);
+    }
+
+    //copy the temporary stack list to the cached list
+    if( deviceCount ) memcpy(_AudioDevices, AudioDevices, deviceCount * sizeof(PBAudioDevice));
+
+    /*
+    release any cached devices that are no longer present as a result of the list growing or shrinking
+    for (deviceIndex = deviceCount; deviceIndex < _DeviceCount; deviceIndex++)
+    {
+        if (_AudioDevices[deviceIndex])
+        {
+            //Release old IMMDevice*
+            PBA_COM_RELEASE(_AudioDevices[deviceIndex]);
+        }
+    }
+    */
 
     //Release Collection
     PBA_COM_RELEASE(deviceCollection)
@@ -399,7 +463,7 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceID(PBAudioDevice deviceID, ch
     wcscpy((LPWSTR*)id, pwszID);
     *idLen = w_len;
 
-    fprintf(stdout, "\nPBAudioDeviceID: %S\n", pwszID);
+    //fprintf(stdout, "\nPBAudioDeviceID: %S\n", pwszID);
 #else
     assert(1==0);
 #endif
@@ -600,16 +664,17 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceNominalSampleRateCount(PBAudi
     return result;
 }
 
-
+//TO DO:  This needs to take stream as input
 PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetSampleRate(PBAudioDevice deviceID, AudioObjectPropertyScope scope, double sampleRate)
 {
     OSStatus status = 0;
+    PBAStreamContext* streamContext = &PBAudio.OutputStreams[0];
+
 #if defined(__APPLE__) 
 #if TARGET_OS_OSX
     //Note: Explicitly stopping and starting the stream does not seem to be necessary for sample rate and buffer size changes
     //      and results in additonal warnings 'HALB_IOThread.cpp:326    HALB_IOThread::_Start: there already is a thread'
     volatile bool wasRunning = false;
-    PBAStreamContext * streamContext = &PBAudio.OutputStreams[0];
     PBAudioStreamSetBypass(streamContext, true);
     if( streamContext->audioDevice == deviceID && streamContext->audioUnit && streamContext->running)
     {
@@ -660,6 +725,41 @@ PB_AUDIO_API PB_AUDIO_INLINE OSStatus PBAudioDeviceSetSampleRate(PBAudioDevice d
     
     fprintf(stdout, "\nPBAudioDeviceSetSampleRate::AVAudioSession.sampleRate = %g\n", currentRate );
 #endif
+#endif
+
+#if defined(_WIN32) 
+
+    OSStatus result = 0;
+    volatile bool wasRunning = false;
+
+    if (streamContext->shareMode < PBA_DRIVER_VENDOR) assert(1 == 0);
+
+    if (streamContext->audioClient)
+    {
+        //should never be called for WASAPI streams
+        assert(1 == 0);
+        wasRunning = streamContext->running;
+        if (wasRunning) result = PBAudioStreamStop(streamContext);
+
+        //Delete + Recreate IAudioClient against new device
+        //CALL(Release, streamContext->audioClient);  streamContext->audioClient = NULL;
+        //CALL(Release, streamContext->renderClient); streamContext->renderClient = NULL;
+    }
+    else if (streamContext->driver)
+    {
+        wasRunning = streamContext->running;
+
+        //IASIO::stop
+        if (wasRunning) result = PBAudioStreamStop(streamContext); 
+
+        //IASIO dispose buffers, set sample rate, create buffers
+        PBAudioDriverSetSampleRate(streamContext->driver, sampleRate, streamContext);
+
+        //IASIO::start
+        if (wasRunning) PBAudioStreamStart(streamContext);         
+    }
+    
+
 #endif
 
     return status;

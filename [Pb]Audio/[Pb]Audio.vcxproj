@@ -88,12 +88,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDLL;_PB_AUDIO_BUILD_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VLD_DIR)\include;$(DXSDK_DIR)\include\10.0.22621.0\um;$(DXSDK_DIR)\include\10.0.22621.0\shared;..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VLD_DIR)\include;$(WindowsSDK_IncludePath)\um;$(WindowsSDK_IncludePath)\shared;..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Avrt.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Avrt.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)lib\x64\[Pb]Audiod.lib</ImportLibrary>
       <AdditionalLibraryDirectories>..\lib\x64;$(VLD_DIR)\lib\Win64</AdditionalLibraryDirectories>
     </Link>
@@ -125,7 +125,7 @@ copy .\*.h ..\include\[Pb]Audio
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\include\10.0.22621.0\um;$(DXSDK_DIR)\include\10.0.22621.0\shared;..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(WindowsSDK_IncludePath)\um;$(WindowsSDK_IncludePath)\shared;..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDLL;_PB_AUDIO_BUILD_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -133,7 +133,7 @@ copy .\*.h ..\include\[Pb]Audio
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Avrt.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Avrt.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)lib\x64\[Pb]Audio.lib</ImportLibrary>
       <AdditionalLibraryDirectories>..\lib\x64</AdditionalLibraryDirectories>
     </Link>
@@ -157,10 +157,12 @@ copy .\*.h ..\include\[Pb]Audio</Command>
     <ClInclude Include="[Pb]Audio\PbAudioByteUtils.h" />
     <ClInclude Include="[Pb]Audio\PbAudioCallbacks.h" />
     <ClInclude Include="[Pb]Audio\PbAudioDevice.h" />
+    <ClInclude Include="[Pb]Audio\PbAudioDriver.h" />
     <ClInclude Include="[Pb]Audio\PbAudioExt.h" />
     <ClInclude Include="[Pb]Audio\PbAudioFileStream.h" />
     <ClInclude Include="[Pb]Audio\PbAudioRenderPass.h" />
     <ClInclude Include="[Pb]Audio\PbAudioStream.h" />
+    <ClInclude Include="[Pb]Audio\pba_asio_ext.h" />
     <ClInclude Include="[Pb]Audio\pba_dsp_routines.h" />
     <ClInclude Include="[Pb]Audio\pba_error.h" />
     <ClInclude Include="[Pb]Audio\pba_event_queue.h" />
@@ -172,12 +174,14 @@ copy .\*.h ..\include\[Pb]Audio</Command>
     <ClCompile Include="[Pb]Audio\PbAudioAPI.c" />
     <ClCompile Include="[Pb]Audio\PbAudioBufferList.c" />
     <ClCompile Include="[Pb]Audio\PbAudioDevice.c" />
+    <ClCompile Include="[Pb]Audio\PbAudioDriver.c" />
     <ClCompile Include="[Pb]Audio\PbAudioExt.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="[Pb]Audio\PbAudioFileStream.c" />
     <ClCompile Include="[Pb]Audio\PbAudioRenderPass.c" />
     <ClCompile Include="[Pb]Audio\PbAudioStream.c" />
+    <ClCompile Include="[Pb]Audio\pba_asio_ext.c" />
     <ClCompile Include="[Pb]Audio\pba_event_queue.c" />
     <ClCompile Include="[Pb]Audio\pba_format.c" />
     <ClCompile Include="[Pb]Audio\pba_target_os.c" />

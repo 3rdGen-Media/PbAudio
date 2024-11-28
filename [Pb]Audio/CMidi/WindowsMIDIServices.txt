@@ -1,9 +1,17 @@
+The following process must be repeated each time Visual Studio [2022] updates to a new Windows Runtime (WinRT) version 
+prior to (re)building the CMidi.dll project with Visual Studio:
+
 1.  Obtain the source, NuGet packages and ensure proper vc14 redist for building Windows MIDI Services (WMS) release.
 
 2.  Build the cpp-winrt sample applications in the Windows MIDI Services Release to generate WinRT projection headers
     for the version of the Windows Runtime (WinRT) used by the given Windows MIDI Services release.
 
 3.  Copy the the NuGet generated WinRT projection headers to be used as includes in your Win32 WinRT Wrapper dll library vcxproj.
+    (From Project/Intermediate/x64/Release/Generated Files/winrt)
 
-4.  Copy the NuGet package Microsoft.Windows.Devices.Midi2.*.dll(s) to your workspace bin for linking WinRT ABI implementations 
-    at runtime.
+4.  Copy the NuGet package Microsoft.Windows.Devices.Midi2.*.dll(s) (in runtimes/win-x64/native) to your workspace bin 
+    for linking WinRT ABI implementations at runtime (only the following at minimum are needed):
+
+	Midi2
+	Midi2.Diagnostics
+	Midi2.Initialization

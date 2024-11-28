@@ -63,7 +63,7 @@ PB_AUDIO_API PB_AUDIO_INLINE void PBABufferListSilenceWithFormat(const PBABuffer
 #ifdef __APPLE__
 	uint32_t bytesPerFrame = audioFormat->mBitsPerChannel / 8;
 #else
-	uint16_t bytesPerFrame = audioFormat->nBlockAlign;
+    uint32_t bytesPerFrame = audioFormat->nBlockAlign;
 #endif
     for ( i=0; i<bufferList->mNumberBuffers; i++ )
     {

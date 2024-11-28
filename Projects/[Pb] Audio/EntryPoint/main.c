@@ -26,12 +26,11 @@
 SamplePlayer  samplePlayer  = {0};
 ToneGenerator toneGenerator = {0};
 
-#define PBA_INPUT_ENABLED 1
-
 
 #pragma mark -- [Pb]Audio Stream InputPass Callbacks
 
-#ifdef PBA_INPUT_ENABLED
+#define PBA_INPUT_ENABLED 1
+#ifdef  PBA_INPUT_ENABLED
 
 #ifdef __BLOCKS__
 PBAStreamOutputPass InputPass = ^(AudioBufferList * _Nonnull ioData, UInt32 frames, const AudioTimeStamp * _Nonnull timestamp, struct PBAStreamContext* stream)
@@ -187,7 +186,6 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
         pb_audio_transform[stream->target][stream->target](sampleBuffers, byteBuffers, 2, frames);
         */
         
-        
         //if(stream->iChannels > 2 ) assert(1==0);
         
         //input channel pairs
@@ -205,7 +203,7 @@ void CALLBACK SamplerOutputPass(struct PBABufferList* ioData, uint32_t frames, c
             char* sampleBufferR = (char*)stream->inputBufferList->mBuffers[rIndex * R].mData;
             char* sampleBuffers[2] = {sampleBufferL, sampleBufferR};
 
-            if(lIndex + rIndex) pb_audio_transform[stream->target][stream->target](sampleBuffers, byteBuffers, lIndex + rIndex, frames);
+            if(lIndex + rIndex) pb_audio_transform[stream->target][stream->target]((void**)sampleBuffers, (void**)byteBuffers, lIndex + rIndex, frames);
         }
         
     }
@@ -313,16 +311,15 @@ void CMidiReceiveBlock(const MIDIEventList * evtlist, void* srcConnRefCon)
     //TO DO:  Win32 still needs to pass CMConnection interally via CMidi lambda
     CMConnection* connection = (CMConnection*)srcConnRefCon; //assert(connection);
 
-    //NSString* sourceEndpointUniqueIDKey = [NSString stringWithFormat:@"%d", connection->source.uniqueID];// sourceEndpointUniqueID];
-    
-    //Find the DOM of the device determined by the sourcedEndpointUniqueID
-    //Find †he DOM of the Soft Thru Connection associated with the same device
-    //CMHardwareDevice     * MCUDevice      = [CMDevice.dictionary objectForKey:sourceEndpointUniqueIDKey];
-    //CMSoftThruConnection * ThruConnection = [CMSoftThru.dictionary objectForKey:sourceEndpointUniqueIDKey];
-    //CMProxyConnection    * ProxyConnection = CMProxy.documents.firstObject; //objectForKey:sourceEndpointUniqueIDKey];
-
-    //assert(MCUDevice);
-    //assert(ThruConnection);
+    // Example: OO DOM Wrapped Connection
+    //
+    //  Find the DOM of the device determined by the sourcedEndpointUniqueID
+    //  Find the DOM of the Soft Thru Connection associated with the same device
+    //
+    // NSString* sourceEndpointUniqueIDKey = [NSString stringWithFormat:@"%d", connection->source.uniqueID];// sourceEndpointUniqueID];    
+    // CMHardwareDevice     * MCUDevice       = [CMDevice.dictionary objectForKey:sourceEndpointUniqueIDKey];
+    // CMSoftThruConnection * ThruConnection  = [CMSoftThru.dictionary objectForKey:sourceEndpointUniqueIDKey];
+    // CMProxyConnection    * ProxyConnection = CMProxy.documents.firstObject; //objectForKey:sourceEndpointUniqueIDKey];
         
     if (evtlist->numPackets > 0) //when would numPackets ever be less than 1?
     {
@@ -378,8 +375,8 @@ void CMidiReceiveBlock(const MIDIEventList * evtlist, void* srcConnRefCon)
                         //  1.  IOCP Ports are going to force the thread to wait and wake for the event... no good
                         //  2.  I don't understand how custom broadcast messages work yet
                         //  3.  A given thread's queue can be produced to/consumed from with PostThreadMessage/PeekMessage API
-                        //PostThreadMessage(eventQueue, CR_SCENE_CONTROL_EVENT, sceneEvent->type, sceneEvent);
-                        PostThreadMessage((DWORD)PBAudio.OutputStreams[0].audioThreadID, PBA_EVENT_MSG_BASE_ID + note, triggerMessage->timestamp, (LPARAM)triggerMessage);
+                        DWORD streamThreadID = PBAudio.OutputStreams[0].driver ? (DWORD)PBAudio.OutputStreams[0].driverThreadID : (DWORD)PBAudio.OutputStreams[0].audioThreadID;
+                        PostThreadMessage(streamThreadID, PBA_EVENT_MSG_BASE_ID + note, triggerMessage->timestamp, (LPARAM)triggerMessage);
 #else
                         struct kevent kev;
                         EV_SET(&kev, note, EVFILT_USER, 0, NOTE_TRIGGER, 0, triggerMessage);
@@ -407,14 +404,15 @@ void InitPlatform()
 {
 #ifdef _WIN32
 
-    HANDLE pID = 0;
-    HANDLE threadID;
+    HANDLE       pID      = 0;
+    HANDLE       thread   = 0;
+    unsigned int threadID = 0;
 
     //Elevate Process And Thread Priorities
-    pID = (HANDLE)GetProcessId(GetCurrentProcess()); threadID = GetCurrentThread();
-    SetPriorityClass(pID, REALTIME_PRIORITY_CLASS); //SetThreadPriority(threadID, THREAD_PRIORITY_TIME_CRITICAL);
+    pID = (HANDLE)GetProcessId(GetCurrentProcess()); //thread = GetCurrentThread();
+    SetPriorityClass(pID, REALTIME_PRIORITY_CLASS);  //SetThreadPriority(thread, THREAD_PRIORITY_TIME_CRITICAL);
     
-    PBAudio.mainThread = GetCurrentThread();
+    PBAudio.mainThread   = GetCurrentThread();
     PBAudio.mainThreadID = GetCurrentThreadId();
 
 #elif defined(__APPLE__) && TARGET_OS_OSX
@@ -445,11 +443,6 @@ void InitPlatform()
 void ExitHandler(void)
 {
     fprintf(stderr, "Exiting via Exit Handler...\n");
-
-    //TO DO: PbAudio Cleanup
-    //TO DO: CMidi Cleanup
-
-    //CMidiThruCleanup();
     
     //pause for leak tracking
     //fscanf(stdin, "c");
@@ -490,8 +483,6 @@ int StartPlatformEventLoop(int argc, const char * argv[])
     }
 
 #endif
-
-    //TO DO: PBAudio + CMidi Cleanup();
 
     //i feel like there was a reason i'm returning 0 on Win32 but -1 below...
     return 0;
@@ -534,11 +525,11 @@ int StartPlatformEventLoop(int argc, const char * argv[])
 
 void PBAudioInit(void)
 {
-    //Process and Thread Handles
     PBAStreamFormat desiredStreamFormat;
     memset(&desiredStreamFormat, 0, sizeof(desiredStreamFormat));
 
-    //Example:  Configure a custom client format...
+    //Example: Configure a custom client format if desired...
+    //In practice, better to just initialize with the format dicated by the selected device + driver
 #ifdef defined(_WIN32)                     //WAVEFORMATEXTENSIBLE
     desiredStreamFormat.wFormatTag         = WAVE_FORMAT_PCM;
     desiredStreamFormat.nChannels          = 2;
@@ -559,6 +550,7 @@ void PBAudioInit(void)
 #endif
     
     //A stream must first be initialized in order to know the system sample rate setting of the device if a compatible format isn't requested explicitly
+    //API Note: PBAudio creates multithreaded apartment w/ ConInitializeEx(NULL, ...)
     PBAudio.Init(&PBAudio.OutputStreams[0], NULL, kAudioObjectUnknown, SamplerOutputPass);
 
 #ifdef PBA_INPUT_ENABLED
@@ -570,9 +562,7 @@ void PBAudioInit(void)
 #endif
 
     //build path to source audio file
-    const char* home = RESOURCE_HOME ? getenv(RESOURCE_HOME) : "\0";
-    char   audioFileURL[256] = "\0";
-
+    const char* home = RESOURCE_HOME ? getenv(RESOURCE_HOME) : "\0"; char   audioFileURL[256] = "\0";
     static const char* TEST_FILE = RESOURCE_DIR "/AudioAssets/Test/FLAC/subset/28 - high resolution audio, default settings.flac";
 
     strcpy(audioFileURL, home);
@@ -590,9 +580,9 @@ void PBAudioInit(void)
     //PBAudioRegisterDeviceListeners(&g_notificationClient, NULL);
 }
 
-void CRCleanup(void)
+void TerminatePlatformEventLoop(void)
 {
-    fprintf(stderr, "\nCRCleanup!\n");
+    fprintf(stderr, "\nTerminatePlatformEventLoop!\n");
     
     //NOTE: This method should ONLY be called AFTER Message window render/control threads and wait for them to shut down
     //TerminateDisplaySyncProcess(cr_displaySyncProcess); //if there was no display sync process this does nothing
@@ -698,6 +688,12 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
 {
     fprintf(stdout, "\nPBAudioEventLoop");
 
+    //Initialize [single threaded] COM apartment for interfacing with Vendor ASIO Drivers
+    //So [Pb]Audio can create a stream against a hardware driver
+#ifdef _WIN32
+    PBAudioDriverInitCOM();
+#endif
+
     //Get input event queue
     PBAKernelQueueType eventQueue = (PBAKernelQueueType)opaqueQueue;
 
@@ -777,7 +773,16 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
                     uint8_t paramValue = message->data128.sysex8.data[5];
 
                     //TO DO:  Read the exclusive bytes to determine which sysex command to execute
-                    if(commandID == pba_stream_change_outputpass) PBAudio.OutputStreams[streamID].outputpass = OutputPass[paramID];
+                    if (commandID == pba_stream_reset) PBAudioStreamReset(&PBAudio.OutputStreams[streamID]);
+               else if (commandID == pba_stream_change_output_device)
+                    {
+                        PBAudioDeviceList deviceList = PBAudioAvailableDevices(kAudioObjectPropertyScopeOutput);
+                        PBAudio.SetOutputDevice(&PBAudio.OutputStreams[streamID], deviceList.devices[deviceID]);
+                    }
+               else if (commandID == pba_stream_change_output_driver) PBAudioStreamSetOutputDriver(&PBAudio.OutputStreams[streamID], (int8_t)deviceID);
+               else if (commandID == pba_stream_change_output_pass)   PBAudio.OutputStreams[streamID].outputpass = OutputPass[paramID];
+                   
+
 
                     break;
 
@@ -792,22 +797,32 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
 
     }
 
-    //Stop all streams
-    PBAudio.Stop(&PBAudio.OutputStreams[0]);
+    //for all active streams... stop all streams
+    if( PBAudio.OutputStreams[0].audioClient || PBAudio.OutputStreams[0].driver ) PBAudio.Stop(&PBAudio.OutputStreams[0]);
     
+    //TO DO: wait for all audio stream threads to message that they have finished!
+    
+
     //Cleanup PBAudio + CMidi
     SamplePlayerDestroy(&samplePlayer);
     ToneGeneratorDestroy(&toneGenerator);
-
-    CRCleanup();
     
 #ifdef _WIN32
 
-    // let's play nice and return any message sent by windows
+    //cleanup driver list and uninit com
+    PBAudioDriverReleaseCOM();
+
+    // play nice and return any message sent by windows
     //return (int)msg.wParam;
+
 #else
 
 #endif
+
+    //to stop the simulation and end the application, 
+    //send a message to the platform run loop instructing it to terminate
+    TerminatePlatformEventLoop();
+
     return 0;
 }
 
@@ -842,27 +857,30 @@ void StartAudioMessageEventLoop(void)
 
     /***
      * Start receiving audio stream buffer callbacks issued on a corresponding real-time audio thread
-     * Darwin: the system provides the client access to a real-time audio thread of elevated priority [via a callback]
-     * Win32:  the client is responsible for creating the real-time audio thread of elevated priority
      *
-     * In both cases, the system provides the buffers that are consumed from the real-time audio thread
+     * Drawin [CoreAudio]: the system provides the client access to a real-time audio thread of elevated priority [via a callback]
+     * Win32  [WASAPI]:    the client is responsible for creating the real-time audio thread of elevated priority
+     * Vendor [ASIO]:      the COM driver provides the client access to a real-time audio thread of elevated priority [via a callback]
+     *
+     * In cases except ASIO, the system/driver provides the [output channel] buffers that are consumed from the real-time audio thread
+     * In  the case of ASIO, userspace [input/output channel] buffers are initialized and registered with the COM driver
      ***/
 #if defined(__APPLE__)
     PBAudio.Start(&PBAudio.OutputStreams[0]);
 #else
-     _beginthreadex(NULL, 0, (_beginthreadex_proc_type)PBAudio.Start, &PBAudio.OutputStreams[0], 0, &(PBAudio.OutputStreams[0].audioThreadID));
+    _beginthreadex(NULL, 0, (_beginthreadex_proc_type)PBAudio.Start, &PBAudio.OutputStreams[0], 0, &(PBAudio.OutputStreams[0].audioThreadID));
 #endif
 
-     /***
-      * PBAudioEventLoop responsibilities include:
-      *
-      *      --Receiving events from the NSApplication run loop and/or external process and forwarding them to the appropriate PBAudio thread/queue as necessary
-      *      --Sending events and notifications back to Cocoa/Vanilla if needed
-      *      --Managing the PBAudio C-Land 'Engine' State
-      ***/
+    /***
+    * PBAudioEventLoop responsibilities include:
+    *
+    *      --Receiving events from the NSApplication run loop and/or external process and forwarding them to the appropriate PBAudio thread/queue as necessary
+    *      --Sending events and notifications back to Cocoa/Vanilla if needed
+    *      --Managing the PBAudio C-Land 'Engine' State
+    ***/
 
-      //Standalone Engine Process Option: Launch Event Loop on Current Thread that will serve as the Main Event Loop in [Pb]Audio C-Land
-      //PBAudioEventLoop((void*)PBAudio.eventQueue.kq);
+    //Standalone Engine Process Option: Launch Event Loop on Current Thread that will serve as the Main Event Loop in [Pb]Audio C-Land
+    //PBAudioEventLoop((void*)PBAudio.eventQueue.kq);
 
 #ifdef PBA_TARGET_WIN32
 
@@ -892,15 +910,15 @@ void StartAudioMessageEventLoop(void)
 
     //Thread Pool Option:  Launch a concurrent thread pool that will serve as the Main Event Loop in [Pb]Audio C-Land
     /*
-     dispatch_queue_attr_t attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT, QOS_CLASS_USER_INTERACTIVE, 0);
-     dispatch_queue_t queue     = dispatch_queue_create(kPBAMainEventQueue, attr);
-    
-     //a neat feature of GCD is that it exposes a hash dictionary for each dispatch_queue_t
-     //making GCD a great candidate for cross-platform threading across all platforms
-     //for( int viewIndex = 0; viewIndex < NUM_VIEWS; viewIndex++) dispatch_queue_set_specific(glView[viewIndex].controlThread, (void*)(glView[viewIndex].window), &(glView[viewIndex]), NULL);
-     //glView[viewIndex].controlQueue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
+        dispatch_queue_attr_t attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT, QOS_CLASS_USER_INTERACTIVE, 0);
+        dispatch_queue_t queue     = dispatch_queue_create(kPBAMainEventQueue, attr);
+      
+        //a neat feature of GCD is that it exposes a hash dictionary for each dispatch_queue_t
+        //making GCD a great candidate for cross-platform threading across all platforms
+        //for( int viewIndex = 0; viewIndex < NUM_VIEWS; viewIndex++) dispatch_queue_set_specific(glView[viewIndex].controlThread, (void*)(glView[viewIndex].window), &(glView[viewIndex]), NULL);
+        //glView[viewIndex].controlQueue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
 
-     dispatch_async(queue, ^{ PBAudioEventLoop((void*)PBAudio.eventQueue.kq); });
+        dispatch_async(queue, ^{ PBAudioEventLoop((void*)PBAudio.eventQueue.kq); });
     */
     
 #endif   
@@ -922,6 +940,7 @@ void StartAudioMessageEventLoop(void)
 #endif
 
     //Load functions from DLL + initialize a CMidi client
+    //API Note: CMidi.dll creates a PBAudio compatible multithreaded apartment w/ winrt::init_apartment();
     CMidi.Init(CM_CLIENT_OWNER_ID, CMidiNotifyBlock, CMidiReceiveBlock, NULL);
 
 }
@@ -954,7 +973,6 @@ int main(int argc, const char * argv[]) {
      *     Start Kernel Level Display Sync Event Thread/Process that posts update events to a kqueue
      *     so that all threads may register to listen on the queue to respond to display sync events from a single source
      ***/
-    //StartDisplaySyncThread();
     /*
     CreateDisplaySyncMessageQueue();
 #if !defined(PBA_TARGET_IOS) && !defined(PBA_TARGET_TVOS)
@@ -997,7 +1015,7 @@ int main(int argc, const char * argv[]) {
      ***/
     
     /***
-     *  5.1  Launch Core Render C-Land Application Event Loop
+     *  5.1  Launch [Pb]Audio C-Land Application Event Loop
      *
      *  Launch a dedicated thread that will act as arbiter for our [Pb]Audio Application<->Process Domain
      *  Responsibilities include:

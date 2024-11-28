@@ -244,7 +244,10 @@ typedef enum pba_sysex_event_type
     pba_stream_init,
     pba_stream_start,
     pba_stream_stop,
-    pba_stream_change_outputpass,
+    pba_stream_reset,
+    pba_stream_change_output_device,
+    pba_stream_change_output_driver,
+    pba_stream_change_output_pass
 }pba_sysex_event_type;
 
 

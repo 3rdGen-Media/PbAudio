@@ -233,8 +233,9 @@ auto UniversalMessagePacketHandler(CMClientContext* midiClient, CMConnection* co
                 // 32-bit messages derive from. There are also MidiUmp64/96/128 classes.
                 auto ump32 = ump.as<MidiMessage32>();
 
+#ifdef _DEBUG
                 std::cout << "- Word 0:            0x" << std::hex << ump32.Word0() << std::endl;
-
+#endif
                 //Populate a MIDIEventList
                 MIDIEventPacket packet    = { ump32.Timestamp(), 1, ump32.Word0() };
                 MIDIEventList   eventList = { kMIDIProtocol_1_0, 1, packet        };

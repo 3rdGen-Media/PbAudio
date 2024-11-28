@@ -58,7 +58,12 @@ public:
     HRESULT Initialize();
     void RunMessageLoop();
 
+    //Update Methods
+    int  UpdateDriverModeList();  //doesn't strictly need to be public...
     int  UpdateOutputDeviceList();
+    void UpdateChannelFilterView();
+    int  UpdateSampleRateList();
+    int  UpdateBufferSizeList();
 
     //void Midi() { return m_midi };
 
@@ -93,13 +98,16 @@ private:
     void CreateMidiInputLabel();
     void CreateMidiInputFilterView();
 
-    int  UpdateDriverModeList();
-    int  UpdateSampleRateList();
-    int  UpdateBufferSizeList();
+    //int  UpdateDriverModeList();
+    //int  UpdateOutputDeviceList();
+    //int  UpdateSampleRateList();
+    //int  UpdateBufferSizeList();
 
     void buttonToggledAtIndex(int index, HWND sender, bool state, struct CMClientDriver * midi);
     void comboBoxSelectedAtIndex(HWND sender, int selectedIndex, TCHAR* name);
+    void comboBoxClicked(HWND sender);
 
+    void testButtonClicked();
 
 private:
     HWND                   m_hwnd;

@@ -81,6 +81,12 @@
     <ClInclude Include="..\include\xnz\xnz_flac_codec.h">
       <Filter>xnz</Filter>
     </ClInclude>
+    <ClInclude Include="[Pb]Audio\pba_asio_ext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="[Pb]Audio\PbAudioDriver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="[Pb]Audio\PbAudioAPI.c">
@@ -114,6 +120,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="[Pb]Audio\PbAudioRenderPass.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="[Pb]Audio\pba_asio_ext.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="[Pb]Audio\PbAudioDriver.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

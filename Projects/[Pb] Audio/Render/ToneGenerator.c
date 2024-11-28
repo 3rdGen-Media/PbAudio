@@ -59,6 +59,7 @@ void CALLBACK ToneGeneratorRenderPass(struct PBABufferList * ioData, uint32_t fr
         
     ToneGenerator * generator = (ToneGenerator*)source;
     
+
     float * fBufferL = (float*)ioData->mBuffers[0].mData;
     float * fBufferR = (float*)ioData->mBuffers[1].mData;
 
@@ -82,11 +83,7 @@ void CALLBACK ToneGeneratorRenderPass(struct PBABufferList * ioData, uint32_t fr
     static float position = 0.f;
 
     //TO DO: how to detect interleaved formats or prevent them
-#ifdef WIN32
-    bool interleaved = true;
-#else
-    bool interleaved = false;
-#endif
+    bool interleaved = target < 4;
     
     typedef union FourByteSample
     {
@@ -97,6 +94,8 @@ void CALLBACK ToneGeneratorRenderPass(struct PBABufferList * ioData, uint32_t fr
 
     FourByteSample bSample;
 
+    //TO DO:  fill the entire buffer with samples
+    //then use pba_transform on the entire buffer
     for ( int i=0; i<frames; i++ )
     {
         //float * fBufferL = (float*)ioData->mBuffers[0].mData;
@@ -126,8 +125,8 @@ void CALLBACK ToneGeneratorRenderPass(struct PBABufferList * ioData, uint32_t fr
         //iSampleR[2] = bSample.bytes[3];
         */
         
-        //if( interleaved ) fBufferL[i*2] = fBufferL[i*2+1] = fSample;
-        fBufferL[i]   = fBufferR[i]     = fSample;
+        if( interleaved ) fBufferL[i*2] = fBufferL[i*2+1] = fSample;
+        else              fBufferL[i]   = fBufferR[i]     = fSample;
     }
 
 //#ifdef DEBUG
@@ -160,7 +159,7 @@ void ToneGeneratorInit(ToneGenerator* source, float freq, float sampleRate)
     
     source->SineWave.length = sampleRate*3.f;
     double currentSampleRate = PBAudio.OutputStreams[0].currentSampleRate;
-    GenerateSineSamplesFloat(&source->SineWave.buffer, source->SineWave.length, freq, nSineBufferChannels, currentSampleRate, 0.25f, NULL);
+    //GenerateSineSamplesFloat(&source->SineWave.buffer, source->SineWave.length, freq, nSineBufferChannels, currentSampleRate, 0.25f, NULL);
     ToneGeneratorSetFrequency(source, freq, sampleRate);
 }
 

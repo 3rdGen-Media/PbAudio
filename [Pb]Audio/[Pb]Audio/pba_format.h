@@ -184,7 +184,11 @@ PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_s32i_f32i(void** srcBuffers, voi
 //PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s16(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
 //PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f24i_s24i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
 //PB_AUDIO_API PB_AUDIO_INLINE pba_transform_s16_s24_padded(void* srcBuffer, void* dstBuffer, uint64_t nFrames);
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_s32i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
 PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_f32i(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
+//PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_s16(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
+//PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_s24(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames)
+PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_s32(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
 PB_AUDIO_API PB_AUDIO_INLINE void pba_transform_f32i_f32(void** srcBuffers, void** dstBuffers, uint64_t nBufferChannels, uint64_t nFrames);
 
 //32 bit float non-interleaved source conversions
@@ -207,7 +211,7 @@ static PBATransformFunc pb_audio_transform[SampleTypeUnknown][SampleTypeUnknown]
     {NULL, NULL, NULL, pba_transform_s32i_f32i,  NULL, NULL, NULL, NULL},
 
     //32 bit float interleaved source conversions
-    {NULL, NULL, NULL, pba_transform_f32i_f32i,  NULL, NULL, NULL, pba_transform_f32i_f32},
+    {NULL, NULL, pba_transform_f32i_s32i, pba_transform_f32i_f32i,  NULL, NULL, pba_transform_f32i_s32, pba_transform_f32i_f32},
     
     //16 bit non-interleaved source conversions
     {NULL, NULL, NULL, NULL,  NULL, NULL, NULL, NULL},

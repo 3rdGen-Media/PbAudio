@@ -323,16 +323,19 @@ typedef struct pba_control_event
 typedef enum pba_resource_event_type
 {
     pba_resource_nan,
-    pba_resoure_load_mesh,
-    pba_resource_load_mesh_list,
+    pba_resource_load_source,
+    pba_resource_load_source_list,
     pba_resource_event_type_max
 }pba_resource_event_type;
 
 typedef struct pba_resource_event
 {
-    uint64_t                event_time; //the time the event was issued
-    void*                   rglrc;      //the graphics context/queue to load
-    void*                   resource;   //the graphics context/queue to load
+#ifdef _WIN32
+    OVERLAPPED              Overlapped;
+#endif
+    uint64_t                 event_time; //the time the event was issued
+    void*                    halrc;      //the HAL stream render context/queue to load
+    void*                    resource;   //the graphics context/queue to load
     PBAKernelQueueType       kq;         //the queue to dispatch to on async event completion
     pba_resource_event_type  type;
 }pba_resource_event;

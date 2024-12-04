@@ -323,6 +323,7 @@ long PBAudioDriverFormat(long sampleType)
 			break;
 	}
 }
+
 ASIOTime* PBAudioDriverSwapBufferTimeInfo(ASIOTime* timeInfo, long index, ASIOBool processNow)
 {	
 	// the actual processing callback.
@@ -358,31 +359,58 @@ ASIOTime* PBAudioDriverSwapBufferTimeInfo(ASIOTime* timeInfo, long index, ASIOBo
 	if (timeInfo->timeCode.flags & kTcValid)			 tcSamples   = ASIO64toDouble(timeInfo->timeCode.timeCodeSamples);
 	else												 tcSamples   = 0;
 
-	// get the system reference time
-	sysRefTime = get_sys_reference_time();
 
-#if WINDOWS && _DEBUG
+#if 0 //_DEBUG
+	
+	// get the system reference time
+	//sysRefTime = get_sys_reference_time();
+
 	// a few debug messages for the Windows device driver developer
 	// tells you the time when driver got its interrupt and the delay until the app receives
 	// the event notification.
-	static double last_samples = 0;
-	
-	if (samples - last_samples == 0) return;
+	static double last_samples = 0; if (samples - last_samples == 0) assert(1==0);
+
 	//char tmp[128];
 	//sprintf(tmp, "diff: %d / %d ms / %d ms / %d samples                 \n", sysRefTime - (long)(nanoSeconds / 1000000.0), sysRefTime, (long)(nanoSeconds / 1000000.0), (long)(samples - last_samples));
 	//OutputDebugStringA(tmp);
 
 	last_samples = samples;
+
 #endif
 
 	// buffer size in samples
 	long buffSize = stream->bufferFrameCount;
 
-	// perform the processing
-	for (int i = 0; i < stream->nInputChannels + stream->nOutputChannels; i++)
+	/*
+	static HANDLE hTask = NULL;
+	static DWORD taskIndex = 0;
+	HANDLE thread = GetCurrentThread();
+
+	//Elevate to 'Pro Audio' Thread Priority
+	if (GetThreadPriority(thread) != THREAD_PRIORITY_TIME_CRITICAL)
 	{
-		if (bufferInfos[i].isInput == false)
+		SetThreadPriority(thread, THREAD_PRIORITY_TIME_CRITICAL);
+
+		// Ask MMCSS to temporarily boost the thread priority
+		// to reduce glitches while the low-latency stream plays.
+		taskIndex = 0;
+		hTask = AvSetMmThreadCharacteristics(TEXT("Pro Audio"), &taskIndex);
+		if (hTask == NULL)
 		{
+			HRESULT hr = E_FAIL; fprintf(stderr, "**** AvSetMmThreadCharacteristics (Pro Audio) failed!\n");
+			assert(1 == 0);
+			return -1;
+		}
+	}
+	*/
+
+
+	// perform the processing
+	for (int i = stream->nInputChannels; i < stream->nInputChannels + stream->nOutputChannels; i++)
+	{
+		//if (bufferInfos[i].isInput == false)
+		{
+			/*
 			// OK do processing for the outputs only
 			switch (channelInfos[i].type)
 			{
@@ -436,6 +464,9 @@ ASIOTime* PBAudioDriverSwapBufferTimeInfo(ASIOTime* timeInfo, long index, ASIOBo
 				memset(bufferInfos[i].buffers[index], 0, buffSize * 4);
 				break;
 			}
+			*/
+
+			memset(bufferInfos[i].buffers[index], 0, buffSize * 4);
 		}
 	}
 
@@ -445,9 +476,9 @@ ASIOTime* PBAudioDriverSwapBufferTimeInfo(ASIOTime* timeInfo, long index, ASIOBo
 		stream->driverThreadID = GetCurrentThreadId();
 
 		//Configure Output Buffers for Renderpass(es)
-		PBABuffer outBufferL = { 1, stream->format.wBitsPerSample / 8, bufferInfos[stream->nInputChannels].buffers[index] };
-		PBABuffer outBufferR = { 1, stream->format.wBitsPerSample / 8, bufferInfos[stream->nInputChannels + 1].buffers[index] };
-		PBABuffer outBuffers[2] = { outBufferL, outBufferR };
+		PBABuffer outBufferL     = { 1, stream->format.wBitsPerSample / 8, bufferInfos[stream->nInputChannels].buffers[index] };
+		PBABuffer outBufferR     = { 1, stream->format.wBitsPerSample / 8, bufferInfos[stream->nInputChannels + 1].buffers[index] };
+		PBABuffer outBuffers[2]  = { outBufferL, outBufferR };
 		PBABufferList bufferList = { 2, outBuffers };
 
 		// Clearing the output buffer is critical for DSP routines unless such routines inherently overwrite the buffer

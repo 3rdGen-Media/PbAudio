@@ -799,11 +799,11 @@ XNZ_AIF_API XNZ_AIF_INLINE void xnz_flac_parse_metadata_blocks(XNZ_FLAC_ARCHIVE*
         blockType   =  sharedByte & 0x7F;
         blockLength = (xnz_bitstream_read_bits(&bs, 8) << 16) | (xnz_bitstream_read_bits(&bs, 8) << 8)  | xnz_bitstream_read_bits(&bs, 8);
 
-        fprintf(stdout, "\n");
-        fprintf(stdout, "METADATA_BLOCK_HEADER::lastFlag     = %d\n", lastFlag);
-        fprintf(stdout, "METADATA_BLOCK_HEADER::blockType    = %d\n", blockType);
-        fprintf(stdout, "METADATA_BLOCK_HEADER::blockLength  = %u\n", blockLength);
-        fprintf(stdout, "\n");
+        //fprintf(stdout, "\n");
+        //fprintf(stdout, "METADATA_BLOCK_HEADER::lastFlag     = %d\n", lastFlag);
+        //fprintf(stdout, "METADATA_BLOCK_HEADER::blockType    = %d\n", blockType);
+        //fprintf(stdout, "METADATA_BLOCK_HEADER::blockLength  = %u\n", blockLength);
+        //fprintf(stdout, "\n");
         
         METADATA_OFFSET += METADATA_BLOCK_HEADER_SIZE;
 
@@ -838,7 +838,7 @@ XNZ_FLAC_API XNZ_FLAC_INLINE void xnz_flac_open(XNZ_FLAC_ARCHIVE* archive, const
         archive->file.size = cr_file_size(archive->file.fd);
         archive->file.path = (char*)filepath;
 
-        fprintf(stderr, "\nxnz_flac_open::AIF File Size =  %lu bytes\n", archive->file.size);
+        fprintf(stderr, "\nxnz_flac_open::FLAC File Size =  %lu bytes\n", archive->file.size);
 
         //2 MAP THE FILE TO BUFFER FOR READING
 #ifndef _WIN32
@@ -1311,7 +1311,7 @@ XNZ_FLAC_API XNZ_FLAC_INLINE uint64_t xnz_flac_decode_lpc_subframe_samples(XNZ_F
         //convert to signed int based on bit precision (positive term + negative term)
         coefficients[c] =  (int_pcm)(coefficients[c] & ((1<<precision)-1)) - (int_pcm)((coefficients[c] >> (precision-1)) * (1<<precision));
         
-        fprintf(stdout, "\ncoefficients[%d] = %d", c, coefficients[c]);
+        //fprintf(stdout, "\ncoefficients[%d] = %d", c, coefficients[c]);
     }
     
     //read CODED RESIDUAL
@@ -1374,7 +1374,8 @@ XNZ_FLAC_API XNZ_FLAC_INLINE uint64_t xnz_flac_decode_lpc_subframe_samples(XNZ_F
             v =  (int_pcm)(v & ((1<<nUnencodedBits)-1)) - (int_pcm)((v >> (nUnencodedBits-1)) * (1<<nUnencodedBits));
         }
         
-        //restore sample value from residual value and predictor coefficients of order n
+        //restore sample value from residual value and predictor 
+        // icients of order n
         // 1) derive the prediction for sample at i by summing (i-predictor order) coefficients * sample at (i-predictor order)
         // 2) shift the prediction and sum with the residual value
         for (i = 0; i < predictorOrder; i++) sourceSample += coefficients[i] * sourceSamples[i];
@@ -1579,8 +1580,8 @@ XNZ_FLAC_API XNZ_FLAC_INLINE uint64_t xnz_flac_decode_frame_samples(XNZ_FLAC_ARC
     uint8_t blockSizeID       = byte >> 4;
     uint8_t sampleRateID      = byte & 0x0F;
         
-    fprintf(stdout, "xnz_flac_read_samples::blockSizeID  = %d\n", blockSizeID);
-    fprintf(stdout, "xnz_flac_read_samples::sampleRateID = %d\n", sampleRateID);
+    //fprintf(stdout, "xnz_flac_read_samples::blockSizeID  = %d\n", blockSizeID);
+    //fprintf(stdout, "xnz_flac_read_samples::sampleRateID = %d\n", sampleRateID);
     
     frame->blockSize        = 192; //assert(blockSizeID > 0);
     frame->sampleRate       = archive->streaminfo.sampleRate;
@@ -1603,8 +1604,8 @@ XNZ_FLAC_API XNZ_FLAC_INLINE uint64_t xnz_flac_decode_frame_samples(XNZ_FLAC_ARC
     uint32_t channelID   =  byte >> 4;
     uint8_t sampleSizeID = (byte >> 1) & 0x07; assert(sampleSizeID !=3); //3 is reserved
     
-    fprintf(stdout, "xnz_flac_read_samples::channelID  = %d\n",   channelID);
-    fprintf(stdout, "xnz_flac_read_samples::sampleSizeID = %d\n", sampleSizeID);
+    //fprintf(stdout, "xnz_flac_read_samples::channelID  = %d\n",   channelID);
+    //fprintf(stdout, "xnz_flac_read_samples::sampleSizeID = %d\n", sampleSizeID);
     
     frame->nChannels    = archive->streaminfo.nChannels;
     frame->sampleSize   = archive->streaminfo.bitsPerSample;
@@ -1684,10 +1685,10 @@ XNZ_FLAC_API XNZ_FLAC_INLINE uint64_t xnz_flac_decode_frame_samples(XNZ_FLAC_ARC
     //CRC-8: Frame Header CRC
     uint8_t crc8          = rbyte(xnz_bitstream_read_octet_bits(bs, 8));
     
-    fprintf(stdout, "xnz_flac_read_samples::blockSize  = %d\n", frame->blockSize);
-    fprintf(stdout, "xnz_flac_read_samples::sampleRate = %d\n", frame->sampleRate);
-    fprintf(stdout, "xnz_flac_read_samples::nChannels  = %d\n", frame->nChannels);
-    fprintf(stdout, "xnz_flac_read_samples::sampleSize = %d\n", frame->sampleSize);
+    //fprintf(stdout, "xnz_flac_read_samples::blockSize  = %d\n", frame->blockSize);
+    //fprintf(stdout, "xnz_flac_read_samples::sampleRate = %d\n", frame->sampleRate);
+    //fprintf(stdout, "xnz_flac_read_samples::nChannels  = %d\n", frame->nChannels);
+    //fprintf(stdout, "xnz_flac_read_samples::sampleSize = %d\n", frame->sampleSize);
 
     assert(bs->position % 8 == 0);
     //assert(bs->position/8 == 6 + nVariableBytes);

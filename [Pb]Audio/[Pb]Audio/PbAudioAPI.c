@@ -725,30 +725,9 @@ OSStatus PBAudioStreamStart(PBAStreamContext * streamContext)
     if(!streamContext->driver) return PBAudioStreamStart(streamContext);
 
     // kill this thread and its resources (CRT allocates them)
+    //AvRevertMmThreadCharacteristics(hTask);
     _endthreadex(0);
 
-    //Cleanup Motherfucker!
-    //TO DO: revert thread priority?
-    //TO DO: What else?
-    //TO DO: Can this code ever be reached?
-
-    /*
-    if (clientStream->hEvent != NULL)
-    {
-        CloseHandle(clientStream->hEvent);
-    }
-
-    if (hTask != NULL)
-    {
-        AvRevertMmThreadCharacteristics(hTask);
-    }
-
-    //CoTaskMemFree(pwfx);
-    PBA_COM_RELEASE(_PBADeviceEnumerator)
-    PBA_COM_RELEASE(clientStream->audioDevice)
-    PBA_COM_RELEASE(clientStream->audioClient)C
-    PBA_COM_RELEASE(clientStream->renderClient)
-    */
 #endif
 
 

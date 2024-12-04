@@ -11,14 +11,14 @@ extern "C" {
 #ifdef _WIN32  //IF WIN32
 
 #define NOMINMAX
-    //#define NTDDI_VERSION WDK_NTDDI_VERSION
-    //#define _WIN32_WINNT _WIN32_WINNT_WIN10 
+//#define NTDDI_VERSION WDK_NTDDI_VERSION
+//#define _WIN32_WINNT _WIN32_WINNT_WIN10 
 
-    // standard definitions
+// standard definitions
 #define STRICT                                                  // enable strict type-checking of Windows handles
 #define WIN32_LEAN_AND_MEAN                                     // allow the exclusion of uncommon features
-//#define WINVER                                          _WIN32_WINNT_WIN10  // allow the use of Windows XP specific features
-//#define _WIN32_WINNT                                    _WIN32_WINNT_WIN10  // allow the use of Windows XP specific features
+//#define WINVER                            _WIN32_WINNT_WIN10  // allow the use of Windows XP specific features
+//#define _WIN32_WINNT                      _WIN32_WINNT_WIN10  // allow the use of Windows XP specific features
 #define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES         1       // use the new secure functions in the CRT
 #define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT   1       // use the new secure functions in the CRT
 
@@ -49,7 +49,6 @@ extern "C" {
 #elif PRAGMA_ALIGN_SUPPORTED
 #pragma options align = native
 #endif
-
 
 #pragma mark -- ASIO Sys
 
@@ -524,10 +523,6 @@ enum
 //---------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------
 
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-// (De-)Construction
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-
 typedef struct ASIODriverInfo
 {
 	long asioVersion;		// currently, 2
@@ -556,10 +551,6 @@ typedef struct ASIOChannelInfo
 	ASIOSampleType type;	// dto
 	char name[32];			// dto
 } ASIOChannelInfo;
-
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-// Buffer preparation
-//- - - - - - - - - - - - - - - - - - - - - - - - -
 
 typedef struct ASIOBufferInfo
 {
@@ -591,12 +582,12 @@ enum
 	//	DSD support
 	//	The following extensions are required to allow switching
 	//	and control of the DSD subsystem.
-	kAsioSetIoFormat = 0x23111961,		/* ASIOIoFormat * in params.			*/
-	kAsioGetIoFormat = 0x23111983,		/* ASIOIoFormat * in params.			*/
-	kAsioCanDoIoFormat = 0x23112004,		/* ASIOIoFormat * in params.			*/
+	kAsioSetIoFormat = 0x23111961,		/* ASIOIoFormat * in params. */
+	kAsioGetIoFormat = 0x23111983,		/* ASIOIoFormat * in params. */
+	kAsioCanDoIoFormat = 0x23112004,	/* ASIOIoFormat * in params. */
 
 	// Extension for drop out detection
-	kAsioCanReportOverload = 0x24042012,	/* return ASE_SUCCESS if driver can detect and report overloads */
+	kAsioCanReportOverload = 0x24042012,		/* return ASE_SUCCESS if driver can detect and report overloads */
 
 	kAsioGetInternalBufferSamples = 0x25042012	/* ASIOInternalBufferInfo * in params. Deliver size of driver internal buffering, return ASE_SUCCESS if supported */
 };
@@ -705,36 +696,6 @@ typedef struct ASIOInternalBufferInfo
 typedef interface IASIO IASIO;
 #endif 	/* __ASIODRIVER_FWD_DEFINED__ */
 
-/*
-interface IASIO : public IUnknown
-{
-
-	virtual ASIOBool init(void *sysHandle) = 0;
-	virtual void getDriverName(char *name) = 0;
-	virtual long getDriverVersion() = 0;
-	virtual void getErrorMessage(char *string) = 0;
-	virtual ASIOError start() = 0;
-	virtual ASIOError stop() = 0;
-	virtual ASIOError getChannels(long *numInputChannels, long *numOutputChannels) = 0;
-	virtual ASIOError getLatencies(long *inputLatency, long *outputLatency) = 0;
-	virtual ASIOError getBufferSize(long *minSize, long *maxSize,
-		long *preferredSize, long *granularity) = 0;
-	virtual ASIOError canSampleRate(ASIOSampleRate sampleRate) = 0;
-	virtual ASIOError getSampleRate(ASIOSampleRate *sampleRate) = 0;
-	virtual ASIOError setSampleRate(ASIOSampleRate sampleRate) = 0;
-	virtual ASIOError getClockSources(ASIOClockSource *clocks, long *numSources) = 0;
-	virtual ASIOError setClockSource(long reference) = 0;
-	virtual ASIOError getSamplePosition(ASIOSamples *sPos, ASIOTimeStamp *tStamp) = 0;
-	virtual ASIOError getChannelInfo(ASIOChannelInfo *info) = 0;
-	virtual ASIOError createBuffers(ASIOBufferInfo *bufferInfos, long numChannels,
-		long bufferSize, ASIOCallbacks *callbacks) = 0;
-	virtual ASIOError disposeBuffers() = 0;
-	virtual ASIOError controlPanel() = 0;
-	virtual ASIOError future(long selector,void *opt) = 0;
-	virtual ASIOError outputReady() = 0;
-};
-*/
-
 typedef struct IASIOVtbl
 {
 	IUnknownVtbl Base;
@@ -769,43 +730,6 @@ typedef struct IASIOVtbl
     STDMETHOD_(ASIOError, future)(IASIO* This, long selector, void* opt) PURE;
     STDMETHOD_(ASIOError, outputReady)(IASIO* This) PURE;
 
-
-    /*
-    STDMETHOD_(D2D1_SIZE_U, GetPixelSize)(
-        ID2D1Bitmap* This
-        ) PURE;
-
-    STDMETHOD_(D2D1_PIXEL_FORMAT, GetPixelFormat)(
-        ID2D1Bitmap* This
-        ) PURE;
-
-    STDMETHOD_(void, GetDpi)(
-        ID2D1Bitmap* This,
-        _Out_ FLOAT* dpiX,
-        _Out_ FLOAT* dpiY
-        ) PURE;
-
-    STDMETHOD(CopyFromBitmap)(
-        ID2D1Bitmap* This,
-        _In_opt_ CONST D2D1_POINT_2U* destPoint,
-        _In_ ID2D1Bitmap* bitmap,
-        _In_opt_ CONST D2D1_RECT_U* srcRect
-        ) PURE;
-
-    STDMETHOD(CopyFromRenderTarget)(
-        ID2D1Bitmap* This,
-        _In_opt_ CONST D2D1_POINT_2U* destPoint,
-        _In_ ID2D1RenderTarget* renderTarget,
-        _In_opt_ CONST D2D1_RECT_U* srcRect
-        ) PURE;
-
-    STDMETHOD(CopyFromMemory)(
-        ID2D1Bitmap* This,
-        _In_opt_ CONST D2D1_RECT_U* dstRect,
-        _In_ CONST void* srcData,
-        UINT32 pitch
-        ) PURE;
-    */
 } IASIOVtbl;
 
 interface IASIO { CONST struct IASIOVtbl* lpVtbl; };
@@ -819,12 +743,10 @@ interface IASIO { CONST struct IASIOVtbl* lpVtbl; };
 #define IASIO_Release(This) \
     ((This)->lpVtbl->Base.Release((IUnknown *)This))
 
-#define IASIO_GetChannels(This, numInputChannels, numOutputChannels) \
-    ((This)->lpVtbl->getChannels(numInputChannels, numOutputChannels))
+//Example:
+//#define IASIO_GetChannels(This, numInputChannels, numOutputChannels) \
+//    ((This)->lpVtbl->getChannels(numInputChannels, numOutputChannels))
 
-
-//global 
-extern IASIO* theAsioDriver;
 
 
 #pragma mark -- ASIO Driver List
@@ -866,19 +788,9 @@ LONG asio_get_driver_name(int drvID, char* drvname, int drvnamesize);
 
 //int asio_get_current_driver_name(char* name);
 long asio_get_driver_names(char** names, long maxDrivers);
-
-
-//int asio_load_driver(char* name);
 //void asio_remove_current_driver(void);
 
-
 #pragma mark -- ASIO.cpp
-
-//#include "windows.h"
-//#include "iasiodrv.h"
-//#include "asiodrivers.h"
-
-//extern IASIO* theAsioDriver;
 
 ASIOError asio_init(IASIO* driver, ASIODriverInfo* info);
 ASIOError asio_shutdown(void** driverRef, int* driverID);

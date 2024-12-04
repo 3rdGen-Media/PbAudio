@@ -2,17 +2,9 @@
 //#include "../PbAudio.h"
 #include "pba_asio_ext.h"
 
-
 #pragma mark -- ASIO.cpp
 
-//#include "windows.h"
-//#include "iasiodrv.h"
-//#include "asiodrivers.h"
-
-//IASIO* theAsioDriver = 0;
-//extern AsioDrivers* asioDrivers;
-
-
+//Eliminated
 
 #pragma mark -- ASIO Driver List
 
@@ -123,7 +115,8 @@ static void deleteDrvStruct (LPASIODRVSTRUCT lpdrv)
 {
 	IASIO	*iasio;
 
-	if (lpdrv != 0) {
+	if (lpdrv != 0) 
+	{
 		deleteDrvStruct(lpdrv->next);
 		if (lpdrv->asiodrv) {
 			iasio = (IASIO *)lpdrv->asiodrv;
@@ -133,10 +126,10 @@ static void deleteDrvStruct (LPASIODRVSTRUCT lpdrv)
 	}
 }
 
-
 static LPASIODRVSTRUCT getDrvStruct (int drvID,LPASIODRVSTRUCT lpdrv)
 {
-	while (lpdrv) {
+	while (lpdrv)
+	{
 		if (lpdrv->drvID == drvID) return lpdrv;
 		lpdrv = lpdrv->next;
 	}
@@ -150,7 +143,6 @@ static LPASIODRVSTRUCT getDrvStruct (int drvID,LPASIODRVSTRUCT lpdrv)
 // protected members
 LPASIODRVSTRUCT	lpdrvlist;
 int				numdrv;
-
 
 void asio_init_driver_list()
 {
@@ -264,18 +256,11 @@ LONG asio_get_driver_name(int drvID, char* drvname, int drvnamesize)
 }
 
 
-
 #pragma mark -- ASIO Drivers
 
 // ******************************************************************
 //	AsioDrivers "Class"
 // ******************************************************************
-
-//#include <stdio.h>
-//#include <string.h>
-//#include "asiosys.h"
-//#include "asio.h"
-//#include "asiodrivers.h"
 
 //protected members
 unsigned long connID = 0; //i don't know what this is used for
@@ -331,7 +316,6 @@ int asio_load_driver(char* name)
 	return 0;
 }
 */
-
 
 #pragma mark -- ASIO .cpp
 
@@ -516,7 +500,6 @@ ASIOError asio_dispose_buffers(IASIO* driver)
 	if (!driver) return ASE_NotPresent;
 	return CALL(disposeBuffers, driver);
 }
-
 
 
 ASIOError asio_control_panel(IASIO* driver)

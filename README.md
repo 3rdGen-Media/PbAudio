@@ -13,7 +13,7 @@
 * Plug-in Support for DAW Integration (<s>AAX</s>, <a href="https://github.com/3rdGen-Media/PbAudio/blob/master/Projects/%5BPb%5D%20Audio/Render/PBAudioUnit.m">AudioUnit</a>, <s>CLAP</s>, <s>VST</s>)
 * Graphics Pipeline/Vertical Retrace Synchronization
 
-### Spacial Audio System
+### Spatial Audio System
 
 (In Development)
 

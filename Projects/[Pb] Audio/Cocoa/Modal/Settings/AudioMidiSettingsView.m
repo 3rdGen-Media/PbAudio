@@ -813,7 +813,7 @@ Float64 HardcodedSampleRates[3] = {44100., 48000., 96000.};
     //message->data128.sysex8.data[0]  = 0x42;                           //eg Korg
     message->data128.sysex8.data[1]    = 0;                              //midi 1.0 sysex stream id
     //message->data128.sysex8.data[2]  = 0;                              //midi 1.0 systex audio device id
-    message->data128.sysex8.data[3]    = pba_stream_change_outputpass;   //midi 1.0 sysex command id
+    message->data128.sysex8.data[3]    = pba_stream_change_output_pass;   //midi 1.0 sysex command id
     message->data128.sysex8.data[4]    = TestOutputPassID;               //midi 1.0 sysex param id
     message->data128.sysex8.data[5]    = 0;                              //midi 1.0 sysex param value
 

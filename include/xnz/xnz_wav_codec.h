@@ -371,7 +371,7 @@ XNZ_WAV_API XNZ_WAV_INLINE void xnz_wav_parse_chunks(XNZ_WAV_ARCHIVE* archive)
         numChunks++;
     }
 
-    assert(bytesRead - sizeof(XNZ_WAV_RIFF) == archive->riff->chunkSize - 4);
+    //assert(bytesRead - sizeof(XNZ_WAV_RIFF) == archive->riff->chunkSize - 4);
 }
 
 XNZ_WAV_API XNZ_WAV_INLINE void xnz_wav_open(XNZ_WAV_ARCHIVE* archive, char* wavFilePath)

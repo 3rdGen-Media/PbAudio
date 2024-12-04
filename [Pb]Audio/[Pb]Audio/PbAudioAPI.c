@@ -222,7 +222,6 @@ OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * f
     streamContext->outputpass     = outputpass; //set the master render callback for the device stream
     streamContext->respectDefault = false;      //Enable for apps that want to use the system selected default audio device at all times
 
-    streamContext->driverID  = -1; //no active vendor driver assigned
     streamContext->iChannels = streamContext->oChannels = 0; //channels enabled matrix
     
 
@@ -364,6 +363,8 @@ OSStatus PBAudioStreamInit(PBAStreamContext * streamContext, PBAStreamFormat * f
     //Initalize COM and allocate a Device Enumerator object
     //So [Pb]Audio can create a stream against a hardware device
     PBAudioDeviceInitCOM();
+
+    streamContext->driverID  = -1; //no active vendor driver assigned
 
     //assume any device has at least 2 output channels
     //(these values will be updated after the stream has been configured depending on the active driver mode)

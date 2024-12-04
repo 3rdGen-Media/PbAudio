@@ -779,7 +779,9 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
                         PBAudioDeviceList deviceList = PBAudioAvailableDevices(kAudioObjectPropertyScopeOutput);
                         PBAudio.SetOutputDevice(&PBAudio.OutputStreams[streamID], deviceList.devices[deviceID]);
                     }
+#ifndef __APPLE__
                else if (commandID == pba_stream_change_output_driver) PBAudioStreamSetOutputDriver(&PBAudio.OutputStreams[streamID], (int8_t)deviceID);
+#endif
                else if (commandID == pba_stream_change_output_pass)   PBAudio.OutputStreams[streamID].outputpass = OutputPass[paramID];
                    
 
@@ -798,7 +800,11 @@ static unsigned PBAudioEventLoop(void* opaqueQueue)
     }
 
     //for all active streams... stop all streams
+#ifndef __APPLE__
     if( PBAudio.OutputStreams[0].audioClient || PBAudio.OutputStreams[0].driver ) PBAudio.Stop(&PBAudio.OutputStreams[0]);
+#else
+    if( PBAudio.OutputStreams[0].audioUnit ) PBAudio.Stop(&PBAudio.OutputStreams[0]);
+#endif
     
     //TO DO: wait for all audio stream threads to message that they have finished!
     
